@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const Login = () => {
+const AdministrationLogin = () => {
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [isUsernameEntered, setIsUsernameEntered] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -68,13 +68,13 @@ const Login = () => {
         />
         <div className="flex justify-center items-center flex-col gap-5">
           <h1 className="font-semibold text-center text-3xl md:text-4xl">
-            Sign in with College Account
+            Administration Login
           </h1>
           <p className="md:w-1/3 text-center text-sm md:text-base ">
             Please enter your college email address to sign in. Your email
             should be in the following format: <br />
-            <strong>collegeid@heraldcollege.edu.np</strong> <br />
-            For example: <strong>np03cs4a220001@heraldcollege.edu.np</strong>
+            <strong>firstname.lastname@heraldcollege.edu.np</strong> <br />
+            For example: <strong>John.Doe@heraldcollege.edu.np</strong>
           </p>
           <form
             onSubmit={isUsernameEntered ? handleSubmit : handleUsernameSubmit}
@@ -130,4 +130,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default AdministrationLogin;
