@@ -27,9 +27,37 @@ const Login = () => {
     setTimeout(validateUsername, 1500);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("http://localhost:3000/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: formData.username,
+          password: formData.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Successfully logged in
+        console.log(data.message); // Can redirect to another page or show a success message
+      } else {
+        // Invalid credentials
+        setErrorMessage(data.message);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setErrorMessage("There was an error logging in.");
+    }
+
+    setIsLoading(false);
   };
 
   return (
