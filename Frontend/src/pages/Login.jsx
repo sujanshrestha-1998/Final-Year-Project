@@ -8,26 +8,23 @@ const Login = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+    setFormData((prevData) => ({ ...prevData, [name]: value }));
+  };
+
+  const validateUsername = () => {
+    if (formData.username.endsWith("@heraldcollege.edu.np")) {
+      setIsUsernameEntered(true);
+      setErrorMessage("");
+    } else {
+      setErrorMessage("Invalid email address. Use a Herald College email.");
+    }
+    setIsLoading(false);
   };
 
   const handleUsernameSubmit = (e) => {
     e.preventDefault();
-
     setIsLoading(true);
-
-    setTimeout(() => {
-      if (formData.username.endsWith("@heraldcollege.edu.np")) {
-        setIsUsernameEntered(true);
-        setErrorMessage("");
-      } else {
-        setErrorMessage("Invalid email address. Use a Herald College email.");
-      }
-      setIsLoading(false);
-    }, 1500);
+    setTimeout(validateUsername, 1500);
   };
 
   const handleSubmit = (e) => {
@@ -68,34 +65,31 @@ const Login = () => {
                 required
                 className="w-96 p-3 text-sm border bg-white rounded-[8px] shadow-sm placeholder-black"
               />
-
               {isLoading && (
-                <div className="absolute right-4 w-6 h-6 border-2 border-gray-400 border-solid rounded-full animate-spin mr-1"></div>
+                <div className="absolute right-4 w-6 h-6 border-2 border-gray-400 border-solid rounded-full animate-spin"></div>
               )}
             </div>
 
             {errorMessage && (
-              <div className="text-red-500 text-sm mt-2 mx-auto text-center">
+              <div className="text-red-500 text-sm mt-2 text-center">
                 {errorMessage}
               </div>
             )}
 
             {isUsernameEntered && !isLoading && (
-              <div>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="Password"
-                  className="w-96 p-3 text-sm border bg-white rounded-[8px] shadow-sm placeholder-black"
-                />
-              </div>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                required
+                placeholder="Password"
+                className="w-96 p-3 text-sm border bg-white rounded-[8px] shadow-sm placeholder-black"
+              />
             )}
 
-            <div className="flex justify-center">
+            <div className="flex justify-center mt-4">
               <button
                 type="submit"
                 className="px-6 py-1 bg-blue-500 text-white rounded-[8px] hover:bg-blue-600 focus:outline-none"
