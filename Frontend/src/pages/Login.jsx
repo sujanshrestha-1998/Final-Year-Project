@@ -34,17 +34,17 @@ const Login = () => {
 
   return (
     <div className="h-full flex justify-center items-center">
-      <div className="mt-4">
+      <div className="mt-28 md:mt-4">
         <img
           src="/src/assets/login-banner.png"
           alt="HCK Logo"
-          className="mx-auto mb-6 w-2/4"
+          className="mx-auto mb-6 md:w-2/4"
         />
         <div className="flex justify-center items-center flex-col gap-5">
-          <h1 className="font-semibold text-4xl">
+          <h1 className="font-semibold text-center text-3xl md:text-4xl">
             Sign in with College Account
           </h1>
-          <p className="w-1/3 text-center">
+          <p className="md:w-1/3 text-center text-sm md:text-base ">
             Please enter your college email address to sign in. Your email
             should be in the following format: <br />
             <strong>username@heraldcollege.edu.np</strong> <br />
@@ -63,7 +63,7 @@ const Login = () => {
                 onChange={handleInputChange}
                 placeholder="Username"
                 required
-                className="w-96 p-3 text-sm border bg-white rounded-[8px] shadow-sm placeholder-black"
+                className="w-72 md:w-96 p-3 text-sm border bg-white rounded-[8px] shadow-sm placeholder-black"
               />
               {isLoading && (
                 <div className="absolute right-4 w-6 h-6 border-2 border-gray-400 border-solid rounded-full animate-spin"></div>
@@ -71,7 +71,7 @@ const Login = () => {
             </div>
 
             {errorMessage && (
-              <div className="text-red-500 text-sm mt-2 text-center">
+              <div className="text-red-500 text-sm mt-2 text-center w-64 mx-auto md:w-full">
                 {errorMessage}
               </div>
             )}
@@ -85,7 +85,7 @@ const Login = () => {
                 onChange={handleInputChange}
                 required
                 placeholder="Password"
-                className="w-96 p-3 text-sm border bg-white rounded-[8px] shadow-sm placeholder-black"
+                className="w-72 md:w-96 p-3 text-sm border bg-white rounded-[8px] shadow-sm placeholder-black"
               />
             )}
 
