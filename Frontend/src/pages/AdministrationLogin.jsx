@@ -1,10 +1,13 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const AdministrationLogin = () => {
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [isUsernameEntered, setIsUsernameEntered] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -32,7 +35,7 @@ const AdministrationLogin = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3000/api/login", {
+      const response = await fetch("http://localhost:3000/api/rtelogin", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -47,6 +50,13 @@ const AdministrationLogin = () => {
 
       if (response.ok) {
         console.log(data.message);
+
+        // Save login state and timestamp in localStorage
+        localStorage.setItem("isAuthenticated", "true");
+        localStorage.setItem("loginTimestamp", Date.now().toString());
+
+        // Redirect to dashboard
+        navigate("/dashboard");
       } else {
         setErrorMessage(data.message);
       }
@@ -70,7 +80,7 @@ const AdministrationLogin = () => {
           <h1 className="font-semibold text-center text-3xl md:text-4xl">
             Administration Login
           </h1>
-          <p className="md:w-1/3 text-center text-sm md:text-base ">
+          <p className="md:w-1/3 text-center text-sm md:text-base">
             Please enter your college email address to sign in. Your email
             should be in the following format: <br />
             <strong>firstname.lastname@heraldcollege.edu.np</strong> <br />
