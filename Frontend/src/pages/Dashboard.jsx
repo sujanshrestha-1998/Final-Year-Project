@@ -1,7 +1,14 @@
 import React from "react";
+import DashboardMenu from "../components/DashboardMenu";
 
 const Dashboard = () => {
-  return <div>Dashboard</div>;
+  return (
+    <div>
+      <div className="w-full h-10">
+        <DashboardMenu />
+      </div>
+    </div>
+  );
 };
 
 export default Dashboard;
