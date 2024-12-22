@@ -9,7 +9,6 @@ const PORT = 3000;
 app.use(cors());
 app.use(bodyParser.json());
 
-// Use the routes from the routes folder
 app.use("/api", authRoutes);
 
 app.listen(PORT, () => {

@@ -19,7 +19,6 @@ connection.connect((err) => {
   console.log("Connected to the MySQL database!");
 });
 
-// Student Login
 router.post("/login", (req, res) => {
   const { username, password } = req.body;
 

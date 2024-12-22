@@ -13,12 +13,15 @@ const DashboardMenu = () => {
             className="w-44 h-auto"
           />
           <div className="flex gap-6 mt-4">
-            <button className="bg-transparent text-lg ">Classroom</button>
-            <button className="text-lg text-gray-500 bg-transparent ">
-              Teachers
+            <button className="bg-transparent text-lg font-semibold ">
+              CLASSROOM
             </button>
-            <button className="text-lg text-gray-500 bg-transparent ">
-              Schedule
+            <button className="text-lg bg-transparent font-semibold ">
+              TEACHERS
+            </button>
+            <button className="text-lg  bg-transparent font-semibold ">
+              {" "}
+              YOUR SCHEDULE
             </button>
           </div>
           <div className="bg-gray-300 h-8 flex items-center p-2 w-96 rounded-md gap-2 mt-4">
@@ -31,10 +34,10 @@ const DashboardMenu = () => {
           </div>
         </div>
 
-        <div className="flex items-center p-10 gap-2">
+        <div className="flex items-center p-10 gap-6">
           <IoMdNotifications className="text-4xl" />
-          <div className="flex items-center">
-            <img src="/src/assets/Profile.png" alt="" className="w-16 h-auto" />
+          <div className="flex items-center gap-2">
+            <img src="/src/assets/Profile.png" alt="" className="w-12 h-auto" />
             <div>
               <h1 className="font-semibold">Sujan Shrestha</h1>
               <p className="text-sm text-gray-500 font-medium">RTE Officer</p>
