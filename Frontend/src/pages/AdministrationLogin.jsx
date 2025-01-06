@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const AdministrationLogin = () => {
-  const [formData, setFormData] = useState({ username: "", password: "" });
-  const [isUsernameEntered, setIsUsernameEntered] = useState(false);
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [isEmailEntered, setIsEmailEntered] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -14,9 +14,9 @@ const AdministrationLogin = () => {
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
-  const validateUsername = () => {
-    if (formData.username.endsWith("@heraldcollege.edu.np")) {
-      setIsUsernameEntered(true);
+  const validateEmail = () => {
+    if (formData.email.endsWith("@heraldcollege.edu.np")) {
+      setIsEmailEntered(true);
       setErrorMessage("");
     } else {
       setErrorMessage("Invalid email address. Use a Herald College email.");
@@ -24,10 +24,10 @@ const AdministrationLogin = () => {
     setIsLoading(false);
   };
 
-  const handleUsernameSubmit = (e) => {
+  const handleEmailSubmit = (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(validateUsername, 1500);
+    setTimeout(validateEmail, 1500);
   };
 
   const handleSubmit = async (e) => {
@@ -41,7 +41,7 @@ const AdministrationLogin = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username: formData.username,
+          email: formData.email,
           password: formData.password,
         }),
       });
@@ -87,17 +87,17 @@ const AdministrationLogin = () => {
             For example: <strong>John.Doe@heraldcollege.edu.np</strong>
           </p>
           <form
-            onSubmit={isUsernameEntered ? handleSubmit : handleUsernameSubmit}
+            onSubmit={isEmailEntered ? handleSubmit : handleEmailSubmit}
             className="space-y-4"
           >
             <div className="flex items-center relative">
               <input
-                type="text"
-                id="username"
-                name="username"
-                value={formData.username}
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
                 onChange={handleInputChange}
-                placeholder="Username"
+                placeholder="Email"
                 required
                 className="w-72 md:w-96 p-3 text-sm border bg-white rounded-[8px] shadow-sm placeholder-black"
               />
@@ -106,7 +106,7 @@ const AdministrationLogin = () => {
               )}
             </div>
 
-            {isUsernameEntered && !isLoading && (
+            {isEmailEntered && !isLoading && (
               <input
                 type="password"
                 id="password"

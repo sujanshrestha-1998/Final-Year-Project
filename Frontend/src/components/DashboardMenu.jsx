@@ -1,8 +1,12 @@
 import React from "react";
 import { IoSearch } from "react-icons/io5";
 import { IoMdNotifications } from "react-icons/io";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const DashboardMenu = () => {
+  const navigate = useNavigate(); // Hook for navigation
+  const location = useLocation(); // Hook to get current location
+
   return (
     <div>
       <div className="flex justify-between items-center">
@@ -13,15 +17,45 @@ const DashboardMenu = () => {
             className="w-44 h-auto"
           />
           <div className="flex gap-6 mt-4">
-            <button className="bg-transparent text-lg font-semibold ">
+            <button
+              className={`text-lg font-semibold ${
+                location.pathname === "/dashboard"
+                  ? "text-blue-500"
+                  : "text-gray-700"
+              }`}
+              onClick={() => navigate("/dashboard")} // Navigate to /dashboard
+            >
               CLASSROOM
             </button>
-            <button className="text-lg bg-transparent font-semibold ">
+            <button
+              className={`text-lg font-semibold ${
+                location.pathname === "/teachers"
+                  ? "text-blue-500"
+                  : "text-gray-700"
+              }`}
+              onClick={() => navigate("/teachers")} // Navigate to /teachers
+            >
               TEACHERS
             </button>
-            <button className="text-lg  bg-transparent font-semibold ">
-              {" "}
-              YOUR SCHEDULE
+            <button
+              className={`text-lg font-semibold ${
+                location.pathname === "/students"
+                  ? "text-blue-500"
+                  : "text-gray-700"
+              }`}
+              onClick={() => navigate("/students")} // Navigate to /students
+            >
+              STUDENTS
+            </button>
+            <button
+              className={`text-lg font-semibold ${
+                location.pathname === "/schedule"
+                  ? "text-blue-500"
+                  : "text-gray-700"
+              }`}
+              onClick={() => navigate("/schedule")} // Navigate to /schedule
+            >
+              SCHEDULE
             </button>
           </div>
           <div className="bg-gray-300 h-8 flex items-center p-2 w-96 rounded-md gap-2 mt-4">
