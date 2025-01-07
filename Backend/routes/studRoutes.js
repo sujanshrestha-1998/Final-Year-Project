@@ -228,7 +228,7 @@ router.get("/search_students", (req, res) => {
 
 router.put("/update_students", (req, res) => {
   const {
-    stud_id, // Student ID (foreign key for users table)
+    stud_id,
     first_name,
     last_name,
     grade_level,
@@ -237,41 +237,45 @@ router.put("/update_students", (req, res) => {
     enrollment_date,
   } = req.body;
 
-  if (
-    !stud_id ||
-    !first_name ||
-    !last_name ||
-    !grade_level ||
-    !stud_group ||
-    !date_of_birth ||
-    !enrollment_date
-  ) {
-    return res.status(400).json({ message: "All fields are required" });
+  if (!stud_id) {
+    return res.status(400).json({ message: "Student ID is required" });
   }
 
-  // Update student details in the 'students' table
-  const updateStudentQuery = `
-    UPDATE students
-    SET 
-      first_name = ?, 
-      last_name = ?, 
-      grade_level = ?, 
-      stud_group = ?, 
-      date_of_birth = ?, 
-      enrollment_date = ?
-    WHERE stud_id = ?
-  `;
-  const updateStudentValues = [
-    first_name,
-    last_name,
-    grade_level,
-    stud_group,
-    date_of_birth,
-    enrollment_date,
-    stud_id,
-  ];
+  // Prepare dynamic SQL query
+  let updateStudentQuery = "UPDATE students SET ";
+  let updateValues = [];
 
-  connection.query(updateStudentQuery, updateStudentValues, (err, results) => {
+  if (first_name) {
+    updateStudentQuery += "first_name = ?, ";
+    updateValues.push(first_name);
+  }
+  if (last_name) {
+    updateStudentQuery += "last_name = ?, ";
+    updateValues.push(last_name);
+  }
+  if (grade_level) {
+    updateStudentQuery += "grade_level = ?, ";
+    updateValues.push(grade_level);
+  }
+  if (stud_group) {
+    updateStudentQuery += "stud_group = ?, ";
+    updateValues.push(stud_group);
+  }
+  if (date_of_birth) {
+    updateStudentQuery += "date_of_birth = ?, ";
+    updateValues.push(date_of_birth);
+  }
+  if (enrollment_date) {
+    updateStudentQuery += "enrollment_date = ?, ";
+    updateValues.push(enrollment_date);
+  }
+
+  // Remove trailing comma and add the condition
+  updateStudentQuery = updateStudentQuery.slice(0, -2); // Remove last comma
+  updateStudentQuery += " WHERE stud_id = ?";
+  updateValues.push(stud_id);
+
+  connection.query(updateStudentQuery, updateValues, (err, results) => {
     if (err) {
       console.error("Error updating student details:", err);
       return res
@@ -283,9 +287,8 @@ router.put("/update_students", (req, res) => {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    // If the update is successful
     return res.status(200).json({
-      message: "Student details updated successfully",
+      message: "Student updated successfully",
     });
   });
 });

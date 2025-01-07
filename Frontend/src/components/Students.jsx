@@ -7,17 +7,17 @@ import { useNavigate } from "react-router-dom";
 import { HiOutlineChevronUpDown } from "react-icons/hi2";
 
 // SkeletonLoader Component
-const SkeletonLoader = () => {
-  return (
-    <div className="bg-white p-6 w-1/2 rounded-2xl shadow-lg animate-pulse space-y-4">
-      <div className="h-6 bg-gray-300 rounded w-3/4"></div>
-      <div className="h-4 bg-gray-300 rounded w-1/2"></div>
-      <div className="h-6 bg-gray-300 rounded w-4/5"></div>
-      <div className="h-4 bg-gray-300 rounded w-1/3"></div>
-      <div className="h-6 bg-gray-300 rounded w-2/4"></div>
-    </div>
-  );
-};
+// const SkeletonLoader = () => {
+//   return (
+//     <div className="bg-white p-6 w-1/2 rounded-2xl shadow-lg animate-pulse space-y-4">
+//       <div className="h-6 bg-gray-300 rounded w-3/4"></div>
+//       <div className="h-4 bg-gray-300 rounded w-1/2"></div>
+//       <div className="h-6 bg-gray-300 rounded w-4/5"></div>
+//       <div className="h-4 bg-gray-300 rounded w-1/3"></div>
+//       <div className="h-6 bg-gray-300 rounded w-2/4"></div>
+//     </div>
+//   );
+// };
 
 // StudentList Component
 const StudentList = ({ students, selectedStudent, onStudentClick }) => {
@@ -66,31 +66,21 @@ const StudentDetails = ({
   onSave,
   onEditClick,
 }) => {
-  const [isLoadingEdit, setIsLoadingEdit] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [isDetailsLoading, setIsDetailsLoading] = useState(false);
-  const [course, setCourse] = useState(""); // Selected course
 
-  useEffect(() => {
-    if (selectedStudent) {
-      setIsDetailsLoading(true);
-      setTimeout(() => {
-        setIsDetailsLoading(false);
-      }, 500);
-    }
-  }, [selectedStudent]);
+  // Trigger loading state only when selected student changes
+  // useEffect(() => {
+  //   if (selectedStudent) {
+  //     setIsDetailsLoading(true);
+  //     const timer = setTimeout(() => {
+  //       setIsDetailsLoading(false);
+  //     }, 500); // Skeleton duration
+
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [selectedStudent]);
 
   if (!selectedStudent) return <p>Select a student to view details</p>;
-
-  const customFields = [
-    { label: "Student Name", fields: ["first_name", "last_name"] },
-    { label: "Email", field: "student_email" },
-    { label: "Student ID", field: "stud_id" },
-    { label: "Semester", field: "grade_level" },
-    { label: "Group", field: "stud_group" },
-    { label: "Date of Birth", field: "date_of_birth" },
-    { label: "Enrolled Date", field: "enrollment_date" },
-  ];
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -101,46 +91,12 @@ const StudentDetails = ({
     });
   };
 
-  const handleEditClick = () => {
-    setIsLoadingEdit(true);
-    setTimeout(() => {
-      setIsLoadingEdit(false);
-      onEditClick();
-    }, 1000);
-  };
-
-  const handleSubmitClick = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      onSave();
-    }, 1000);
-  };
-
-  const handleCancelClick = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      onCancel();
-    }, 1000);
-  };
-
   return (
     <div className="relative">
-      {isLoadingEdit && (
-        <div className="absolute w-1/2 rounded-xl inset-0 flex items-center justify-center bg-white bg-opacity-50 z-10">
-          <div className="loader w-12 h-12 border-4 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
-        </div>
-      )}
-      {isLoading && (
-        <div className="absolute w-2/4 rounded-xl inset-0 flex items-center justify-center bg-white bg-opacity-50 z-10">
-          <div className="loader w-12 h-12 border-4 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
-        </div>
-      )}
-
-      {isDetailsLoading ? (
+      {/* {isDetailsLoading ? (
         <SkeletonLoader />
-      ) : isEditing ? (
+      ) : */}
+      {isEditing ? (
         // Editing Mode
         <div className="p-5 w-2/4 bg-white rounded-xl shadow-sm">
           <h2 className="text-lg font-semibold mb-4 text-gray-800">
@@ -153,27 +109,33 @@ const StudentDetails = ({
                 Personal Information
               </legend>
               <div className="flex flex-wrap gap-4 ml-2">
-                <div className="">
+                <div>
                   <p className="mb-2">First Name</p>
                   <input
                     type="text"
+                    name="first_name"
                     value={selectedStudent.first_name}
+                    onChange={onChange}
                     className="w-60 p-3 text-sm border bg-white rounded-[8px] shadow-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
-                <div className="gap-1">
+                <div>
                   <p className="mb-2">Last Name</p>
                   <input
                     type="text"
+                    name="last_name"
                     value={selectedStudent.last_name}
+                    onChange={onChange}
                     className="w-60 p-3 text-sm border bg-white rounded-[8px] shadow-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
-                <div className="gap-1">
+                <div>
                   <p className="mb-2">Date of Birth</p>
                   <input
                     type="text"
+                    name="date_of_birth"
                     value={selectedStudent.date_of_birth}
+                    onChange={onChange}
                     className="w-60 p-3 text-sm border bg-white rounded-[8px] shadow-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -185,62 +147,38 @@ const StudentDetails = ({
                 College Information
               </legend>
               <div className="flex flex-wrap gap-4">
-                <div className="">
+                <div>
                   <p className="mb-2">Email Address</p>
                   <input
                     type="text"
+                    name="student_email"
                     value={selectedStudent.student_email}
+                    onChange={onChange}
                     className="w-80 p-3 text-sm border bg-white rounded-[8px] shadow-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
-                <div className="gap-1">
+                <div>
                   <p className="mb-2">Student ID</p>
                   <input
                     type="text"
+                    name="stud_id"
                     value={selectedStudent.stud_id}
+                    onChange={onChange}
                     className="w-40 p-3 text-sm border bg-white rounded-[8px] shadow-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                </div>
-                <div className="relative w-full">
-                  <select
-                    id="course"
-                    name="course"
-                    value={course}
-                    onChange={(e) => setCourse(e.target.value)}
-                    required
-                    className="w-full p-1 pr-8 text-sm border bg-white rounded-[8px] shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
-                  >
-                    <option value="Business Administration">
-                      Bsc (Hons) Business Administration
-                    </option>
-                    <option value="Information Technology">
-                      Bsc (Hons) Computer Science
-                    </option>
-                    <option value="Engineering">
-                      Bsc (Hons) CyberSecurity
-                    </option>
-                  </select>
-
-                  {/* Add the icon at the end of the dropdown
-                  <div className="absolute right-2 top-2 pointer-events-none bg-white">
-                    <HiOutlineChevronUpDown
-                      size={20}
-                      className="text-white h-3 w-4 bg-blue-500 rounded-lg"
-                    />
-                  </div> */}
                 </div>
               </div>
             </fieldset>
           </form>
-          <div className="flex justify-end gap-2 mt-4 ">
+          <div className="flex justify-end gap-2 mt-4">
             <button
-              onClick={handleCancelClick}
-              className="px-4 py-1 text-white bg-gray-500 rounded-md "
+              onClick={onCancel}
+              className="px-4 py-1 text-white bg-gray-500 rounded-md"
             >
               Cancel
             </button>
             <button
-              onClick={handleSubmitClick}
+              onClick={onSave}
               className="px-4 py-1 text-white bg-blue-500 rounded-md"
             >
               Save Changes
@@ -254,7 +192,7 @@ const StudentDetails = ({
             <h2 className="text-lg font-semibold text-gray-800">
               Student Details
             </h2>
-            <button onClick={handleEditClick} className="text-blue-500">
+            <button onClick={onEditClick} className="text-blue-500">
               Edit
             </button>
           </div>
@@ -299,6 +237,7 @@ const Students = () => {
   const [students, setStudents] = useState([]);
   const [error, setError] = useState("");
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [originalStudent, setOriginalStudent] = useState(null); // For tracking original values
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -310,8 +249,8 @@ const Students = () => {
           "http://localhost:3000/api/stud_details"
         );
         setStudents(response.data.students);
-        setError(""); // Clear any previous errors
-        // Get the selected student from localStorage (if available)
+        setError("");
+
         const savedSelectedStudentId =
           localStorage.getItem("selectedStudentId");
         if (savedSelectedStudentId) {
@@ -320,12 +259,15 @@ const Students = () => {
           );
           if (savedStudent) {
             setSelectedStudent(savedStudent);
+            setOriginalStudent({ ...savedStudent }); // Set original data
           }
         } else if (response.data.students.length > 0) {
-          setSelectedStudent(response.data.students[0]);
+          const firstStudent = response.data.students[0];
+          setSelectedStudent(firstStudent);
+          setOriginalStudent({ ...firstStudent }); // Set original data
         }
       } catch (err) {
-        console.error("Error fetching student details:", err); // Log full error for debugging
+        console.error("Error fetching student details:", err);
         setError(
           "Error fetching student details. " +
             (err.response ? err.response.data : err.message)
@@ -340,7 +282,8 @@ const Students = () => {
   // Handle student click (select a student)
   const handleStudentClick = (student) => {
     setSelectedStudent(student);
-    localStorage.setItem("selectedStudentId", student.stud_id); // Save selected student to localStorage
+    setOriginalStudent({ ...student }); // Save original data
+    localStorage.setItem("selectedStudentId", student.stud_id);
     setIsEditing(false); // Set to view mode by default
   };
 
@@ -359,13 +302,43 @@ const Students = () => {
 
   // Handle cancel edit
   const handleCancel = () => {
+    setSelectedStudent({ ...originalStudent }); // Revert changes
     setIsEditing(false);
   };
 
   // Handle save changes
-  const handleSave = () => {
-    // Save logic here
-    setIsEditing(false);
+  const handleSave = async () => {
+    const updatedData = {};
+
+    // Compare originalStudent and selectedStudent
+    for (let key in originalStudent) {
+      if (selectedStudent[key] !== originalStudent[key]) {
+        updatedData[key] = selectedStudent[key];
+      }
+    }
+
+    // No changes detected
+    if (Object.keys(updatedData).length === 0) {
+      alert("No changes to save.");
+      return;
+    }
+
+    updatedData.stud_id = selectedStudent.stud_id;
+
+    try {
+      const response = await axios.put(
+        "http://localhost:3000/api/update_students",
+        updatedData
+      );
+
+      if (response.status === 200) {
+        setOriginalStudent({ ...selectedStudent }); // Update original data to reflect changes
+        setIsEditing(false); // Switch back to view mode
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error("Error updating student:", error);
+    }
   };
 
   // Handle register button click
@@ -378,9 +351,9 @@ const Students = () => {
   };
 
   return (
-    <div className="bg-[#f2f1f1] w-screen h-screen ">
+    <div className="bg-[#f2f1f1] w-screen h-screen">
       <div className="mx-8">
-        <div className="flex items-center gap-2 ">
+        <div className="flex items-center gap-2">
           <h1 className="text-2xl font-bold">STUDENT DETAILS</h1>
           <IoMdInformationCircleOutline className="text-2xl" />
         </div>
@@ -388,6 +361,7 @@ const Students = () => {
         {error && <p className="text-red-600 font-bold">{error}</p>}
 
         <div className="flex w-full gap-20">
+          {/* Student List Section */}
           <div className="w-2/5">
             {students.length > 0 ? (
               <div className="mt-6">
@@ -421,14 +395,16 @@ const Students = () => {
 
           {/* Details Section */}
           <div className="w-full">
-            <StudentDetails
-              selectedStudent={selectedStudent}
-              isEditing={isEditing}
-              onChange={handleChange}
-              onCancel={handleCancel}
-              onSave={handleSave}
-              onEditClick={handleEditClick}
-            />
+            {selectedStudent && (
+              <StudentDetails
+                selectedStudent={selectedStudent}
+                isEditing={isEditing}
+                onChange={handleChange}
+                onCancel={handleCancel}
+                onSave={handleSave}
+                onEditClick={handleEditClick}
+              />
+            )}
           </div>
         </div>
       </div>
