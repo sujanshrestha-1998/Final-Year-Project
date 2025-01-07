@@ -198,4 +198,32 @@ router.post("/stud_post", (req, res) => {
   });
 });
 
+router.get("/search_students", (req, res) => {
+  const { query } = req.query; // Get the search query from the request
+
+  if (!query) {
+    return res.status(400).json({ message: "Search query is required" });
+  }
+
+  const searchQuery = `
+    SELECT s.stud_id, s.first_name, s.last_name, s.grade_level, s.stud_group, s.enrollment_date, s.date_of_birth, u.email AS student_email
+    FROM students s
+    JOIN users u ON s.stud_id = u.id
+    WHERE s.first_name LIKE ? OR s.last_name LIKE ? OR u.email LIKE ?
+  `;
+  const searchValues = [`%${query}%`, `%${query}%`, `%${query}%`];
+
+  connection.query(searchQuery, searchValues, (err, results) => {
+    if (err) {
+      console.error("Error searching for students:", err.message);
+      return res.status(500).json({ message: "Database error" });
+    }
+
+    return res.status(200).json({
+      message: results.length > 0 ? "Search results" : "No students found",
+      students: results,
+    });
+  });
+});
+
 module.exports = router;

@@ -5,10 +5,10 @@ import Classroom from "../components/Classroom";
 const Dashboard = () => {
   return (
     <div>
-      <div className="w-full h-10 ">
+      <div className="w-full h-10  ">
         <DashboardMenu />
       </div>
-      <div className="mx-8 my-24">
+      <div>
         <Classroom />
       </div>
     </div>

@@ -5,6 +5,6 @@
 @tailwind utilities;
 
 * {
-  background-color: #f2f1f1;
+  /* background-color: #f2f1f1; */
   font-family: "Inter", sans-serif;
 }

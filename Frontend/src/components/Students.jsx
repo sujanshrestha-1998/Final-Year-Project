@@ -225,43 +225,45 @@ const StudentDetails = ({
 
           {/* Displaying the student details with conditional styling */}
           <div className="bg-white">
-            <p className="bg-white text-3xl font-semibold">
+            <p className="bg-white text-2xl font-semibold">
               {selectedStudent.first_name} {selectedStudent.last_name}
             </p>
             <p className="bg-white text-gray-500">
               {selectedStudent.student_email}
             </p>
             <hr className="my-4" />
-            <p className="bg-white text-gray-500">
-              <strong className="text-black font-medium bg-white">
-                Student ID:{" "}
-              </strong>
-              {selectedStudent.stud_id}
-            </p>
-            <p className="bg-white text-gray-500">
-              <strong className="text-black font-medium bg-white">
-                Semester:{" "}
-              </strong>
-              {selectedStudent.grade_level}
-            </p>
-            <p className="bg-white text-gray-500">
-              <strong className="text-black font-medium bg-white">
-                Group:{" "}
-              </strong>
-              {selectedStudent.stud_group}
-            </p>
-            <p className="bg-white text-gray-500">
-              <strong className="text-black font-medium bg-white">
-                Date of Birth:{" "}
-              </strong>
-              {formatDate(selectedStudent.date_of_birth)}
-            </p>
-            <p className="bg-white text-gray-500">
-              <strong className="text-black font-medium bg-white">
-                Enrolled Date:{" "}
-              </strong>
-              {formatDate(selectedStudent.enrollment_date)}
-            </p>
+            <div className="text-[14px]">
+              <p className="bg-white text-gray-500">
+                <strong className="text-black font-medium bg-white">
+                  Student ID:{" "}
+                </strong>
+                {selectedStudent.stud_id}
+              </p>
+              <p className="bg-white text-gray-500">
+                <strong className="text-black font-medium bg-white">
+                  Semester:{" "}
+                </strong>
+                {selectedStudent.grade_level}
+              </p>
+              <p className="bg-white text-gray-500">
+                <strong className="text-black font-medium bg-white">
+                  Group:{" "}
+                </strong>
+                {selectedStudent.stud_group}
+              </p>
+              <p className="bg-white text-gray-500">
+                <strong className="text-black font-medium bg-white">
+                  Date of Birth:{" "}
+                </strong>
+                {formatDate(selectedStudent.date_of_birth)}
+              </p>
+              <p className="bg-white text-gray-500">
+                <strong className="text-black font-medium bg-white">
+                  Enrolled Date:{" "}
+                </strong>
+                {formatDate(selectedStudent.enrollment_date)}
+              </p>
+            </div>
           </div>
         </div>
       )}
@@ -349,56 +351,58 @@ const Students = () => {
   };
 
   return (
-    <div>
-      <div className="flex items-center gap-2">
-        <h1 className="text-2xl font-bold">STUDENT DETAILS</h1>
-        <IoMdInformationCircleOutline className="text-2xl" />
-      </div>
-
-      {error && <p className="text-red-600 font-bold">{error}</p>}
-
-      <div className="flex w-full gap-20">
-        <div className="w-2/5">
-          {students.length > 0 ? (
-            <div className="mt-6">
-              <h2 className="text-xl font-bold mb-4">All Students</h2>
-              <StudentList
-                students={students}
-                selectedStudent={selectedStudent}
-                onStudentClick={handleStudentClick}
-              />
-            </div>
-          ) : (
-            <p className="text-gray-600 mt-6">No students found</p>
-          )}
-
-          <div className="flex justify-center mt-10">
-            <button
-              onClick={handleRegisterClick}
-              className="bg-blue-500 rounded-[8px] px-6 py-1 flex justify-center font-medium items-center gap-2 text-white transform transition-all duration-300 "
-            >
-              {loading ? (
-                <div className="loader w-6 h-6 border-2 border-t-transparent bg-blue-500 border-white rounded-full animate-spin"></div>
-              ) : (
-                <>
-                  Register Students
-                  <FaRegAddressCard className="bg-blue-500 text-lg" />
-                </>
-              )}
-            </button>
-          </div>
+    <div className="bg-[#f2f1f1] w-screen h-screen ">
+      <div className="mx-8">
+        <div className="flex items-center gap-2 ">
+          <h1 className="text-2xl font-bold">STUDENT DETAILS</h1>
+          <IoMdInformationCircleOutline className="text-2xl" />
         </div>
 
-        {/* Details Section */}
-        <div className="w-full">
-          <StudentDetails
-            selectedStudent={selectedStudent}
-            isEditing={isEditing}
-            onChange={handleChange}
-            onCancel={handleCancel}
-            onSave={handleSave}
-            onEditClick={handleEditClick}
-          />
+        {error && <p className="text-red-600 font-bold">{error}</p>}
+
+        <div className="flex w-full gap-20">
+          <div className="w-2/5">
+            {students.length > 0 ? (
+              <div className="mt-6">
+                <h2 className="text-xl font-bold mb-4">All Students</h2>
+                <StudentList
+                  students={students}
+                  selectedStudent={selectedStudent}
+                  onStudentClick={handleStudentClick}
+                />
+              </div>
+            ) : (
+              <p className="text-gray-600 mt-6">No students found</p>
+            )}
+
+            <div className="flex justify-center mt-10">
+              <button
+                onClick={handleRegisterClick}
+                className="bg-blue-500 rounded-[8px] px-6 py-1 flex justify-center font-medium items-center gap-2 text-white transform transition-all duration-300 "
+              >
+                {loading ? (
+                  <div className="loader w-6 h-6 border-2 border-t-transparent bg-blue-500 border-white rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    Register Students
+                    <FaRegAddressCard className="bg-blue-500 text-lg" />
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Details Section */}
+          <div className="w-full">
+            <StudentDetails
+              selectedStudent={selectedStudent}
+              isEditing={isEditing}
+              onChange={handleChange}
+              onCancel={handleCancel}
+              onSave={handleSave}
+              onEditClick={handleEditClick}
+            />
+          </div>
         </div>
       </div>
     </div>
