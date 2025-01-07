@@ -2,6 +2,21 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { FiEdit } from "react-icons/fi";
+import { FaRegAddressCard } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+
+// SkeletonLoader Component
+const SkeletonLoader = () => {
+  return (
+    <div className="bg-white p-6 w-1/2 rounded-2xl shadow-lg animate-pulse space-y-4">
+      <div className="h-6 bg-gray-300 rounded w-3/4"></div>
+      <div className="h-4 bg-gray-300 rounded w-1/2"></div>
+      <div className="h-6 bg-gray-300 rounded w-4/5"></div>
+      <div className="h-4 bg-gray-300 rounded w-1/3"></div>
+      <div className="h-6 bg-gray-300 rounded w-2/4"></div>
+    </div>
+  );
+};
 
 // StudentList Component
 const StudentList = ({ students, selectedStudent, onStudentClick }) => {
@@ -52,6 +67,16 @@ const StudentDetails = ({
 }) => {
   const [isLoadingEdit, setIsLoadingEdit] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDetailsLoading, setIsDetailsLoading] = useState(false);
+
+  useEffect(() => {
+    if (selectedStudent) {
+      setIsDetailsLoading(true);
+      setTimeout(() => {
+        setIsDetailsLoading(false);
+      }, 500);
+    }
+  }, [selectedStudent]);
 
   if (!selectedStudent) return <p>Select a student to view details</p>;
 
@@ -59,7 +84,7 @@ const StudentDetails = ({
     { label: "Student Name", fields: ["first_name", "last_name"] },
     { label: "Email", field: "student_email" },
     { label: "Student ID", field: "stud_id" },
-    { label: "Level", field: "grade_level" },
+    { label: "Semester", field: "grade_level" },
     { label: "Group", field: "stud_group" },
     { label: "Date of Birth", field: "date_of_birth" },
     { label: "Enrolled Date", field: "enrollment_date" },
@@ -81,6 +106,7 @@ const StudentDetails = ({
       onEditClick();
     }, 1000);
   };
+
   const handleSubmitClick = () => {
     setIsLoading(true);
     setTimeout(() => {
@@ -88,6 +114,7 @@ const StudentDetails = ({
       onSave();
     }, 1000);
   };
+
   const handleCancelClick = () => {
     setIsLoading(true);
     setTimeout(() => {
@@ -96,25 +123,22 @@ const StudentDetails = ({
     }, 1000);
   };
 
-  const handleCancelButtonClick = () => {
-    handleSubmitClick(); // First function
-    onCancel(); // Second function
-  };
-
   return (
     <div className="relative">
       {isLoadingEdit && (
-        <div className="absolute w-1/3 rounded-2xl inset-0 flex items-center justify-center bg-white bg-opacity-40 backdrop-blur-sm z-10">
-          <div className="loader w-12 h-12 border-4 border-t-transparent border-black rounded-full animate-spin"></div>
+        <div className="absolute w-1/2 rounded-2xl inset-0 flex items-center justify-center bg-white bg-opacity-40 backdrop-blur-sm z-10">
+          <div className="loader w-12 h-12 border-4 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
         </div>
       )}
       {isLoading && (
         <div className="absolute w-2/4 rounded-2xl inset-0 flex items-center justify-center bg-white bg-opacity-40 backdrop-blur-sm z-10">
-          <div className="loader w-12 h-12 border-4 border-t-transparent border-black rounded-full animate-spin"></div>
+          <div className="loader w-12 h-12 border-4 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
         </div>
       )}
 
-      {isEditing ? (
+      {isDetailsLoading ? (
+        <SkeletonLoader />
+      ) : isEditing ? (
         <div className="p-6 w-2/4 bg-white rounded-2xl shadow-lg">
           <h2 className="text-xl font-bold mb-4 bg-white">
             Edit Student Details
@@ -133,7 +157,7 @@ const StudentDetails = ({
                       type="text"
                       name={label}
                       value={fullName}
-                      className="w-full p-2 mb-4 border rounded bg-white"
+                      className="w-full p-2 mb-4 border rounded-[8px] bg-white"
                       readOnly
                     />
                   </div>
@@ -160,7 +184,7 @@ const StudentDetails = ({
                       onChange={
                         field === "student_email" ? onChange : undefined
                       }
-                      className="w-full p-2 mb-4 border rounded bg-white"
+                      className="w-full p-2 mb-4 border rounded-[8px] bg-white"
                       readOnly={field !== "student_email"}
                     />
                   </div>
@@ -171,25 +195,25 @@ const StudentDetails = ({
           <div className="flex justify-end gap-4 bg-white">
             <button
               onClick={handleCancelClick}
-              className="px-6 py-1 bg-gray-400 text-white rounded hover:bg-gray-500"
+              className="px-6 py-1 bg-gray-400 text-white rounded-[8px] hover:bg-gray-500"
             >
               Cancel
             </button>
 
             <button
               onClick={handleSubmitClick}
-              className="px-6 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+              className="px-6 py-1 bg-blue-500 text-white rounded-[8px] hover:bg-blue-600"
             >
               Save Changes
             </button>
           </div>
         </div>
       ) : (
-        <div className="p-6 w-1/3 bg-white rounded-2xl shadow-lg flex flex-col gap-4">
-          <div className="bg-white flex items-center text-center">
+        <div className="p-6 w-1/2 bg-white rounded-2xl shadow-lg flex flex-col gap-4">
+          <div className="bg-white flex items-center text-center justify-between">
             <h2 className="text-xl font-bold bg-white">Student Details</h2>
             <button onClick={handleEditClick} className="ml-2 text-blue-500">
-              <FiEdit className="bg-white text-lg" />
+              <p className="bg-white text-lg mr-1">Edit</p>
             </button>
           </div>
 
@@ -198,31 +222,46 @@ const StudentDetails = ({
             alt="Profile"
             className="w-32 h-30 mx-auto mt-2 bg-white"
           />
+
+          {/* Displaying the student details with conditional styling */}
           <div className="bg-white">
-            {customFields.map(({ label, fields, field }) => {
-              if (fields) {
-                const fullName =
-                  selectedStudent[fields[0]] + " " + selectedStudent[fields[1]];
-                return (
-                  <p key={label} className="bg-white text-2xl font-semibold">
-                    {fullName}
-                  </p>
-                );
-              } else {
-                return (
-                  <div key={field} className="bg-white">
-                    <p className="bg-white text-gray-500 text-md">
-                      <strong className="bg-white text-black font-medium">
-                        {field !== "student_email" ? label : ""}
-                      </strong>{" "}
-                      {field === "enrollment_date" || field === "date_of_birth"
-                        ? formatDate(selectedStudent[field])
-                        : selectedStudent[field]}
-                    </p>
-                  </div>
-                );
-              }
-            })}
+            <p className="bg-white text-3xl font-semibold">
+              {selectedStudent.first_name} {selectedStudent.last_name}
+            </p>
+            <p className="bg-white text-gray-500">
+              {selectedStudent.student_email}
+            </p>
+            <hr className="my-4" />
+            <p className="bg-white text-gray-500">
+              <strong className="text-black font-medium bg-white">
+                Student ID:{" "}
+              </strong>
+              {selectedStudent.stud_id}
+            </p>
+            <p className="bg-white text-gray-500">
+              <strong className="text-black font-medium bg-white">
+                Semester:{" "}
+              </strong>
+              {selectedStudent.grade_level}
+            </p>
+            <p className="bg-white text-gray-500">
+              <strong className="text-black font-medium bg-white">
+                Group:{" "}
+              </strong>
+              {selectedStudent.stud_group}
+            </p>
+            <p className="bg-white text-gray-500">
+              <strong className="text-black font-medium bg-white">
+                Date of Birth:{" "}
+              </strong>
+              {formatDate(selectedStudent.date_of_birth)}
+            </p>
+            <p className="bg-white text-gray-500">
+              <strong className="text-black font-medium bg-white">
+                Enrolled Date:{" "}
+              </strong>
+              {formatDate(selectedStudent.enrollment_date)}
+            </p>
           </div>
         </div>
       )}
@@ -231,10 +270,12 @@ const StudentDetails = ({
 };
 
 const Students = () => {
+  const navigate = useNavigate();
   const [students, setStudents] = useState([]);
   const [error, setError] = useState("");
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Fetch all students on component mount
   useEffect(() => {
@@ -298,6 +339,15 @@ const Students = () => {
     setIsEditing(false);
   };
 
+  // Handle register button click
+  const handleRegisterClick = () => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      navigate("/registration");
+    }, 1500); // 1.5 seconds delay for loading animation
+  };
+
   return (
     <div>
       <div className="flex items-center gap-2">
@@ -308,7 +358,7 @@ const Students = () => {
       {error && <p className="text-red-600 font-bold">{error}</p>}
 
       <div className="flex w-full gap-20">
-        <div className="w-1/5">
+        <div className="w-2/5">
           {students.length > 0 ? (
             <div className="mt-6">
               <h2 className="text-xl font-bold mb-4">All Students</h2>
@@ -323,8 +373,18 @@ const Students = () => {
           )}
 
           <div className="flex justify-center mt-10">
-            <button className="px-6 py-1 bg-blue-500 text-white rounded-[8px] hover:bg-blue-600 focus:outline-none">
-              Register Students
+            <button
+              onClick={handleRegisterClick}
+              className="bg-blue-500 rounded-[8px] px-6 py-1 flex justify-center font-medium items-center gap-2 text-white transform transition-all duration-300 "
+            >
+              {loading ? (
+                <div className="loader w-6 h-6 border-2 border-t-transparent bg-blue-500 border-white rounded-full animate-spin"></div>
+              ) : (
+                <>
+                  Register Students
+                  <FaRegAddressCard className="bg-blue-500 text-lg" />
+                </>
+              )}
             </button>
           </div>
         </div>

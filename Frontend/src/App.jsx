@@ -5,6 +5,7 @@ import AdministrationLogin from "./pages/AdministrationLogin";
 import Dashboard from "./pages/Dashboard";
 import StudentsDashboard from "./pages/StudentsDashboard"; // Import Students page
 import PrivateRoute from "./components/PrivateRoute";
+import RegisterStudent from "./pages/RegisterStudent";
 
 const App = () => {
   return (
@@ -25,6 +26,14 @@ const App = () => {
           element={
             <PrivateRoute>
               <StudentsDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/registration"
+          element={
+            <PrivateRoute>
+              <RegisterStudent />
             </PrivateRoute>
           }
         />
