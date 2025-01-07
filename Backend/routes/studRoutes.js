@@ -226,4 +226,68 @@ router.get("/search_students", (req, res) => {
   });
 });
 
+router.put("/update_students", (req, res) => {
+  const {
+    stud_id, // Student ID (foreign key for users table)
+    first_name,
+    last_name,
+    grade_level,
+    stud_group,
+    date_of_birth,
+    enrollment_date,
+  } = req.body;
+
+  if (
+    !stud_id ||
+    !first_name ||
+    !last_name ||
+    !grade_level ||
+    !stud_group ||
+    !date_of_birth ||
+    !enrollment_date
+  ) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  // Update student details in the 'students' table
+  const updateStudentQuery = `
+    UPDATE students
+    SET 
+      first_name = ?, 
+      last_name = ?, 
+      grade_level = ?, 
+      stud_group = ?, 
+      date_of_birth = ?, 
+      enrollment_date = ?
+    WHERE stud_id = ?
+  `;
+  const updateStudentValues = [
+    first_name,
+    last_name,
+    grade_level,
+    stud_group,
+    date_of_birth,
+    enrollment_date,
+    stud_id,
+  ];
+
+  connection.query(updateStudentQuery, updateStudentValues, (err, results) => {
+    if (err) {
+      console.error("Error updating student details:", err);
+      return res
+        .status(500)
+        .json({ message: "Error updating student details" });
+    }
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    // If the update is successful
+    return res.status(200).json({
+      message: "Student details updated successfully",
+    });
+  });
+});
+
 module.exports = router;

@@ -134,11 +134,11 @@ const RegisterStudent = () => {
   }
 
   return (
-    <div className="min-h-full">
+    <div className="min-h-full ">
       <div className="ml-[475px] my-10">
         <button
           onClick={() => navigate("/students")}
-          className="flex justify-center items-center gap-1 font-semibold text-blue-500"
+          className="flex justify-center items-center gap-1 font-semibold text-blue-500 "
         >
           <IoChevronBackOutline />
           Student Dashboard
