@@ -4,6 +4,7 @@ import { IoMdInformationCircleOutline } from "react-icons/io";
 import { FiEdit } from "react-icons/fi";
 import { FaRegAddressCard } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import "react-datepicker/dist/react-datepicker.css";
 import { HiOutlineChevronUpDown } from "react-icons/hi2";
 
 // SkeletonLoader Component
@@ -66,23 +67,18 @@ const StudentDetails = ({
   onSave,
   onEditClick,
 }) => {
-  const [isDetailsLoading, setIsDetailsLoading] = useState(false);
-
-  // Trigger loading state only when selected student changes
-  // useEffect(() => {
-  //   if (selectedStudent) {
-  //     setIsDetailsLoading(true);
-  //     const timer = setTimeout(() => {
-  //       setIsDetailsLoading(false);
-  //     }, 500); // Skeleton duration
-
-  //     return () => clearTimeout(timer);
-  //   }
-  // }, [selectedStudent]);
-
   if (!selectedStudent) return <p>Select a student to view details</p>;
 
-  const formatDate = (dateString) => {
+  // Utility to format date for input (YYYY-MM-DD)
+  const formatDateForDisplay = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toISOString().split("T")[0];
+  };
+
+  // Utility to format date for readable display
+  const formatDateForDisplayReadable = (dateString) => {
+    if (!dateString) return "";
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
       year: "numeric",
@@ -93,17 +89,14 @@ const StudentDetails = ({
 
   return (
     <div className="relative">
-      {/* {isDetailsLoading ? (
-        <SkeletonLoader />
-      ) : */}
       {isEditing ? (
-        // Editing Mode
+        // Edit Mode
         <div className="p-5 w-2/4 bg-white rounded-xl shadow-sm">
           <h2 className="text-lg font-semibold mb-4 text-gray-800">
             Edit Student Details
           </h2>
           <form className="flex flex-col gap-4">
-            {/* Student Information */}
+            {/* Personal Information */}
             <fieldset className="mb-6">
               <legend className="text-2xl font-bold mb-4 text-gray-800 border-b-2 pb-2">
                 Personal Information
@@ -132,9 +125,9 @@ const StudentDetails = ({
                 <div>
                   <p className="mb-2">Date of Birth</p>
                   <input
-                    type="text"
+                    type="date"
                     name="date_of_birth"
-                    value={selectedStudent.date_of_birth}
+                    value={formatDateForDisplay(selectedStudent.date_of_birth)}
                     onChange={onChange}
                     className="w-60 p-3 text-sm border bg-white rounded-[8px] shadow-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -196,7 +189,6 @@ const StudentDetails = ({
               Edit
             </button>
           </div>
-
           <div className="flex flex-col gap-1">
             <p className="font-semibold text-2xl">
               {selectedStudent.first_name} {selectedStudent.last_name}
@@ -218,11 +210,11 @@ const StudentDetails = ({
               </p>
               <p className="text-gray-500">
                 <strong className="text-black">Date of Birth:</strong>{" "}
-                {formatDate(selectedStudent.date_of_birth)}
+                {formatDateForDisplayReadable(selectedStudent.date_of_birth)}
               </p>
               <p className="text-gray-500">
                 <strong className="text-black">Enrolled Date:</strong>{" "}
-                {formatDate(selectedStudent.enrollment_date)}
+                {formatDateForDisplayReadable(selectedStudent.enrollment_date)}
               </p>
             </div>
           </div>
@@ -319,7 +311,7 @@ const Students = () => {
 
     // No changes detected
     if (Object.keys(updatedData).length === 0) {
-      alert("No changes to save.");
+      window.location.reload();
       return;
     }
 
