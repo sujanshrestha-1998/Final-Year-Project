@@ -1,19 +1,22 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
-  const [formData, setFormData] = useState({ username: "", password: "" });
-  const [isUsernameEntered, setIsUsernameEntered] = useState(false);
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [isEmailEntered, setIsEmailEntered] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
-  const validateUsername = () => {
-    if (formData.username.endsWith("@heraldcollege.edu.np")) {
-      setIsUsernameEntered(true);
+  const validateEmail = () => {
+    if (formData.email.endsWith("@heraldcollege.edu.np")) {
+      setIsEmailEntered(true);
       setErrorMessage("");
     } else {
       setErrorMessage("Invalid email address. Use a Herald College email.");
@@ -21,10 +24,10 @@ const Login = () => {
     setIsLoading(false);
   };
 
-  const handleUsernameSubmit = (e) => {
+  const handleEmailSubmit = (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(validateUsername, 1500);
+    setTimeout(validateEmail, 1500);
   };
 
   const handleSubmit = async (e) => {
@@ -32,13 +35,13 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3000/api/login", {
+      const response = await fetch("http://localhost:3000/api/rtelogin", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username: formData.username,
+          email: formData.email,
           password: formData.password,
         }),
       });
@@ -47,6 +50,13 @@ const Login = () => {
 
       if (response.ok) {
         console.log(data.message);
+
+        // Save login state and timestamp in localStorage
+        localStorage.setItem("isAuthenticated", "true");
+        localStorage.setItem("loginTimestamp", Date.now().toString());
+
+        // Redirect to dashboard
+        navigate("/dashboard");
       } else {
         setErrorMessage(data.message);
       }
@@ -60,7 +70,7 @@ const Login = () => {
 
   return (
     <div className="bg-[#f2f1f1] h-screen">
-      <div className="h-[80%] flex justify-center items-center ">
+      <div className="h-[80%] flex justify-center items-center">
         <div className="mt-28 md:mt-4">
           <img
             src="/src/assets/login-banner.png"
@@ -69,26 +79,26 @@ const Login = () => {
           />
           <div className="flex justify-center items-center flex-col gap-5">
             <h1 className="font-semibold text-center text-3xl md:text-4xl">
-              Sign in with College Account
+              Administration Login
             </h1>
-            <p className="md:w-1/3 text-center text-sm md:text-base ">
+            <p className="md:w-1/3 text-center text-sm md:text-base">
               Please enter your college email address to sign in. Your email
               should be in the following format: <br />
-              <strong>collegeid@heraldcollege.edu.np</strong> <br />
-              For example: <strong>np03cs4a220001@heraldcollege.edu.np</strong>
+              <strong>firstname.lastname@heraldcollege.edu.np</strong> <br />
+              For example: <strong>John.Doe@heraldcollege.edu.np</strong>
             </p>
             <form
-              onSubmit={isUsernameEntered ? handleSubmit : handleUsernameSubmit}
+              onSubmit={isEmailEntered ? handleSubmit : handleEmailSubmit}
               className="space-y-4"
             >
               <div className="flex items-center relative">
                 <input
-                  type="text"
-                  id="username"
-                  name="username"
-                  value={formData.username}
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
                   onChange={handleInputChange}
-                  placeholder="Username"
+                  placeholder="Email"
                   required
                   className="w-72 md:w-96 p-3 text-sm border bg-white rounded-[8px] shadow-sm placeholder-black"
                 />
@@ -97,7 +107,7 @@ const Login = () => {
                 )}
               </div>
 
-              {isUsernameEntered && !isLoading && (
+              {isEmailEntered && !isLoading && (
                 <input
                   type="password"
                   id="password"

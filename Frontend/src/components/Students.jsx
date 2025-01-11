@@ -338,7 +338,7 @@ const Students = () => {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      navigate("/registration");
+      navigate("/registerstudent");
     }, 1500); // 1.5 seconds delay for loading animation
   };
 
@@ -350,10 +350,27 @@ const Students = () => {
           <IoMdInformationCircleOutline className="text-2xl" />
         </div>
 
+        <div className="flex mt-5">
+          <button
+            onClick={handleRegisterClick}
+            className="bg-blue-500 rounded-[8px] px-6 py-1 flex justify-center font-medium items-center gap-2 text-white transform transition-all duration-300 "
+          >
+            {loading ? (
+              <div className="loader w-6 h-6 border-2 border-t-transparent bg-blue-500 border-white rounded-full animate-spin"></div>
+            ) : (
+              <>
+                Register Student
+                <FaRegAddressCard className="bg-blue-500 text-lg" />
+              </>
+            )}
+          </button>
+        </div>
+
         {error && <p className="text-red-600 font-bold">{error}</p>}
 
         <div className="flex w-full gap-20">
           {/* Student List Section */}
+
           <div className="w-2/5">
             {students.length > 0 ? (
               <div className="mt-6">
@@ -367,22 +384,6 @@ const Students = () => {
             ) : (
               <p className="text-gray-600 mt-6">No students found</p>
             )}
-
-            <div className="flex justify-center mt-10">
-              <button
-                onClick={handleRegisterClick}
-                className="bg-blue-500 rounded-[8px] px-6 py-1 flex justify-center font-medium items-center gap-2 text-white transform transition-all duration-300 "
-              >
-                {loading ? (
-                  <div className="loader w-6 h-6 border-2 border-t-transparent bg-blue-500 border-white rounded-full animate-spin"></div>
-                ) : (
-                  <>
-                    Register Students
-                    <FaRegAddressCard className="bg-blue-500 text-lg" />
-                  </>
-                )}
-              </button>
-            </div>
           </div>
 
           {/* Details Section */}

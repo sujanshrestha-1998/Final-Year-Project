@@ -1,8 +1,8 @@
-// DashboardMenu.jsx
 import React, { useState, useEffect } from "react";
 import { IoSearch } from "react-icons/io5";
 import { IoMdNotifications } from "react-icons/io";
 import { useNavigate, useLocation } from "react-router-dom";
+import Profile from "./Profile";
 
 const DashboardMenu = ({ onStudentSelect }) => {
   const navigate = useNavigate();
@@ -10,8 +10,8 @@ const DashboardMenu = ({ onStudentSelect }) => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
+  const [isProfileOpen, setIsProfileOpen] = useState(false); // State for toggling Profile
 
-  // Debounced Search Handler
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       if (searchQuery.trim()) {
@@ -65,13 +65,16 @@ const DashboardMenu = ({ onStudentSelect }) => {
   };
 
   const handleSearchResultClick = (result) => {
-    onStudentSelect(result); // This will trigger the selection in the parent component
-    setSearchQuery(""); // Clear the search query after selection
-    setSearchResults([]); // Clear search results after selection
+    onStudentSelect(result); // Trigger selection in the parent component
+    setSearchQuery(""); // Clear search query
+    setSearchResults([]); // Clear search results
   };
 
+  const openProfile = () => setIsProfileOpen(true);
+  const closeProfile = () => setIsProfileOpen(false);
+
   return (
-    <div className="bg-[#f2f1f1]">
+    <div className="bg-[#f2f1f1] relative">
       {/* Header Section */}
       <div className="flex justify-between items-center">
         <div className="p-8 flex items-center gap-7">
@@ -125,7 +128,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
             </button>
           </div>
 
-          {/* Search Bar with Results */}
+          {/* Search Bar */}
           <div className="relative mt-4 w-96">
             <div className="bg-gray-300 h-8 flex items-center p-2 rounded-md gap-2">
               <IoSearch className="text-gray-700 ml-2 bg-gray-300" />
@@ -145,7 +148,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
                   <div
                     key={index}
                     className="p-2 border-b last:border-none bg-white hover:bg-gray-200 cursor-pointer"
-                    onClick={() => handleSearchResultClick(result)} // Trigger selection on click
+                    onClick={() => handleSearchResultClick(result)}
                   >
                     <p className="text-gray-700">
                       <strong className="font-semibold">
@@ -162,7 +165,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
               </div>
             )}
 
-            {/* No Results Found */}
+            {/* No Results */}
             {searchQuery.trim() && searchResults.length === 0 && (
               <div className="absolute z-10 bg-white shadow-lg rounded-md w-full mt-1 p-2">
                 <p className="text-gray-500 bg-white">No results found</p>
@@ -174,7 +177,10 @@ const DashboardMenu = ({ onStudentSelect }) => {
         {/* Notifications and Profile Section */}
         <div className="flex items-center p-10 gap-6">
           <IoMdNotifications className="text-4xl" />
-          <div className="flex items-center gap-2">
+          <div
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={openProfile}
+          >
             <img src="/src/assets/Profile.png" alt="" className="w-12 h-auto" />
             <div>
               <h1 className="font-semibold">Sujan Shrestha</h1>
@@ -183,6 +189,22 @@ const DashboardMenu = ({ onStudentSelect }) => {
           </div>
         </div>
       </div>
+
+      {/* Profile Modal */}
+      {isProfileOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Overlay */}
+          <div
+            className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
+            onClick={closeProfile}
+          ></div>
+
+          {/* Modal Content */}
+          <div className="relative z-10 bg-white p-6 rounded-md shadow-lg w-1/3">
+            <Profile onClose={closeProfile} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

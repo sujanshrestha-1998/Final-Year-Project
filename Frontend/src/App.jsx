@@ -7,6 +7,9 @@ import StudentsDashboard from "./pages/StudentsDashboard"; // Import Students pa
 import PrivateRoute from "./components/PrivateRoute";
 import RegisterStudent from "./pages/RegisterStudent";
 
+import TeacherDashboard from "./pages/TeacherDashboard";
+import RegisterTeacher from "./pages/RegisterTeacher";
+
 const App = () => {
   return (
     <Router>
@@ -22,6 +25,14 @@ const App = () => {
           }
         />
         <Route
+          path="/teachers"
+          element={
+            <PrivateRoute>
+              <TeacherDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
           path="/students"
           element={
             <PrivateRoute>
@@ -30,10 +41,18 @@ const App = () => {
           }
         />
         <Route
-          path="/registration"
+          path="/registerstudent"
           element={
             <PrivateRoute>
               <RegisterStudent />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/registerteacher"
+          element={
+            <PrivateRoute>
+              <RegisterTeacher />
             </PrivateRoute>
           }
         />
