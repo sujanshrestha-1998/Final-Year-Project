@@ -6,6 +6,7 @@ const AdministrationLogin = () => {
   const [isEmailEntered, setIsEmailEntered] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [userRole, setUserRole] = useState(null);
 
   const navigate = useNavigate();
 
@@ -30,6 +31,28 @@ const AdministrationLogin = () => {
     setTimeout(validateEmail, 1500);
   };
 
+  // const fetchUserRole = async (email) => {
+  //   try {
+  //     const response = await fetch("http://localhost:3000/api/fetch_role", {
+  //       method: "POST", // Change to POST method
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({ email }), // Send email in the request body
+  //     });
+
+  //     const data = await response.json();
+
+  //     if (response.ok) {
+  //       setUserRole(data.role); // Store role in state
+  //     } else {
+  //       console.error("Failed to fetch user role:", data.message);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching role:", error);
+  //   }
+  // };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -52,6 +75,7 @@ const AdministrationLogin = () => {
         console.log(data.message);
 
         // Save login state and timestamp in localStorage
+        localStorage.setItem("userEmail", formData.email);
         localStorage.setItem("isAuthenticated", "true");
         localStorage.setItem("loginTimestamp", Date.now().toString());
 

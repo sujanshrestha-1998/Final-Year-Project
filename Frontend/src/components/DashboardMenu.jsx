@@ -10,19 +10,48 @@ const DashboardMenu = ({ onStudentSelect }) => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
-  const [isProfileOpen, setIsProfileOpen] = useState(false); // State for toggling Profile
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [userRole, setUserRole] = useState(null); // State for storing user role
+  const [roleId, setRoleId] = useState(null); // State for storing role_id
 
   useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      if (searchQuery.trim()) {
-        handleSearch();
-      } else {
-        setSearchResults([]); // Clear results if query is empty
-      }
-    }, 300);
+    // Fetch the user's role using the email stored in localStorage
+    const fetchUserRole = async () => {
+      const email = localStorage.getItem("userEmail"); // Retrieve the email from localStorage
 
-    return () => clearTimeout(delayDebounceFn);
-  }, [searchQuery]);
+      if (!email) {
+        console.error("No email found in localStorage");
+        return;
+      }
+
+      try {
+        const response = await fetch("http://localhost:3000/api/fetch_role", {
+          method: "POST", // Make sure it's a POST request
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }), // Send email in the request body
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          setRoleId(data.role_id); // Store the role_id (1, 2, 3, 4, etc.)
+        } else {
+          console.error("Failed to fetch user role:", data.message);
+        }
+      } catch (error) {
+        console.error("Error fetching role:", error);
+      }
+    };
+
+    fetchUserRole();
+  }, []); // Empty dependency array means it runs once when the component mounts
+
+  useEffect(() => {
+    // Log the roleId to ensure it's being set correctly
+    console.log("Role ID:", roleId);
+  }, [roleId]);
 
   const handleSearch = async () => {
     let endpoint = "";
@@ -106,16 +135,18 @@ const DashboardMenu = ({ onStudentSelect }) => {
             >
               TEACHERS
             </button>
-            <button
-              className={`text-lg font-semibold ${
-                location.pathname === "/students"
-                  ? "text-blue-500"
-                  : "text-gray-700"
-              }`}
-              onClick={() => navigate("/students")}
-            >
-              STUDENTS
-            </button>
+            {roleId !== 4 && (
+              <button
+                className={`text-lg font-semibold ${
+                  location.pathname === "/students"
+                    ? "text-blue-500"
+                    : "text-gray-700"
+                }`}
+                onClick={() => navigate("/students")}
+              >
+                STUDENTS
+              </button>
+            )}
             <button
               className={`text-lg font-semibold ${
                 location.pathname === "/schedule"
@@ -192,17 +223,8 @@ const DashboardMenu = ({ onStudentSelect }) => {
 
       {/* Profile Modal */}
       {isProfileOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          {/* Overlay */}
-          <div
-            className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
-            onClick={closeProfile}
-          ></div>
-
-          {/* Modal Content */}
-          <div className="relative z-10 bg-white p-6 rounded-md shadow-lg w-1/3">
-            <Profile onClose={closeProfile} />
-          </div>
+        <div className="absolute top-0 right-0 bg-black bg-opacity-50 w-full h-full flex justify-center items-center z-10">
+          <Profile onClose={closeProfile} />
         </div>
       )}
     </div>
