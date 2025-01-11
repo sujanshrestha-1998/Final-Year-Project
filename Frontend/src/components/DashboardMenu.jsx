@@ -10,14 +10,14 @@ const DashboardMenu = ({ onStudentSelect }) => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [userRole, setUserRole] = useState(null); // State for storing user role
-  const [roleId, setRoleId] = useState(null); // State for storing role_id
+  const [isProfileOpen, setIsProfileOpen] = useState(false); // Profile modal state
+  const [userData, setUserData] = useState(null); // Fetched user data
+  const [roleId, setRoleId] = useState(null); // Role ID for role-based logic
 
+  // Fetch user data and role based on email in localStorage
   useEffect(() => {
-    // Fetch the user's role using the email stored in localStorage
-    const fetchUserRole = async () => {
-      const email = localStorage.getItem("userEmail"); // Retrieve the email from localStorage
+    const fetchUserData = async () => {
+      const email = localStorage.getItem("userEmail"); // Retrieve email from localStorage
 
       if (!email) {
         console.error("No email found in localStorage");
@@ -25,34 +25,34 @@ const DashboardMenu = ({ onStudentSelect }) => {
       }
 
       try {
-        const response = await fetch("http://localhost:3000/api/fetch_role", {
-          method: "POST", // Make sure it's a POST request
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email }), // Send email in the request body
-        });
+        const response = await fetch(
+          "http://localhost:3000/api/fetch_profile",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email }), // Pass email in request body
+          }
+        );
 
         const data = await response.json();
 
         if (response.ok) {
-          setRoleId(data.role_id); // Store the role_id (1, 2, 3, 4, etc.)
+          setUserData(data.user); // Store fetched user data
+          setRoleId(data.user.role_id); // Store role_id
         } else {
-          console.error("Failed to fetch user role:", data.message);
+          console.error("Failed to fetch user data:", data.message);
         }
       } catch (error) {
-        console.error("Error fetching role:", error);
+        console.error("Error fetching user data:", error);
       }
     };
 
-    fetchUserRole();
-  }, []); // Empty dependency array means it runs once when the component mounts
+    fetchUserData();
+  }, []);
 
-  useEffect(() => {
-    // Log the roleId to ensure it's being set correctly
-    console.log("Role ID:", roleId);
-  }, [roleId]);
-
+  // Handle search functionality
   const handleSearch = async () => {
     let endpoint = "";
 
@@ -103,7 +103,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
   const closeProfile = () => setIsProfileOpen(false);
 
   return (
-    <div className="bg-[#f2f1f1] relative">
+    <div className="bg-[#f2f1f1]">
       {/* Header Section */}
       <div className="flex justify-between items-center">
         <div className="p-8 flex items-center gap-7">
@@ -214,19 +214,32 @@ const DashboardMenu = ({ onStudentSelect }) => {
           >
             <img src="/src/assets/Profile.png" alt="" className="w-12 h-auto" />
             <div>
-              <h1 className="font-semibold">Sujan Shrestha</h1>
-              <p className="text-sm text-gray-500 font-medium">RTE Officer</p>
+              <h1 className="font-semibold">{userData?.username || "User"}</h1>
+              <p className="text-sm text-gray-500 font-medium">
+                {userData?.role_id
+                  ? `${(() => {
+                      switch (userData.role_id) {
+                        case 1:
+                          return "Admin";
+                        case 2:
+                          return "Teacher";
+                        case 3:
+                          return "Staff";
+                        case 4:
+                          return "Student";
+                        default:
+                          return "Unknown Role";
+                      }
+                    })()}`
+                  : "Loading..."}
+              </p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Profile Modal */}
-      {isProfileOpen && (
-        <div className="absolute top-0 right-0 bg-black bg-opacity-50 w-full h-full flex justify-center items-center z-10">
-          <Profile onClose={closeProfile} />
-        </div>
-      )}
+      {isProfileOpen && <Profile userData={userData} onClose={closeProfile} />}
     </div>
   );
 };

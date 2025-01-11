@@ -44,4 +44,34 @@ router.post("/fetch_role", (req, res) => {
   });
 });
 
+router.post("/fetch_profile", (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: "Email is required" });
+  }
+
+  // Query to fetch all user details based on email
+  const query = `
+          SELECT username, email, role_id
+          FROM users 
+          WHERE email = ?`;
+
+  connection.query(query, [email], (err, results) => {
+    if (err) {
+      console.error("Database error:", err.message);
+      return res.status(500).json({ message: "Database error" });
+    }
+
+    if (results.length > 0) {
+      return res.status(200).json({
+        message: "User fetched successfully",
+        user: results[0], // Send all user details
+      });
+    } else {
+      return res.status(404).json({ message: "User not found" });
+    }
+  });
+});
+
 module.exports = router;
