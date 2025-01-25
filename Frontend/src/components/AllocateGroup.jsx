@@ -255,9 +255,7 @@ const AllocateGroup = () => {
                         </option>
                       ))}
                     </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#8e8e93]">
-                      <FaChevronDown className="h-4 w-4" />
-                    </div>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#8e8e93]"></div>
                   </div>
                 </td>
               </tr>
