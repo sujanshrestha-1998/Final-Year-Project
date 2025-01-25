@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { HiOutlineChevronUpDown } from "react-icons/hi2";
-import { FaUserGraduate } from "react-icons/fa";
-// import { BsPeople } from "react-icons/bs";
-import { IoSchoolOutline } from "react-icons/io5";
-import { MdOutlineGroupWork } from "react-icons/md";
+import {
+  FaUserGraduate,
+  FaShuffle,
+  FaUsers,
+  FaSchool,
+  FaLayerGroup,
+  FaChevronDown,
+} from "react-icons/fa6"; // Using only fa6 icons
 
 const AllocateGroup = () => {
   const [students, setStudents] = useState([]);
@@ -12,6 +15,7 @@ const AllocateGroup = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [isAutoAllocating, setIsAutoAllocating] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -40,22 +44,48 @@ const AllocateGroup = () => {
 
   const handleGroupChange = async (studentId, groupId) => {
     try {
+      // If groupId is "none", send null to the backend
+      const groupValue = groupId === "none" ? null : groupId;
+
       await axios.put("http://localhost:3000/api/update_student_group", {
         studentId,
-        groupId,
+        groupId: groupValue,
       });
 
       // Update local state to reflect the change
       setStudents(
         students.map((student) =>
           student.stud_id === studentId
-            ? { ...student, stud_group: groupId }
+            ? { ...student, stud_group: groupValue }
             : student
         )
       );
     } catch (err) {
       console.error("Error updating student group:", err);
       setError("Error updating student group");
+    }
+  };
+
+  const handleAutoAllocate = async () => {
+    try {
+      setIsAutoAllocating(true);
+      const response = await axios.post(
+        "http://localhost:3000/api/auto_allocate_groups"
+      );
+
+      // Refresh the student list after auto allocation
+      const studentsResponse = await axios.get(
+        "http://localhost:3000/api/stud_details"
+      );
+      setStudents(studentsResponse.data.students);
+
+      // Show success message (you might want to add a toast notification here)
+      console.log(response.data.message);
+    } catch (err) {
+      console.error("Error in auto allocation:", err);
+      setError("Error in auto allocation process");
+    } finally {
+      setIsAutoAllocating(false);
     }
   };
 
@@ -112,17 +142,29 @@ const AllocateGroup = () => {
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            {/* <BsPeople className="text-2xl text-blue-500" /> */}
+            <FaUsers className="text-2xl text-blue-500" />
             <h2 className="text-xl font-semibold">Allocate Student Groups</h2>
           </div>
-          <div className="relative w-64">
-            <input
-              type="text"
-              placeholder="Search students..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-            />
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleAutoAllocate}
+              disabled={isAutoAllocating}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white bg-green-500 hover:bg-green-600 transition-colors duration-300 ${
+                isAutoAllocating ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+            >
+              <FaShuffle className="text-lg" />
+              {isAutoAllocating ? "Allocating..." : "Auto Allocate"}
+            </button>
+            <div className="relative w-64">
+              <input
+                type="text"
+                placeholder="Search students..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -140,7 +182,7 @@ const AllocateGroup = () => {
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 <div className="flex items-center gap-2">
-                  <IoSchoolOutline className="text-gray-400" />
+                  <FaSchool className="text-gray-400" />
                   Name
                 </div>
               </th>
@@ -149,7 +191,7 @@ const AllocateGroup = () => {
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 <div className="flex items-center gap-2">
-                  <MdOutlineGroupWork className="text-gray-400" />
+                  <FaLayerGroup className="text-gray-400" />
                   Group
                 </div>
               </th>
@@ -172,13 +214,13 @@ const AllocateGroup = () => {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="relative">
                     <select
-                      value={student.stud_group || ""}
+                      value={student.stud_group || "none"}
                       onChange={(e) =>
                         handleGroupChange(student.stud_id, e.target.value)
                       }
                       className="block w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
                     >
-                      <option value="">Select Group</option>
+                      <option value="none">None</option>
                       {groups.map((group) => (
                         <option key={group.id} value={group.id}>
                           {group.name}
@@ -186,7 +228,7 @@ const AllocateGroup = () => {
                       ))}
                     </select>
                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                      <HiOutlineChevronUpDown className="h-4 w-4" />
+                      {/* <FaChevronDown className="h-4 w-4" /> */}
                     </div>
                   </div>
                 </td>

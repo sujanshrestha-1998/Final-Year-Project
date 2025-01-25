@@ -310,16 +310,15 @@ router.get("/groups", (req, res) => {
   });
 });
 
-// Add route to update student's group
+// Update student group route
 router.put("/update_student_group", (req, res) => {
   const { studentId, groupId } = req.body;
 
-  if (!studentId || !groupId) {
-    return res
-      .status(400)
-      .json({ message: "Student ID and Group ID are required" });
+  if (!studentId) {
+    return res.status(400).json({ message: "Student ID is required" });
   }
 
+  // Allow groupId to be null
   const query = `
     UPDATE students 
     SET stud_group = ? 
@@ -336,10 +335,81 @@ router.put("/update_student_group", (req, res) => {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    return res
-      .status(200)
-      .json({ message: "Student group updated successfully" });
+    return res.status(200).json({
+      message: "Student group updated successfully",
+      groupId: groupId,
+    });
   });
+});
+
+// Add this new route for auto allocation
+router.post("/auto_allocate_groups", async (req, res) => {
+  try {
+    // First, get all students without groups
+    const getStudentsQuery =
+      "SELECT stud_id FROM students WHERE stud_group IS NULL";
+    const getGroupsQuery = "SELECT id FROM `group`";
+
+    connection.query(getStudentsQuery, (err, students) => {
+      if (err) {
+        console.error("Error fetching students:", err);
+        return res.status(500).json({ message: "Error fetching students" });
+      }
+
+      connection.query(getGroupsQuery, (err, groups) => {
+        if (err) {
+          console.error("Error fetching groups:", err);
+          return res.status(500).json({ message: "Error fetching groups" });
+        }
+
+        if (students.length === 0) {
+          return res.status(200).json({ message: "No students to allocate" });
+        }
+
+        if (groups.length === 0) {
+          return res.status(400).json({ message: "No groups available" });
+        }
+
+        // Shuffle students array
+        const shuffledStudents = students.sort(() => Math.random() - 0.5);
+
+        // Prepare batch update query
+        const updateQueries = shuffledStudents.map((student, index) => {
+          const groupIndex = index % groups.length;
+          const groupId = groups[groupIndex].id;
+
+          return new Promise((resolve, reject) => {
+            const updateQuery =
+              "UPDATE students SET stud_group = ? WHERE stud_id = ?";
+            connection.query(
+              updateQuery,
+              [groupId, student.stud_id],
+              (err, result) => {
+                if (err) reject(err);
+                else resolve(result);
+              }
+            );
+          });
+        });
+
+        // Execute all updates
+        Promise.all(updateQueries)
+          .then(() => {
+            res.status(200).json({
+              message: "Students allocated successfully",
+              studentsAllocated: students.length,
+            });
+          })
+          .catch((err) => {
+            console.error("Error in batch update:", err);
+            res.status(500).json({ message: "Error updating student groups" });
+          });
+      });
+    });
+  } catch (err) {
+    console.error("Error in auto allocation:", err);
+    res.status(500).json({ message: "Error in auto allocation process" });
+  }
 });
 
 module.exports = router;
