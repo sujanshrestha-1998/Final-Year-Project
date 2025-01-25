@@ -7,18 +7,19 @@ import { useNavigate } from "react-router-dom";
 import "react-datepicker/dist/react-datepicker.css";
 import { HiOutlineChevronUpDown } from "react-icons/hi2";
 
-// SkeletonLoader Component
-// const SkeletonLoader = () => {
-//   return (
-//     <div className="bg-white p-6 w-1/2 rounded-2xl shadow-lg animate-pulse space-y-4">
-//       <div className="h-6 bg-gray-300 rounded w-3/4"></div>
-//       <div className="h-4 bg-gray-300 rounded w-1/2"></div>
-//       <div className="h-6 bg-gray-300 rounded w-4/5"></div>
-//       <div className="h-4 bg-gray-300 rounded w-1/3"></div>
-//       <div className="h-6 bg-gray-300 rounded w-2/4"></div>
-//     </div>
-//   );
-// };
+// Loading Component
+const LoadingOverlay = () => {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-5 rounded-lg flex flex-col items-center">
+        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <p className="mt-4 text-lg font-semibold text-gray-700">
+          Loading student details...
+        </p>
+      </div>
+    </div>
+  );
+};
 
 // StudentList Component
 const StudentList = ({ students, selectedStudent, onStudentClick }) => {
@@ -225,15 +226,14 @@ const StudentDetails = ({
 };
 
 const Students = () => {
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
   const [students, setStudents] = useState([]);
   const [error, setError] = useState("");
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const [originalStudent, setOriginalStudent] = useState(null); // For tracking original values
+  const [originalStudent, setOriginalStudent] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  // Fetch all students on component mount
   useEffect(() => {
     const fetchStudents = async () => {
       try {
@@ -243,20 +243,29 @@ const Students = () => {
         setStudents(response.data.students);
         setError("");
 
-        const savedSelectedStudentId =
-          localStorage.getItem("selectedStudentId");
-        if (savedSelectedStudentId) {
-          const savedStudent = response.data.students.find(
-            (student) => student.stud_id === parseInt(savedSelectedStudentId)
+        const selectedId = localStorage.getItem("selectedStudentId");
+        const isLoading = localStorage.getItem("isLoading");
+
+        if (selectedId) {
+          console.log("Selected ID from localStorage:", selectedId);
+          setLoading(true); // Only set loading when selecting a student
+
+          const student = response.data.students.find(
+            (s) => String(s.stud_id) === String(selectedId)
           );
-          if (savedStudent) {
-            setSelectedStudent(savedStudent);
-            setOriginalStudent({ ...savedStudent }); // Set original data
+
+          console.log("Found student:", student);
+
+          if (student) {
+            // Add delay only when loading a specific student
+            await new Promise((resolve) => setTimeout(resolve, 800));
+            setSelectedStudent(student);
+            setOriginalStudent({ ...student });
           }
+          localStorage.removeItem("isLoading");
         } else if (response.data.students.length > 0) {
-          const firstStudent = response.data.students[0];
-          setSelectedStudent(firstStudent);
-          setOriginalStudent({ ...firstStudent }); // Set original data
+          setSelectedStudent(response.data.students[0]);
+          setOriginalStudent({ ...response.data.students[0] });
         }
       } catch (err) {
         console.error("Error fetching student details:", err);
@@ -265,26 +274,31 @@ const Students = () => {
             (err.response ? err.response.data : err.message)
         );
         setStudents([]);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchStudents();
   }, []);
 
-  // Handle student click (select a student)
-  const handleStudentClick = (student) => {
-    setSelectedStudent(student);
-    setOriginalStudent({ ...student }); // Save original data
-    localStorage.setItem("selectedStudentId", student.stud_id);
-    setIsEditing(false); // Set to view mode by default
+  const handleStudentClick = async (student) => {
+    setLoading(true); // Start loading animation
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 800)); // Add delay for animation
+      setSelectedStudent(student);
+      setOriginalStudent({ ...student });
+      localStorage.setItem("selectedStudentId", student.stud_id);
+      setIsEditing(false);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Handle edit button click
   const handleEditClick = () => {
     setIsEditing(true);
   };
 
-  // Handle form change
   const handleChange = (e) => {
     setSelectedStudent({
       ...selectedStudent,
@@ -292,24 +306,20 @@ const Students = () => {
     });
   };
 
-  // Handle cancel edit
   const handleCancel = () => {
-    setSelectedStudent({ ...originalStudent }); // Revert changes
+    setSelectedStudent({ ...originalStudent });
     setIsEditing(false);
   };
 
-  // Handle save changes
   const handleSave = async () => {
     const updatedData = {};
 
-    // Compare originalStudent and selectedStudent
     for (let key in originalStudent) {
       if (selectedStudent[key] !== originalStudent[key]) {
         updatedData[key] = selectedStudent[key];
       }
     }
 
-    // No changes detected
     if (Object.keys(updatedData).length === 0) {
       window.location.reload();
       return;
@@ -324,8 +334,8 @@ const Students = () => {
       );
 
       if (response.status === 200) {
-        setOriginalStudent({ ...selectedStudent }); // Update original data to reflect changes
-        setIsEditing(false); // Switch back to view mode
+        setOriginalStudent({ ...selectedStudent });
+        setIsEditing(false);
         window.location.reload();
       }
     } catch (error) {
@@ -333,13 +343,12 @@ const Students = () => {
     }
   };
 
-  // Handle register button click
   const handleRegisterClick = () => {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
       navigate("/registerstudent");
-    }, 1500); // 1.5 seconds delay for loading animation
+    }, 1500);
   };
 
   return (
@@ -353,25 +362,18 @@ const Students = () => {
         <div className="flex mt-5">
           <button
             onClick={handleRegisterClick}
-            className="bg-blue-500 rounded-[8px] px-6 py-1 flex justify-center font-medium items-center gap-2 text-white transform transition-all duration-300 "
+            className="bg-blue-500 rounded-[8px] px-6 py-1 flex justify-center font-medium items-center gap-2 text-white transform transition-all duration-300"
           >
-            {loading ? (
-              <div className="loader w-6 h-6 border-2 border-t-transparent bg-blue-500 border-white rounded-full animate-spin"></div>
-            ) : (
-              <>
-                Register Student
-                <FaRegAddressCard className="bg-blue-500 text-lg" />
-              </>
-            )}
+            Register Student
+            <FaRegAddressCard className="bg-blue-500 text-lg" />
           </button>
         </div>
 
         {error && <p className="text-red-600 font-bold">{error}</p>}
 
         <div className="flex w-full gap-20">
-          {/* Student List Section */}
-
-          <div className="w-2/5">
+          {/* Student List Section - No loading state */}
+          <div className="w-1/4">
             {students.length > 0 ? (
               <div className="mt-6">
                 <h2 className="text-xl font-bold mb-4">All Students</h2>
@@ -386,17 +388,29 @@ const Students = () => {
             )}
           </div>
 
-          {/* Details Section */}
-          <div className="w-full">
-            {selectedStudent && (
-              <StudentDetails
-                selectedStudent={selectedStudent}
-                isEditing={isEditing}
-                onChange={handleChange}
-                onCancel={handleCancel}
-                onSave={handleSave}
-                onEditClick={handleEditClick}
-              />
+          {/* Details Section - With loading state */}
+          <div className="w-3/5 mt-6">
+            {loading ? (
+              // Skeleton loading only for student details with reduced width
+              <div className="animate-pulse w-1/2">
+                <div className="h-8 w-36 bg-gray-200 rounded mb-4"></div>
+                <div className="space-y-4">
+                  <div className="h-12 bg-gray-200 rounded"></div>
+                  <div className="h-12 bg-gray-200 rounded"></div>
+                  <div className="h-12 bg-gray-200 rounded"></div>
+                </div>
+              </div>
+            ) : (
+              selectedStudent && (
+                <StudentDetails
+                  selectedStudent={selectedStudent}
+                  isEditing={isEditing}
+                  onChange={handleChange}
+                  onCancel={handleCancel}
+                  onSave={handleSave}
+                  onEditClick={handleEditClick}
+                />
+              )
             )}
           </div>
         </div>

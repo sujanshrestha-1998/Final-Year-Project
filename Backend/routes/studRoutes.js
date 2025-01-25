@@ -293,4 +293,53 @@ router.put("/update_students", (req, res) => {
   });
 });
 
+// Add this new route to get all groups
+router.get("/groups", (req, res) => {
+  const query = "SELECT * FROM `group` ORDER BY name";
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error("Error fetching groups:", err);
+      return res.status(500).json({ message: "Error fetching groups" });
+    }
+
+    return res.status(200).json({
+      message: "Groups fetched successfully",
+      groups: results,
+    });
+  });
+});
+
+// Add route to update student's group
+router.put("/update_student_group", (req, res) => {
+  const { studentId, groupId } = req.body;
+
+  if (!studentId || !groupId) {
+    return res
+      .status(400)
+      .json({ message: "Student ID and Group ID are required" });
+  }
+
+  const query = `
+    UPDATE students 
+    SET stud_group = ? 
+    WHERE stud_id = ?
+  `;
+
+  connection.query(query, [groupId, studentId], (err, result) => {
+    if (err) {
+      console.error("Error updating student group:", err);
+      return res.status(500).json({ message: "Error updating student group" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    return res
+      .status(200)
+      .json({ message: "Student group updated successfully" });
+  });
+});
+
 module.exports = router;

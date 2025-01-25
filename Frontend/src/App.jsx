@@ -6,7 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import StudentsDashboard from "./pages/StudentsDashboard"; // Import Students page
 import PrivateRoute from "./components/PrivateRoute";
 import RegisterStudent from "./pages/RegisterStudent";
-import Schedule from "./pages/Schedule";
+import ScheduleDashboard from "./pages/ScheduleDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import RegisterTeacher from "./pages/RegisterTeacher";
 
@@ -60,7 +60,7 @@ const App = () => {
           path="/schedule"
           element={
             <PrivateRoute>
-              <Schedule />
+              <ScheduleDashboard />
             </PrivateRoute>
           }
         />

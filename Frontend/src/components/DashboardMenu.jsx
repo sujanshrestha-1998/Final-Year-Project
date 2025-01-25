@@ -108,7 +108,36 @@ const DashboardMenu = ({ onStudentSelect }) => {
     return () => clearTimeout(debounceTimer);
   }, [searchQuery]);
 
-  // Render search results based on current route
+  const handleSearchResultClick = (result) => {
+    setSearchQuery(""); // Clear search
+    setSearchResults([]); // Clear results
+
+    if (location.pathname.includes("/students")) {
+      // Store the selected student ID in localStorage
+      localStorage.setItem("selectedStudentId", result.stud_id);
+
+      // If already on students page, reload with loading state
+      if (location.pathname === "/students") {
+        localStorage.setItem("isLoading", "true"); // Set loading state
+        window.location.reload();
+      } else {
+        // If not on students page, navigate to it
+        navigate("/students");
+      }
+    } else if (location.pathname.includes("/teachers")) {
+      // Handle teacher selection similarly
+      localStorage.setItem("selectedTeacherId", result.teacher_id);
+
+      if (location.pathname === "/teachers") {
+        localStorage.setItem("isLoading", "true");
+        window.location.reload();
+      } else {
+        navigate("/teachers");
+      }
+    }
+  };
+
+  // Render search results with click handler
   const renderSearchResults = () => {
     if (!searchResults.length) return null;
 
@@ -118,23 +147,18 @@ const DashboardMenu = ({ onStudentSelect }) => {
           <div
             key={result.stud_id || result.teacher_id}
             className="p-2 hover:bg-gray-100 cursor-pointer"
+            onClick={() => handleSearchResultClick(result)}
           >
             <p className="font-semibold">
               {result.first_name} {result.last_name}
             </p>
             <p className="text-sm text-gray-600">
-              {result.student_email || result.email}
+              {result.student_email || result.teacher_email}
             </p>
           </div>
         ))}
       </div>
     );
-  };
-
-  const handleSearchResultClick = (result) => {
-    onStudentSelect(result); // Trigger selection in the parent component
-    setSearchQuery(""); // Clear search query
-    setSearchResults([]); // Clear search results
   };
 
   const openProfile = () => setIsProfileOpen(true);

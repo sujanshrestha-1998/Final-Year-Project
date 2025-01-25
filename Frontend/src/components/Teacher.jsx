@@ -92,10 +92,10 @@ const Teacher = () => {
           </div>
           {error && <p className="text-red-600 font-bold">{error}</p>}
           <div className="flex w-full gap-20">
-            <div className="w-2/5">
+            <div className="w-1/3">
               {teachers.length > 0 ? (
                 <div className="mt-6">
-                  <h2 className="text-xl font-bold mb-4">All Students</h2>
+                  <h2 className="text-xl font-bold mb-4">All Teachers</h2>
                   <TeacherList
                     teachers={teachers}
                     selectedTeacher={selectedTeacher}
