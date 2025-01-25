@@ -137,88 +137,116 @@ const AllocateGroup = () => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md">
+    <div className="bg-white rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
       {/* Header Section */}
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex items-center justify-between mb-6">
+      <div className="p-5 border-b border-[#e5e5ea]">
+        <div className="flex items-center justify-between mb-0">
           <div className="flex items-center gap-3">
-            <FaUsers className="text-2xl text-blue-500" />
-            <h2 className="text-xl font-semibold">Allocate Student Groups</h2>
+            <FaUsers className="text-2xl text-[#0066FF]" />
+            <h2 className="text-[20px] font-medium text-gray-900">
+              Group Allocation
+            </h2>
           </div>
           <div className="flex items-center gap-4">
+            {/* Auto Allocate Button - macOS style */}
             <button
               onClick={handleAutoAllocate}
               disabled={isAutoAllocating}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white bg-green-500 hover:bg-green-600 transition-colors duration-300 ${
-                isAutoAllocating ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className={`
+                inline-flex items-center gap-2.5 px-4 py-2 rounded-lg text-[14px]
+                font-medium transition-all duration-200
+                ${
+                  isAutoAllocating
+                    ? "bg-[#e5e5ea] text-gray-400 cursor-not-allowed"
+                    : "bg-[#34c759] text-white hover:bg-[#2db14f]"
+                }
+              `}
             >
               <FaShuffle className="text-lg" />
               {isAutoAllocating ? "Allocating..." : "Auto Allocate"}
             </button>
-            <div className="relative w-64">
+
+            {/* Search Input - macOS style */}
+            <div className="relative">
               <input
                 type="text"
                 placeholder="Search students..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                className="w-64 px-4 py-2 bg-[#f5f5f7] rounded-lg
+                          text-[14px] border-none
+                          focus:ring-2 focus:ring-[#0066FF] focus:bg-white
+                          transition-all duration-200 placeholder-gray-500"
               />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Table Section */}
+      {/* Table Section - macOS style */}
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+        <table className="min-w-full divide-y divide-[#e5e5ea]">
+          <thead>
+            <tr className="bg-[#f5f5f7]">
+              <th className="px-6 py-3 text-left">
                 <div className="flex items-center gap-2">
-                  <FaUserGraduate className="text-gray-400" />
-                  Student ID
+                  <FaUserGraduate className="text-[#8e8e93]" />
+                  <span className="text-[12px] font-medium text-[#8e8e93] uppercase tracking-wider">
+                    Student ID
+                  </span>
                 </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left">
                 <div className="flex items-center gap-2">
-                  <FaSchool className="text-gray-400" />
-                  Name
+                  <FaSchool className="text-[#8e8e93]" />
+                  <span className="text-[12px] font-medium text-[#8e8e93] uppercase tracking-wider">
+                    Name
+                  </span>
                 </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Grade Level
+              <th className="px-6 py-3 text-left">
+                <span className="text-[12px] font-medium text-[#8e8e93] uppercase tracking-wider">
+                  Grade Level
+                </span>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left">
                 <div className="flex items-center gap-2">
-                  <FaLayerGroup className="text-gray-400" />
-                  Group
+                  <FaLayerGroup className="text-[#8e8e93]" />
+                  <span className="text-[12px] font-medium text-[#8e8e93] uppercase tracking-wider">
+                    Group
+                  </span>
                 </div>
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="divide-y divide-[#e5e5ea]">
             {filteredStudents.map((student) => (
-              <tr key={student.stud_id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <tr
+                key={student.stud_id}
+                className="hover:bg-[#f5f5f7] transition-colors duration-150"
+              >
+                <td className="px-6 py-4 text-[14px] text-gray-900">
                   {student.stud_id}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">
+                <td className="px-6 py-4">
+                  <div className="text-[14px] font-medium text-gray-900">
                     {student.first_name} {student.last_name}
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td className="px-6 py-4 text-[14px] text-gray-500">
                   {student.grade_level}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4">
                   <div className="relative">
                     <select
                       value={student.stud_group || "none"}
                       onChange={(e) =>
                         handleGroupChange(student.stud_id, e.target.value)
                       }
-                      className="block w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
+                      className="block w-full pl-3 pr-10 py-2 text-[14px]
+                               bg-[#f5f5f7] border-none rounded-lg
+                               focus:ring-2 focus:ring-[#0066FF] focus:bg-white
+                               transition-all duration-200"
                     >
                       <option value="none">None</option>
                       {groups.map((group) => (
@@ -227,8 +255,8 @@ const AllocateGroup = () => {
                         </option>
                       ))}
                     </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                      {/* <FaChevronDown className="h-4 w-4" /> */}
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#8e8e93]">
+                      <FaChevronDown className="h-4 w-4" />
                     </div>
                   </div>
                 </td>
