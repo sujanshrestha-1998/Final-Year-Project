@@ -3,6 +3,8 @@ import { IoSearch } from "react-icons/io5";
 import { IoMdNotifications } from "react-icons/io";
 import { useNavigate, useLocation } from "react-router-dom";
 import Profile from "./Profile";
+import axios from "axios";
+import { FiSearch } from "react-icons/fi";
 
 const DashboardMenu = ({ onStudentSelect }) => {
   const navigate = useNavigate();
@@ -13,6 +15,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false); // Profile modal state
   const [userData, setUserData] = useState(null); // Fetched user data
   const [roleId, setRoleId] = useState(null); // Role ID for role-based logic
+  const [isSearching, setIsSearching] = useState(false);
 
   // Fetch user data and role based on email in localStorage
   useEffect(() => {
@@ -52,45 +55,80 @@ const DashboardMenu = ({ onStudentSelect }) => {
     fetchUserData();
   }, []);
 
-  // Handle search functionality
-  const handleSearch = async () => {
-    let endpoint = "";
+  // Determine which search endpoint to use based on current route
+  const getSearchEndpoint = () => {
+    if (location.pathname.includes("/students")) {
+      return "search_students";
+    } else if (location.pathname.includes("/teachers")) {
+      return "search_teachers";
+    }
+    return null;
+  };
 
-    switch (location.pathname) {
-      case "/students":
-        endpoint = "search_students";
-        break;
-      case "/teachers":
-        endpoint = "search_teachers";
-        break;
-      case "/dashboard":
-        endpoint = "search_classrooms";
-        break;
-      case "/schedule":
-        endpoint = "search_schedule";
-        break;
-      default:
-        return;
+  // Update search function to use dynamic endpoint
+  const handleSearch = async (query) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
     }
 
-    try {
-      const response = await fetch(
-        `http://localhost:3000/api/${endpoint}?query=${encodeURIComponent(
-          searchQuery
-        )}`
-      );
-      const data = await response.json();
+    const endpoint = getSearchEndpoint();
+    if (!endpoint) return;
 
-      if (response.ok) {
-        setSearchResults(
-          data.students || data.teachers || data.classrooms || []
-        );
+    setIsSearching(true);
+    try {
+      const response = await axios.get(
+        `http://localhost:3000/api/${endpoint}`,
+        {
+          params: { query: query },
+        }
+      );
+
+      setSearchResults(
+        response.data[endpoint.includes("students") ? "students" : "teachers"]
+      );
+    } catch (error) {
+      console.error("Search error:", error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Debounced search
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      if (searchQuery) {
+        handleSearch(searchQuery);
       } else {
         setSearchResults([]);
       }
-    } catch (err) {
-      console.error("Error fetching search results:", err);
-    }
+    }, 300);
+
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery]);
+
+  // Render search results based on current route
+  const renderSearchResults = () => {
+    if (!searchResults.length) return null;
+
+    return (
+      <div className="absolute top-full left-0 w-full bg-white rounded-lg shadow-lg mt-1 max-h-60 overflow-y-auto z-50">
+        {searchResults.map((result) => (
+          <div
+            key={result.stud_id || result.teacher_id}
+            className="p-2 hover:bg-gray-100 cursor-pointer"
+          >
+            <p className="font-semibold">
+              {result.first_name} {result.last_name}
+            </p>
+            <p className="text-sm text-gray-600">
+              {result.student_email || result.email}
+            </p>
+          </div>
+        ))}
+      </div>
+    );
   };
 
   const handleSearchResultClick = (result) => {
@@ -162,46 +200,32 @@ const DashboardMenu = ({ onStudentSelect }) => {
           {/* Search Bar */}
           <div className="relative mt-4 w-96">
             <div className="bg-gray-300 h-8 flex items-center p-2 rounded-md gap-2">
+              {/* Remove this icon as we're using FiSearch below */}
               <IoSearch className="text-gray-700 ml-2 bg-gray-300" />
               <input
                 type="text"
-                placeholder="Search"
+                placeholder={
+                  location.pathname.includes("/students")
+                    ? "Search students..."
+                    : location.pathname.includes("/teachers")
+                    ? "Search teachers..."
+                    : "Search..."
+                }
                 className="bg-gray-300 flex-grow text-sm text-gray-700 placeholder-gray-500 outline-none"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
 
-            {/* Search Results Dropdown */}
-            {searchResults.length > 0 && (
-              <div className="absolute z-10 bg-white shadow-lg rounded-md w-full mt-1 max-h-60 overflow-auto">
-                {searchResults.map((result, index) => (
-                  <div
-                    key={index}
-                    className="p-2 border-b last:border-none bg-white hover:bg-gray-200 cursor-pointer"
-                    onClick={() => handleSearchResultClick(result)}
-                  >
-                    <p className="text-gray-700">
-                      <strong className="font-semibold">
-                        {result.first_name
-                          ? `${result.first_name} ${result.last_name}`
-                          : result.name}
-                      </strong>
-                      <span className="block text-sm text-gray-500">
-                        {result.student_email || result.teacher_email || "N/A"}
-                      </span>
-                    </p>
-                  </div>
-                ))}
+            {isSearching ? (
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <div className="animate-spin h-5 w-5 border-2 border-blue-500 rounded-full border-t-transparent"></div>
               </div>
+            ) : (
+              <FiSearch className="absolute hidden left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             )}
 
-            {/* No Results */}
-            {searchQuery.trim() && searchResults.length === 0 && (
-              <div className="absolute z-10 bg-white shadow-lg rounded-md w-full mt-1 p-2">
-                <p className="text-gray-500 bg-white">No results found</p>
-              </div>
-            )}
+            {renderSearchResults()}
           </div>
         </div>
 
