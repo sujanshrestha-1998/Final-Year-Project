@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { IoMdInformationCircleOutline } from "react-icons/io";
+import { IoSearch } from "react-icons/io5";
+
 import axios from "axios";
 import {
   FaUserGraduate,
@@ -138,12 +140,25 @@ const AllocateGroup = () => {
       <div className="flex items-center gap-2 py-5">
         <h1 className="font-medium text-2xl text-black">GROUP ALLOCATION</h1>
         <IoMdInformationCircleOutline className="text-2xl " />
+        <div className="relative w-80 ml-2">
+          <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+          <input
+            type="text"
+            placeholder="Search"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-8 pr-4 py-1 bg-gray-200 rounded-md 
+               text-[14px] border-none 
+               transition-all duration-200 placeholder-gray-500"
+          />
+        </div>
       </div>
       {/* Header Section */}
       <div className=" border-b border-[#e5e5ea] w-full flex items-center justify-between">
         <div className="flex items-center gap-4">
-          {/* Auto Allocate Button */}
-          <button
+          {/* Search Input */}
+
+          {/* <button
             onClick={handleAutoAllocate}
             disabled={isAutoAllocating}
             className={`
@@ -158,21 +173,7 @@ const AllocateGroup = () => {
           >
             <FaShuffle className="text-lg" />
             {isAutoAllocating ? "Allocating..." : "Auto Allocate"}
-          </button>
-
-          {/* Search Input */}
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search students..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-64 px-4 py-2 bg-[#f5f5f7] rounded-lg
-                        text-[14px] border-none
-                        focus:ring-2 focus:ring-[#0066FF] focus:bg-white
-                        transition-all duration-200 placeholder-gray-500"
-            />
-          </div>
+          </button> */}
         </div>
       </div>
 
@@ -181,30 +182,27 @@ const AllocateGroup = () => {
         <table className="min-w-full divide-y divide-[#e5e5ea]">
           <thead>
             <tr className="bg-[#f5f5f7]">
-              <th className="px-6 py-3 text-left">
+              <th className="px-6 py-1 text-left">
                 <div className="flex items-center gap-2">
-                  <FaUserGraduate className="text-[#8e8e93]" />
                   <span className="text-[12px] font-medium text-[#8e8e93] uppercase tracking-wider">
                     Student ID
                   </span>
                 </div>
               </th>
-              <th className="px-6 py-3 text-left">
+              <th className="px-6 py-1 text-left">
                 <div className="flex items-center gap-2">
-                  <FaSchool className="text-[#8e8e93]" />
                   <span className="text-[12px] font-medium text-[#8e8e93] uppercase tracking-wider">
                     Name
                   </span>
                 </div>
               </th>
-              <th className="px-6 py-3 text-left">
+              <th className="px-6 py-1 text-left">
                 <span className="text-[12px] font-medium text-[#8e8e93] uppercase tracking-wider">
                   Grade Level
                 </span>
               </th>
-              <th className="px-6 py-3 text-left">
+              <th className="px-6 py-1 text-left">
                 <div className="flex items-center gap-2">
-                  <FaLayerGroup className="text-[#8e8e93]" />
                   <span className="text-[12px] font-medium text-[#8e8e93] uppercase tracking-wider">
                     Group
                   </span>
@@ -218,18 +216,18 @@ const AllocateGroup = () => {
                 key={student.stud_id}
                 className="hover:bg-[#f5f5f7] transition-colors duration-150"
               >
-                <td className="px-6 py-4 text-[14px] text-gray-900">
+                <td className="px-6 py-2 text-[14px] text-gray-900">
                   {student.stud_id}
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-6 py-2">
                   <div className="text-[14px] font-medium text-gray-900">
                     {student.first_name} {student.last_name}
                   </div>
                 </td>
-                <td className="px-6 py-4 text-[14px] text-gray-500">
+                <td className="px-6 py-2 text-[14px] text-gray-500">
                   {student.grade_level}
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-6 py-2">
                   <div className="relative">
                     <select
                       value={student.stud_group || "none"}

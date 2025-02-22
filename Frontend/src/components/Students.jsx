@@ -11,7 +11,7 @@ import EditStudentPopup from "./EditStudentPopup"; // Import the new popup compo
 // Loading Component
 const LoadingOverlay = () => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white p-5 rounded-lg flex flex-col items-center">
         <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
         <p className="mt-4 text-lg font-semibold text-black">
@@ -117,8 +117,11 @@ const StudentDetails = ({
           <h2 className="text-lg font-semibold text-black">
             Student Information
           </h2>
-          <button onClick={handleEditClick} className="text-blue-500">
-            Edit
+          <button
+            onClick={handleEditClick}
+            className="text-blue-500 flex items-center gap-2"
+          >
+            <FiEdit /> Edit
           </button>
         </div>
         <div className="flex flex-col gap-1">
@@ -142,23 +145,27 @@ const StudentDetails = ({
             </p>
             <p className="text-black">
               <strong className="text-black">Date of Birth:</strong>{" "}
-              {selectedStudent.date_of_birth}
+              {formatDateForDisplayReadable(selectedStudent.date_of_birth)}
             </p>
             <p className="text-black">
               <strong className="text-black">Enrolled Date:</strong>{" "}
-              {selectedStudent.enrollment_date}
+              {formatDateForDisplayReadable(selectedStudent.enrollment_date)}
             </p>
           </div>
         </div>
       </div>
 
       {isPopupOpen && (
-        <EditStudentPopup
-          student={selectedStudent}
-          onClose={handleClosePopup}
-          onChange={onChange}
-          onSave={handleSave}
-        />
+        <>
+          <div className="fixed inset-0 backdrop-blur-sm z-40" />{" "}
+          {/* Blur effect overlay */}
+          <EditStudentPopup
+            student={selectedStudent}
+            onClose={handleClosePopup}
+            onChange={onChange}
+            onSave={handleSave}
+          />
+        </>
       )}
     </div>
   );
