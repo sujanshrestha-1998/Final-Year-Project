@@ -2,35 +2,32 @@ import React, { useEffect, useState } from "react";
 
 const AllocateTime = () => {
   const [schedules, setSchedules] = useState([]);
-  const [groups, setGroups] = useState([]); // To store the group names
-  const [selectedGroupId, setSelectedGroupId] = useState("1"); // Default selected group
+  const [groups, setGroups] = useState([]);
+  const [selectedGroupId, setSelectedGroupId] = useState("1");
 
-  // Fetch the groups from the /groups API
   useEffect(() => {
     const fetchGroups = async () => {
       const response = await fetch("http://localhost:3000/api/groups");
       const data = await response.json();
-      setGroups(data.groups); // Assuming the response contains a 'groups' array
+      setGroups(data.groups);
     };
 
     fetchGroups();
   }, []);
 
-  // Fetch schedules based on the selected group
   useEffect(() => {
     const fetchSchedules = async () => {
       const response = await fetch("http://localhost:3000/api/fetch_schedule", {
-        method: "POST", // Use POST method
+        method: "POST",
         headers: {
-          "Content-Type": "application/json", // Set the content type to JSON
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ group_id: selectedGroupId }), // Send selected group_id as JSON in the body
+        body: JSON.stringify({ group_id: selectedGroupId }),
       });
 
       const data = await response.json();
-      console.log("Fetched data:", data); // Log the full response
       if (Array.isArray(data.schedules)) {
-        setSchedules(data.schedules); // Set schedules from the 'schedules' property
+        setSchedules(data.schedules);
       } else {
         console.error(
           "The response data.schedules is not an array:",
@@ -40,16 +37,25 @@ const AllocateTime = () => {
     };
 
     fetchSchedules();
-  }, [selectedGroupId]); // Re-fetch schedules whenever the selected group changes
+  }, [selectedGroupId]);
+
+  const daysOfWeek = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+  ];
 
   return (
-    <div className="bg-[#f2f2f7] h-full flex items-center justify-center">
-      <div className="bg-white rounded-lg shadow-md p-6">
-        {/* Combo Box for selecting a group */}
+    <div className="bg-[#f2f2f7] h-full flex flex-col items-center p-6">
+      <div className="mb-4">
+        <label className="mr-2 font-semibold">Select Group:</label>
         <select
           value={selectedGroupId}
           onChange={(e) => setSelectedGroupId(e.target.value)}
-          className="mb-4 p-2 border rounded"
+          className="p-2 border rounded"
         >
           {groups.map((group) => (
             <option key={group.id} value={group.id}>
@@ -57,19 +63,69 @@ const AllocateTime = () => {
             </option>
           ))}
         </select>
+      </div>
 
-        {/* Display the fetched schedules */}
-        {schedules.map((schedule) => (
-          <div key={schedule.id}>
-            <p>Group Name: {schedule.group_name}</p>
-            <p>Classroom Name: {schedule.classroom_name}</p>
-            <p>Course Name: {schedule.course_name}</p>
-            <p>Teacher Name: {schedule.teacher_name}</p>
-            <p>Day: {schedule.day_of_week}</p>
-            <p>Start Time: {schedule.start_time}</p>
-            <p>End Time: {schedule.end_time}</p>
-          </div>
-        ))}
+      <div className="bg-white rounded-lg shadow-md p-6 w-full max-w-4xl">
+        <table className="w-full border-collapse border border-gray-300">
+          <thead>
+            <tr className="bg-gray-200">
+              <th className="border border-gray-300 p-2">Day</th>
+              <th className="border border-gray-300 p-2">Classroom</th>
+              <th className="border border-gray-300 p-2">Course</th>
+              <th className="border border-gray-300 p-2">Teacher</th>
+              <th className="border border-gray-300 p-2">Start Time</th>
+              <th className="border border-gray-300 p-2">End Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {daysOfWeek.map((day) => {
+              const daySchedules = schedules.filter(
+                (schedule) => schedule.day_of_week === day
+              );
+              return daySchedules.length > 0 ? (
+                daySchedules.map((schedule, index) => (
+                  <tr key={schedule.id} className="text-center">
+                    {index === 0 && (
+                      <td
+                        className="border border-gray-300 p-2 font-semibold"
+                        rowSpan={daySchedules.length}
+                      >
+                        {day}
+                      </td>
+                    )}
+                    <td className="border border-gray-300 p-2">
+                      {schedule.classroom_name}
+                    </td>
+                    <td className="border border-gray-300 p-2">
+                      {schedule.course_name}
+                    </td>
+                    <td className="border border-gray-300 p-2">
+                      {schedule.teacher_name}
+                    </td>
+                    <td className="border border-gray-300 p-2">
+                      {schedule.start_time}
+                    </td>
+                    <td className="border border-gray-300 p-2">
+                      {schedule.end_time}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr key={day}>
+                  <td className="border border-gray-300 p-2 font-semibold">
+                    {day}
+                  </td>
+                  <td
+                    className="border border-gray-300 p-2 text-center"
+                    colSpan="5"
+                  >
+                    No Schedule
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );
