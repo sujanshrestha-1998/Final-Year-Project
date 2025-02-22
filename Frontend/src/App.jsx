@@ -5,12 +5,11 @@ import AdministrationLogin from "./pages/AdministrationLogin";
 import Dashboard from "./pages/Dashboard";
 import StudentsDashboard from "./pages/StudentsDashboard"; // Import Students page
 import PrivateRoute from "./components/PrivateRoute";
-import RegisterStudent from "./pages/RegisterStudent";
 import ScheduleDashboard from "./pages/ScheduleDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import RegisterTeacher from "./pages/RegisterTeacher";
-import AllocateGroup from "./components/AllocateGroup";
-import AllocateTime from "./components/AllocateTime";
+import TimeDashboard from "./pages/TimeDashboard";
+import RegisterStudentDashboard from "./pages/RegisterStudentDashboard";
 
 const App = () => {
   return (
@@ -46,7 +45,7 @@ const App = () => {
           path="/students/register"
           element={
             <PrivateRoute>
-              <RegisterStudent />
+              <RegisterStudentDashboard />
             </PrivateRoute>
           }
         />
@@ -66,8 +65,11 @@ const App = () => {
             </PrivateRoute>
           }
         />
-        <Route path="/allocate-groups" element={<AllocateGroup />} />
-        <Route path="/allocate-time" element={<AllocateTime />} />
+        <Route
+          path="/schedule/allocate-groups"
+          element={<ScheduleDashboard />}
+        />
+        <Route path="/schedule/allocate-time" element={<TimeDashboard />} />
       </Routes>
     </Router>
   );

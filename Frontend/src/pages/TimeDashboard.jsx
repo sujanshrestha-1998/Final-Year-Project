@@ -1,18 +1,17 @@
 import React from "react";
 import DashboardMenu from "../components/DashboardMenu";
-import Schedule from "../components/Schedule";
-import AllocateGroup from "../components/AllocateGroup";
-const ScheduleDashboard = () => {
+import AllocateTime from "../components/AllocateTime";
+const TimeDashboard = () => {
   return (
     <div className="flex">
       <div className>
         <DashboardMenu />
       </div>
       <div>
-        <AllocateGroup />
+        <AllocateTime />
       </div>
     </div>
   );
 };
 
-export default ScheduleDashboard;
+export default TimeDashboard;

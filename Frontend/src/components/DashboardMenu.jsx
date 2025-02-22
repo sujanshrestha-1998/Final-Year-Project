@@ -208,7 +208,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
           <div className="ml-4 flex flex-col border-l-2 border-gray-300 gap-2 pl-4">
             <div
               className="text-black text-sm cursor-pointer"
-              onClick={() => navigate("/schedule")}
+              onClick={() => navigate("/schedule/allocate-groups")}
             >
               Allocate Group
             </div>
@@ -221,7 +221,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
           </div>
         )}
       </div>
-      <div className="flex flex-col items-start text-black gap-4 mb-4 px-10">
+      <div className="flex flex-col items-start text-black gap-4 mb-4">
         <div
           className="flex items-center gap-2 cursor-pointer"
           onClick={openProfile}
@@ -229,7 +229,8 @@ const DashboardMenu = ({ onStudentSelect }) => {
           <img src="/src/assets/Profile.png" alt="" className="w-12 h-auto" />
           <div>
             <h1 className="font-semibold">{userData?.username || "User"}</h1>
-            <p className="text-sm text-gray-600 font-medium">
+            <h2 className="text-[12px]">{userData?.email || "User"}</h2>
+            {/* <p className="text-sm text-gray-600 font-medium">
               {userData?.role_id
                 ? `${(() => {
                     switch (userData.role_id) {
@@ -246,7 +247,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
                     }
                   })()}`
                 : "Loading..."}
-            </p>
+            </p> */}
           </div>
         </div>
       </div>

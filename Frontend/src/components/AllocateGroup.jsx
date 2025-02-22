@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { IoMdInformationCircleOutline } from "react-icons/io";
 import axios from "axios";
 import {
   FaUserGraduate,
@@ -16,9 +17,11 @@ const AllocateGroup = () => {
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [isAutoAllocating, setIsAutoAllocating] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true);
       try {
         // Fetch students
         const studentsResponse = await axios.get(
@@ -36,6 +39,7 @@ const AllocateGroup = () => {
         setError("Error fetching data");
       } finally {
         setLoading(false);
+        setIsLoading(false);
       }
     };
 
@@ -96,17 +100,10 @@ const AllocateGroup = () => {
       student.stud_id.toString().includes(searchTerm)
   );
 
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-64 mb-4"></div>
-          <div className="space-y-3">
-            {[...Array(5)].map((_, index) => (
-              <div key={index} className="h-12 bg-gray-200 rounded"></div>
-            ))}
-          </div>
-        </div>
+      <div className="h-screen w-full flex items-center justify-center">
+        <p className="text-black">Loading...</p>
       </div>
     );
   }
@@ -137,54 +134,50 @@ const AllocateGroup = () => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
+    <div className="h-screen w-full overflow-hidden flex flex-col mx-8">
+      <div className="flex items-center gap-2 py-5">
+        <h1 className="font-medium text-2xl text-black">GROUP ALLOCATION</h1>
+        <IoMdInformationCircleOutline className="text-2xl " />
+      </div>
       {/* Header Section */}
-      <div className="p-5 border-b border-[#e5e5ea]">
-        <div className="flex items-center justify-between mb-0">
-          <div className="flex items-center gap-3">
-            <FaUsers className="text-2xl text-[#0066FF]" />
-            <h2 className="text-[20px] font-medium text-gray-900">
-              Group Allocation
-            </h2>
-          </div>
-          <div className="flex items-center gap-4">
-            {/* Auto Allocate Button - macOS style */}
-            <button
-              onClick={handleAutoAllocate}
-              disabled={isAutoAllocating}
-              className={`
-                inline-flex items-center gap-2.5 px-4 py-2 rounded-lg text-[14px]
-                font-medium transition-all duration-200
-                ${
-                  isAutoAllocating
-                    ? "bg-[#e5e5ea] text-gray-400 cursor-not-allowed"
-                    : "bg-[#34c759] text-white hover:bg-[#2db14f]"
-                }
-              `}
-            >
-              <FaShuffle className="text-lg" />
-              {isAutoAllocating ? "Allocating..." : "Auto Allocate"}
-            </button>
+      <div className=" border-b border-[#e5e5ea] w-full flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          {/* Auto Allocate Button */}
+          <button
+            onClick={handleAutoAllocate}
+            disabled={isAutoAllocating}
+            className={`
+              inline-flex items-center gap-2.5 px-4 py-2 rounded-lg text-[14px]
+              font-medium transition-all duration-200
+              ${
+                isAutoAllocating
+                  ? "bg-[#e5e5ea] text-gray-400 cursor-not-allowed"
+                  : "bg-[#34c759] text-white hover:bg-[#2db14f]"
+              }
+            `}
+          >
+            <FaShuffle className="text-lg" />
+            {isAutoAllocating ? "Allocating..." : "Auto Allocate"}
+          </button>
 
-            {/* Search Input - macOS style */}
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search students..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-64 px-4 py-2 bg-[#f5f5f7] rounded-lg
-                          text-[14px] border-none
-                          focus:ring-2 focus:ring-[#0066FF] focus:bg-white
-                          transition-all duration-200 placeholder-gray-500"
-              />
-            </div>
+          {/* Search Input */}
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search students..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-64 px-4 py-2 bg-[#f5f5f7] rounded-lg
+                        text-[14px] border-none
+                        focus:ring-2 focus:ring-[#0066FF] focus:bg-white
+                        transition-all duration-200 placeholder-gray-500"
+            />
           </div>
         </div>
       </div>
 
-      {/* Table Section - macOS style */}
-      <div className="overflow-x-auto">
+      {/* Table Section */}
+      <div className="overflow-x-auto w-full flex justify-center">
         <table className="min-w-full divide-y divide-[#e5e5ea]">
           <thead>
             <tr className="bg-[#f5f5f7]">

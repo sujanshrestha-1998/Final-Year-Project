@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { IoMdInformationCircleOutline } from "react-icons/io";
 
 const AllocateTime = () => {
   const [schedules, setSchedules] = useState([]);
@@ -112,7 +113,11 @@ const AllocateTime = () => {
   ];
 
   return (
-    <div className="bg-[#f2f2f7] h-full flex flex-col items-center p-6">
+    <div className="h-screen w-full overflow-hidden flex flex-col mx-8">
+      <div className="flex items-center gap-2 py-5">
+        <h1 className="font-medium text-2xl text-black">TIME ALLOCATION</h1>
+        <IoMdInformationCircleOutline className="text-2xl " />
+      </div>
       <div className="mb-4">
         <label className="mr-2 font-semibold">Select Group:</label>
         <select

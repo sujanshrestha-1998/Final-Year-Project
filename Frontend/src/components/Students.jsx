@@ -191,8 +191,12 @@ const StudentDetails = ({
             <h2 className="text-lg font-semibold text-black">
               Student Information
             </h2>
-            <button onClick={onEditClick} className="text-blue-500">
+            <button
+              onClick={onEditClick}
+              className="text-blue-500 flex items-center gap-2"
+            >
               Edit
+              <FiEdit />
             </button>
           </div>
           <div className="flex flex-col gap-1">
