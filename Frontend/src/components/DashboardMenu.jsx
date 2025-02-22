@@ -93,12 +93,12 @@ const DashboardMenu = ({ onStudentSelect }) => {
   return (
     <div className="bg-[#f0f0f0] flex flex-col h-full w-[280px] px-4 py-10">
       <div className="flex flex-col items-start gap-4 h-full">
-        <div className="flex gap-4 mb-10 items-center">
+        <div className="flex gap-4 mb-10 items-center px-8">
           <div className="bg-blue-700 p-3 rounded-lg ">
             <BiCollection className="text-white text-[25px]" />
           </div>
           <div>
-            <h1 className=" font-medium">Herald College Kathmandu</h1>
+            <h1 className=" font-semibold">Herald College Kathmandu</h1>
           </div>
         </div>
         <button
@@ -228,8 +228,8 @@ const DashboardMenu = ({ onStudentSelect }) => {
         >
           <img src="/src/assets/Profile.png" alt="" className="w-12 h-auto" />
           <div>
-            <h1 className="font-normal">{userData?.username || "User"}</h1>
-            <p className="text-sm text-gray-800 font-medium">
+            <h1 className="font-semibold">{userData?.username || "User"}</h1>
+            <p className="text-sm text-gray-600 font-medium">
               {userData?.role_id
                 ? `${(() => {
                     switch (userData.role_id) {

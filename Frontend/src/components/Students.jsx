@@ -28,7 +28,7 @@ const StudentList = ({ students, selectedStudent, onStudentClick }) => {
       {students.map((student) => (
         <div
           key={student.stud_id}
-          className={`border-b p-2 shadow-md flex gap-5 cursor-pointer ${
+          className={`border-b p-2 flex gap-5 cursor-pointer ${
             selectedStudent && selectedStudent.stud_id === student.stud_id
               ? "bg-blue-500 text-white"
               : "bg-white text-black"
@@ -97,7 +97,7 @@ const StudentDetails = ({
     <div className="relative ">
       {isEditing ? (
         // Edit Mode
-        <div className="p-5 w-full bg-white rounded-xl shadow-sm">
+        <div className="p-5 w-3/4 bg-white rounded-xl">
           <h2 className="text-lg font-semibold mb-4 text-black">
             Edit Student Details
           </h2>
@@ -115,7 +115,7 @@ const StudentDetails = ({
                     name="first_name"
                     value={selectedStudent.first_name}
                     onChange={onChange}
-                    className="w-60 p-3 text-sm border bg-white rounded-[8px] shadow-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-60 p-3 text-sm border bg-white rounded-[8px]  placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
@@ -125,7 +125,7 @@ const StudentDetails = ({
                     name="last_name"
                     value={selectedStudent.last_name}
                     onChange={onChange}
-                    className="w-60 p-3 text-sm border bg-white rounded-[8px] shadow-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-60 p-3 text-sm border bg-white rounded-[8px]  placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
@@ -135,7 +135,7 @@ const StudentDetails = ({
                     name="date_of_birth"
                     value={formatDateForDisplay(selectedStudent.date_of_birth)}
                     onChange={onChange}
-                    className="w-60 p-3 text-sm border bg-white rounded-[8px] shadow-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-60 p-3 text-sm border bg-white rounded-[8px] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -153,7 +153,7 @@ const StudentDetails = ({
                     name="student_email"
                     value={selectedStudent.student_email}
                     onChange={onChange}
-                    className="w-80 p-3 text-sm border bg-white rounded-[8px] shadow-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-80 p-3 text-sm border bg-white rounded-[8px]  placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
@@ -163,13 +163,13 @@ const StudentDetails = ({
                     name="stud_id"
                     value={selectedStudent.stud_id}
                     onChange={onChange}
-                    className="w-40 p-3 text-sm border bg-white rounded-[8px] shadow-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-40 p-3 text-sm border bg-white rounded-[8px] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
             </fieldset>
           </form>
-          <div className="flex justify-end gap-2 mt-4">
+          <div className="flex  gap-2 mt-4">
             <button
               onClick={onCancel}
               className="px-4 py-1 text-white bg-gray-500 rounded-md"
@@ -186,10 +186,10 @@ const StudentDetails = ({
         </div>
       ) : (
         // View Mode
-        <div className="p-6 w-1/2 bg-white rounded-xl shadow-sm flex flex-col gap-4 mr-2">
-          <div className="flex items-center justify-between">
+        <div className="p-6 w-3/4 bg-white rounded-xl  flex flex-col gap-4 mr-2">
+          <div className="flex items-center gap-4">
             <h2 className="text-lg font-semibold text-black">
-              Student Details
+              Student Information
             </h2>
             <button onClick={onEditClick} className="text-blue-500">
               Edit
@@ -357,9 +357,9 @@ const Students = () => {
   };
 
   return (
-    <div className=" h-screen w-[83.2vw]">
-      <div className="mx-8 w-full">
-        <div className="flex w-full items-center gap-2  py-5">
+    <div className="h-screen w-full overflow-hidden">
+      <div className="mx-8 w-full overflow-auto">
+        <div className="flex items-center gap-2 py-5">
           <h1 className="font-medium text-2xl text-black">STUDENT DETAILS</h1>
           <IoMdInformationCircleOutline className="text-2xl " />
         </div>
@@ -376,9 +376,9 @@ const Students = () => {
 
         {error && <p className="text-red-600 font-bold">{error}</p>}
 
-        <div className="flex w-full gap-20">
+        <div className="flex gap-20 overflow-hidden">
           {/* Student List Section - No loading state */}
-          <div>
+          <div className="flex-shrink-0">
             {students.length > 0 ? (
               <div className="">
                 <h2 className="text-xl font-medium mb-4 text-black">
@@ -394,20 +394,12 @@ const Students = () => {
               <p className="text-gray-600 mt-6">No students found</p>
             )}
           </div>
-
+          {/* Keep the divider always visible */}
           <div className="h-[80vh] w-[0.5px] bg-black"></div>
           {/* Details Section - With loading state */}
-          <div className="w-full items-center flex flex-col mt-6">
+          <div className="w-4/5 flex flex-col mt-6">
             {loading ? (
-              // Skeleton loading only for student details with reduced width
-              <div className="animate-pulse w-1/2">
-                <div className="h-8 w-36 bg-gray-200 rounded mb-4"></div>
-                <div className="space-y-4">
-                  <div className="h-12 bg-gray-200 rounded"></div>
-                  <div className="h-12 bg-gray-200 rounded"></div>
-                  <div className="h-12 bg-gray-200 rounded"></div>
-                </div>
-              </div>
+              <p className="text-black">Loading student details...</p>
             ) : (
               selectedStudent && (
                 <StudentDetails
