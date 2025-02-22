@@ -13,7 +13,7 @@ const LoadingOverlay = () => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white p-5 rounded-lg flex flex-col items-center">
         <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-        <p className="mt-4 text-lg font-semibold text-gray-700">
+        <p className="mt-4 text-lg font-semibold text-black">
           Loading student details...
         </p>
       </div>
@@ -24,35 +24,40 @@ const LoadingOverlay = () => {
 // StudentList Component
 const StudentList = ({ students, selectedStudent, onStudentClick }) => {
   return (
-    <div className="max-h-[500px] overflow-y-auto rounded-[8px] shadow-sm">
+    <div className="max-h-[500px] overflow-y-auto w-96">
       {students.map((student) => (
         <div
           key={student.stud_id}
-          className={`border-b border-gray-300 p-2 shadow-md cursor-pointer ${
+          className={`border-b p-2 shadow-md flex gap-5 cursor-pointer ${
             selectedStudent && selectedStudent.stud_id === student.stud_id
               ? "bg-blue-500 text-white"
               : "bg-white text-black"
           }`}
           onClick={() => onStudentClick(student)}
         >
-          <p
-            className={` text-md font-semibold ${
-              selectedStudent && selectedStudent.stud_id === student.stud_id
-                ? "bg-blue-500 text-white"
-                : "bg-white text-black"
-            }`}
-          >
-            {student.first_name} {student.last_name}
-          </p>
-          <p
-            className={` text-sm ${
-              selectedStudent && selectedStudent.stud_id === student.stud_id
-                ? "bg-blue-500 text-white"
-                : "bg-white text-gray-500"
-            }`}
-          >
-            {student.student_email}
-          </p>
+          <div>
+            <img src="/src/assets/Profile.png" alt="" className="w-12 h-auto" />
+          </div>
+          <div>
+            <p
+              className={` text-md font-semibold ${
+                selectedStudent && selectedStudent.stud_id === student.stud_id
+                  ? "bg-blue-500 text-white"
+                  : "bg-white text-black"
+              }`}
+            >
+              {student.first_name} {student.last_name}
+            </p>
+            <p
+              className={` text-sm ${
+                selectedStudent && selectedStudent.stud_id === student.stud_id
+                  ? "bg-blue-500 text-white"
+                  : "bg-white text-black"
+              }`}
+            >
+              {student.student_email}
+            </p>
+          </div>
         </div>
       ))}
     </div>
@@ -89,17 +94,17 @@ const StudentDetails = ({
   };
 
   return (
-    <div className="relative">
+    <div className="relative ">
       {isEditing ? (
         // Edit Mode
-        <div className="p-5 w-2/4 bg-white rounded-xl shadow-sm">
-          <h2 className="text-lg font-semibold mb-4 text-gray-800">
+        <div className="p-5 w-full bg-white rounded-xl shadow-sm">
+          <h2 className="text-lg font-semibold mb-4 text-black">
             Edit Student Details
           </h2>
           <form className="flex flex-col gap-4">
             {/* Personal Information */}
             <fieldset className="mb-6">
-              <legend className="text-2xl font-bold mb-4 text-gray-800 border-b-2 pb-2">
+              <legend className="text-2xl font-bold mb-4 text-black border-b-2 pb-2">
                 Personal Information
               </legend>
               <div className="flex flex-wrap gap-4 ml-2">
@@ -137,7 +142,7 @@ const StudentDetails = ({
             </fieldset>
             {/* College Information */}
             <fieldset className="mb-6">
-              <legend className="text-2xl font-bold mb-4 text-gray-800 border-b-2 pb-2">
+              <legend className="text-2xl font-bold mb-4 text-black border-b-2 pb-2">
                 College Information
               </legend>
               <div className="flex flex-wrap gap-4">
@@ -183,7 +188,7 @@ const StudentDetails = ({
         // View Mode
         <div className="p-6 w-1/2 bg-white rounded-xl shadow-sm flex flex-col gap-4 mr-2">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-800">
+            <h2 className="text-lg font-semibold text-black">
               Student Details
             </h2>
             <button onClick={onEditClick} className="text-blue-500">
@@ -191,29 +196,29 @@ const StudentDetails = ({
             </button>
           </div>
           <div className="flex flex-col gap-1">
-            <p className="font-semibold text-2xl">
+            <p className="font-semibold text-2xl text-black">
               {selectedStudent.first_name} {selectedStudent.last_name}
             </p>
-            <p className="text-gray-500">{selectedStudent.student_email}</p>
+            <p className="text-black">{selectedStudent.student_email}</p>
             <hr className="my-4" />
             <div>
-              <p className="text-gray-500">
+              <p className="text-black">
                 <strong className="text-black">Student ID:</strong>{" "}
                 {selectedStudent.stud_id}
               </p>
-              <p className="text-gray-500">
+              <p className="text-black">
                 <strong className="text-black">Semester:</strong>{" "}
                 {selectedStudent.grade_level}
               </p>
-              <p className="text-gray-500">
+              <p className="text-black">
                 <strong className="text-black">Group:</strong>{" "}
                 {selectedStudent.stud_group}
               </p>
-              <p className="text-gray-500">
+              <p className="text-black">
                 <strong className="text-black">Date of Birth:</strong>{" "}
                 {formatDateForDisplayReadable(selectedStudent.date_of_birth)}
               </p>
-              <p className="text-gray-500">
+              <p className="text-black">
                 <strong className="text-black">Enrolled Date:</strong>{" "}
                 {formatDateForDisplayReadable(selectedStudent.enrollment_date)}
               </p>
@@ -352,14 +357,14 @@ const Students = () => {
   };
 
   return (
-    <div className="bg-[#f2f1f1] w-screen h-screen">
-      <div className="mx-8">
-        <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold">STUDENT DETAILS</h1>
-          <IoMdInformationCircleOutline className="text-2xl" />
+    <div className=" h-screen w-[83.2vw]">
+      <div className="mx-8 w-full">
+        <div className="flex w-full items-center gap-2  py-5">
+          <h1 className="font-medium text-2xl text-black">STUDENT DETAILS</h1>
+          <IoMdInformationCircleOutline className="text-2xl " />
         </div>
 
-        <div className="flex mt-5">
+        {/* <div className="flex mt-5">
           <button
             onClick={handleRegisterClick}
             className="bg-blue-500 rounded-[8px] px-6 py-1 flex justify-center font-medium items-center gap-2 text-white transform transition-all duration-300"
@@ -367,16 +372,18 @@ const Students = () => {
             Register Student
             <FaRegAddressCard className="bg-blue-500 text-lg" />
           </button>
-        </div>
+        </div> */}
 
         {error && <p className="text-red-600 font-bold">{error}</p>}
 
         <div className="flex w-full gap-20">
           {/* Student List Section - No loading state */}
-          <div className="w-1/4">
+          <div>
             {students.length > 0 ? (
-              <div className="mt-6">
-                <h2 className="text-xl font-bold mb-4">All Students</h2>
+              <div className="">
+                <h2 className="text-xl font-medium mb-4 text-black">
+                  All Students
+                </h2>
                 <StudentList
                   students={students}
                   selectedStudent={selectedStudent}
@@ -388,8 +395,9 @@ const Students = () => {
             )}
           </div>
 
+          <div className="h-[80vh] w-[0.5px] bg-black"></div>
           {/* Details Section - With loading state */}
-          <div className="w-3/5 mt-6">
+          <div className="w-full items-center flex flex-col mt-6">
             {loading ? (
               // Skeleton loading only for student details with reduced width
               <div className="animate-pulse w-1/2">

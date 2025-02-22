@@ -43,7 +43,7 @@ const App = () => {
           }
         />
         <Route
-          path="/registerstudent"
+          path="/students/register"
           element={
             <PrivateRoute>
               <RegisterStudent />
@@ -51,7 +51,7 @@ const App = () => {
           }
         />
         <Route
-          path="/registerteacher"
+          path="/teachers/register"
           element={
             <PrivateRoute>
               <RegisterTeacher />
