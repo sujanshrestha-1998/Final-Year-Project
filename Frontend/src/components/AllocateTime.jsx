@@ -83,6 +83,25 @@ const AllocateTime = () => {
     setIsModalOpen(false);
   };
 
+  const handleDelete = async (scheduleId) => {
+    if (window.confirm("Are you sure you want to delete this schedule?")) {
+      const response = await fetch(
+        "http://localhost:3000/api/delete_schedule",
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ schedule_id: scheduleId }),
+        }
+      );
+      const data = await response.json();
+      alert(data.message);
+
+      setSchedules(
+        schedules.filter((schedule) => schedule.schedule_id !== scheduleId)
+      );
+    }
+  };
+
   const daysOfWeek = [
     "Sunday",
     "Monday",
@@ -150,6 +169,12 @@ const AllocateTime = () => {
                   >
                     Edit
                   </button>
+                  <button
+                    className="bg-red-500 text-white px-3 py-1 rounded ml-2"
+                    onClick={() => handleDelete(schedule.schedule_id)}
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
             ))}
@@ -176,7 +201,6 @@ const AllocateTime = () => {
                 name="schedule_id"
                 value={formData.schedule_id || ""}
               />
-
               <label>Group</label>
               <select
                 name="group_id"

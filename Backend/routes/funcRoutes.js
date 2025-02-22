@@ -197,4 +197,26 @@ router.post("/update_schedule", (req, res) => {
   });
 });
 
+router.delete("/delete_schedule", (req, res) => {
+  const { schedule_id } = req.body;
+
+  if (!schedule_id) {
+    return res.status(400).json({ message: "Schedule ID is required" });
+  }
+
+  const query = `
+    DELETE FROM schedules WHERE id = ?
+  `;
+  const queryParams = [schedule_id];
+
+  connection.query(query, queryParams, (err, result) => {
+    if (err) {
+      console.error("Database error:", err.message);
+      return res.status(500).json({ message: "Database error" });
+    }
+
+    return res.status(200).json({ message: "Schedule deleted successfully" });
+  });
+});
+
 module.exports = router;
