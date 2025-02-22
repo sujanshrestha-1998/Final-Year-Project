@@ -74,4 +74,51 @@ router.post("/fetch_profile", (req, res) => {
   });
 });
 
+router.post("/fetch_schedule", (req, res) => {
+  const { group_id } = req.body;
+
+  if (!group_id) {
+    return res.status(400).json({ message: "Group ID is required" });
+  }
+
+  const query = `
+  SELECT 
+    schedules.id AS schedule_id,
+    schedules.day_of_week,
+    schedules.start_time,
+    schedules.end_time,
+    \`group\`.name AS group_name,
+    classrooms.name AS classroom_name,
+    courses.name AS course_name,
+    teachers.first_name AS teacher_name
+  FROM schedules
+  JOIN \`group\` ON schedules.group_id = \`group\`.id
+  LEFT JOIN classrooms ON schedules.classroom_id = classrooms.id
+  LEFT JOIN courses ON schedules.course_id = courses.id
+  LEFT JOIN teachers ON schedules.teacher_id = teachers.id
+  WHERE schedules.group_id = ?;
+`;
+
+  // Execute the query
+  connection.query(query, [group_id], (err, results) => {
+    if (err) {
+      console.error("Database error:", err.message);
+      return res.status(500).json({ message: "Database error" });
+    }
+
+    console.log(results); // Debugging: Log results to see the fetched data
+
+    if (results.length > 0) {
+      return res.status(200).json({
+        message: "Schedules fetched successfully",
+        schedules: results,
+      });
+    } else {
+      return res
+        .status(404)
+        .json({ message: "No schedules found for this group" });
+    }
+  });
+});
+
 module.exports = router;

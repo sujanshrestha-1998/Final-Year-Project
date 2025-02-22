@@ -89,13 +89,12 @@ router.post("/stud_post", (req, res) => {
         dob,
       ];
 
-      // Log the student query and values for debugging
       console.log("Student Insert Query:", studentQuery);
       console.log("Student Values:", studentValues);
 
       connection.query(studentQuery, studentValues, (err, studentResults) => {
         if (err) {
-          console.error("Error inserting student:", err); // Log error details
+          console.error("Error inserting student:", err);
           return connection.rollback(() => {
             res
               .status(500)
@@ -103,7 +102,6 @@ router.post("/stud_post", (req, res) => {
           });
         }
 
-        // Commit the transaction if both queries are successful
         connection.commit((err) => {
           if (err) {
             return connection.rollback(() => {
@@ -122,7 +120,6 @@ router.post("/stud_post", (req, res) => {
     });
   });
 
-  // Route to update student data
   router.put("/update_student", (req, res) => {
     const {
       stud_id,
@@ -135,7 +132,6 @@ router.post("/stud_post", (req, res) => {
       student_email,
     } = req.body;
 
-    // Validate that all necessary fields are provided
     if (
       !stud_id ||
       !first_name ||
@@ -149,7 +145,6 @@ router.post("/stud_post", (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Update user table with new email
     const updateUserQuery = `
     UPDATE users
     SET email = ?
@@ -163,7 +158,6 @@ router.post("/stud_post", (req, res) => {
         return res.status(500).json({ message: "Error updating user" });
       }
 
-      // Update student table with new data
       const updateStudentQuery = `
       UPDATE students
       SET first_name = ?, last_name = ?, grade_level = ?, stud_group = ?, 

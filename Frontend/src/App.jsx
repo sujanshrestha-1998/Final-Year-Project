@@ -9,13 +9,15 @@ import RegisterStudent from "./pages/RegisterStudent";
 import ScheduleDashboard from "./pages/ScheduleDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import RegisterTeacher from "./pages/RegisterTeacher";
+import AllocateGroup from "./components/AllocateGroup";
+import AllocateTime from "./components/AllocateTime";
 
 const App = () => {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Login />} />
-        <Route path="/administration" element={<AdministrationLogin />} />
+        {/* <Route path="/administration" element={<AdministrationLogin />} /> */}
         <Route
           path="/dashboard"
           element={
@@ -64,6 +66,8 @@ const App = () => {
             </PrivateRoute>
           }
         />
+        <Route path="/allocate-groups" element={<AllocateGroup />} />
+        <Route path="/allocate-time" element={<AllocateTime />} />
       </Routes>
     </Router>
   );
