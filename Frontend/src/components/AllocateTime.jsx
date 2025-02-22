@@ -4,9 +4,10 @@ const AllocateTime = () => {
   const [schedules, setSchedules] = useState([]);
   const [groups, setGroups] = useState([]);
   const [selectedGroupId, setSelectedGroupId] = useState("1");
-  const [showUpdatePopup, setShowUpdatePopup] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
-    group_id: "",
+    schedule_id: null,
+    group_id: "1",
     classroom_id: "",
     course_id: "",
     teacher_id: "",
@@ -21,7 +22,6 @@ const AllocateTime = () => {
       const data = await response.json();
       setGroups(data.groups);
     };
-
     fetchGroups();
   }, []);
 
@@ -29,25 +29,59 @@ const AllocateTime = () => {
     const fetchSchedules = async () => {
       const response = await fetch("http://localhost:3000/api/fetch_schedule", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ group_id: selectedGroupId }),
       });
-
       const data = await response.json();
-      if (Array.isArray(data.schedules)) {
-        setSchedules(data.schedules);
-      } else {
-        console.error(
-          "The response data.schedules is not an array:",
-          data.schedules
-        );
-      }
+      if (Array.isArray(data.schedules)) setSchedules(data.schedules);
     };
-
     fetchSchedules();
   }, [selectedGroupId]);
+
+  const handleOpenModal = (schedule = null) => {
+    if (schedule) {
+      setFormData({
+        schedule_id: schedule.schedule_id,
+        group_id: schedule.group_id || selectedGroupId,
+        classroom_id: schedule.classroom_id || "",
+        course_id: schedule.course_id || "",
+        teacher_id: schedule.teacher_id || "",
+        day_of_week: schedule.day_of_week,
+        start_time: schedule.start_time,
+        end_time: schedule.end_time,
+      });
+    } else {
+      setFormData({
+        schedule_id: null,
+        group_id: selectedGroupId,
+        classroom_id: "",
+        course_id: "",
+        teacher_id: "",
+        day_of_week: "Sunday",
+        start_time: "",
+        end_time: "",
+      });
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => setIsModalOpen(false);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const response = await fetch("http://localhost:3000/api/update_schedule", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+    const data = await response.json();
+    alert(data.message);
+    setIsModalOpen(false);
+  };
 
   const daysOfWeek = [
     "Sunday",
@@ -57,10 +91,6 @@ const AllocateTime = () => {
     "Thursday",
     "Friday",
   ];
-
-  const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
 
   return (
     <div className="bg-[#f2f2f7] h-full flex flex-col items-center p-6">
@@ -89,131 +119,156 @@ const AllocateTime = () => {
               <th className="border border-gray-300 p-2">Teacher</th>
               <th className="border border-gray-300 p-2">Start Time</th>
               <th className="border border-gray-300 p-2">End Time</th>
+              <th className="border border-gray-300 p-2">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {daysOfWeek.map((day) => {
-              const daySchedules = schedules.filter(
-                (schedule) => schedule.day_of_week === day
-              );
-              return daySchedules.length > 0 ? (
-                daySchedules.map((schedule, index) => (
-                  <tr key={schedule.id} className="text-center">
-                    {index === 0 && (
-                      <td
-                        className="border border-gray-300 p-2 font-semibold"
-                        rowSpan={daySchedules.length}
-                      >
-                        {day}
-                      </td>
-                    )}
-                    <td className="border border-gray-300 p-2">
-                      {schedule.classroom_name}
-                    </td>
-                    <td className="border border-gray-300 p-2">
-                      {schedule.course_name}
-                    </td>
-                    <td className="border border-gray-300 p-2">
-                      {schedule.teacher_name}
-                    </td>
-                    <td className="border border-gray-300 p-2">
-                      {schedule.start_time}
-                    </td>
-                    <td className="border border-gray-300 p-2">
-                      {schedule.end_time}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr key={day}>
-                  <td className="border border-gray-300 p-2 font-semibold">
-                    {day}
-                  </td>
-                  <td
-                    className="border border-gray-300 p-2 text-center"
-                    colSpan="5"
+            {schedules.map((schedule) => (
+              <tr key={schedule.schedule_id} className="text-center">
+                <td className="border border-gray-300 p-2">
+                  {schedule.day_of_week}
+                </td>
+                <td className="border border-gray-300 p-2">
+                  {schedule.classroom_name}
+                </td>
+                <td className="border border-gray-300 p-2">
+                  {schedule.course_name}
+                </td>
+                <td className="border border-gray-300 p-2">
+                  {schedule.teacher_name}
+                </td>
+                <td className="border border-gray-300 p-2">
+                  {schedule.start_time}
+                </td>
+                <td className="border border-gray-300 p-2">
+                  {schedule.end_time}
+                </td>
+                <td className="border border-gray-300 p-2">
+                  <button
+                    className="bg-blue-500 text-white px-3 py-1 rounded"
+                    onClick={() => handleOpenModal(schedule)}
                   >
-                    No Schedule
-                  </td>
-                </tr>
-              );
-            })}
+                    Edit
+                  </button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
+
+        <button
+          className="mt-4 bg-green-500 text-white px-4 py-2 rounded"
+          onClick={() => handleOpenModal()}
+        >
+          Add Schedule
+        </button>
       </div>
 
-      <button
-        className="mt-4 p-2 bg-blue-500 text-white rounded"
-        onClick={() => setShowUpdatePopup(true)}
-      >
-        Update Schedule
-      </button>
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg w-96">
+            <h2 className="text-lg font-semibold mb-4">
+              {formData.schedule_id ? "Update Schedule" : "Add New Schedule"}
+            </h2>
+            <form onSubmit={handleSubmit}>
+              <input
+                type="hidden"
+                name="schedule_id"
+                value={formData.schedule_id || ""}
+              />
 
-      {showUpdatePopup && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
-          <div className="bg-white p-6 rounded shadow-lg w-96">
-            <h2 className="text-xl font-semibold mb-4">Update Schedule</h2>
-            <select
-              name="group_id"
-              onChange={handleInputChange}
-              className="p-2 border rounded w-full mb-2"
-            >
-              {groups.map((group) => (
-                <option key={group.id} value={group.id}>
-                  {group.name}
-                </option>
-              ))}
-            </select>
-            <input
-              type="text"
-              name="classroom_id"
-              placeholder="Classroom ID"
-              onChange={handleInputChange}
-              className="p-2 border rounded w-full mb-2"
-            />
-            <input
-              type="text"
-              name="course_id"
-              placeholder="Course ID"
-              onChange={handleInputChange}
-              className="p-2 border rounded w-full mb-2"
-            />
-            <input
-              type="text"
-              name="teacher_id"
-              placeholder="Teacher ID"
-              onChange={handleInputChange}
-              className="p-2 border rounded w-full mb-2"
-            />
-            <select
-              name="day_of_week"
-              onChange={handleInputChange}
-              className="p-2 border rounded w-full mb-2"
-            >
-              {daysOfWeek.map((day) => (
-                <option key={day} value={day}>
-                  {day}
-                </option>
-              ))}
-            </select>
-            <input
-              type="time"
-              name="start_time"
-              onChange={handleInputChange}
-              className="p-2 border rounded w-full mb-2"
-            />
-            <input
-              type="time"
-              name="end_time"
-              onChange={handleInputChange}
-              className="p-2 border rounded w-full mb-2"
-            />
-            <button
-              className="mt-2 p-2 bg-red-500 text-white rounded"
-              onClick={() => setShowUpdatePopup(false)}
-            >
-              Close
-            </button>
+              <label>Group</label>
+              <select
+                name="group_id"
+                value={formData.group_id}
+                onChange={handleChange}
+                className="w-full p-2 border rounded mb-2"
+              >
+                {groups.map((group) => (
+                  <option key={group.id} value={group.id}>
+                    {group.name}
+                  </option>
+                ))}
+              </select>
+
+              <label>Classroom ID</label>
+              <input
+                type="text"
+                name="classroom_id"
+                required
+                value={formData.classroom_id}
+                onChange={handleChange}
+                className="w-full p-2 border rounded mb-2"
+              />
+
+              <label>Course ID</label>
+              <input
+                type="text"
+                name="course_id"
+                required
+                value={formData.course_id}
+                onChange={handleChange}
+                className="w-full p-2 border rounded mb-2"
+              />
+
+              <label>Teacher ID</label>
+              <input
+                type="text"
+                name="teacher_id"
+                required
+                value={formData.teacher_id}
+                onChange={handleChange}
+                className="w-full p-2 border rounded mb-2"
+              />
+
+              <label>Day of Week</label>
+              <select
+                name="day_of_week"
+                required
+                value={formData.day_of_week}
+                onChange={handleChange}
+                className="w-full p-2 border rounded mb-2"
+              >
+                {daysOfWeek.map((day) => (
+                  <option key={day} value={day}>
+                    {day}
+                  </option>
+                ))}
+              </select>
+
+              <label>Start Time</label>
+              <input
+                type="time"
+                name="start_time"
+                required
+                value={formData.start_time}
+                onChange={handleChange}
+                className="w-full p-2 border rounded mb-2"
+              />
+
+              <label>End Time</label>
+              <input
+                type="time"
+                name="end_time"
+                required
+                value={formData.end_time}
+                onChange={handleChange}
+                className="w-full p-2 border rounded mb-2"
+              />
+
+              <button
+                type="submit"
+                className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
+              >
+                Save
+              </button>
+              <button
+                onClick={handleCloseModal}
+                className="bg-red-500 text-white px-4 py-2 rounded"
+              >
+                Cancel
+              </button>
+            </form>
           </div>
         </div>
       )}
