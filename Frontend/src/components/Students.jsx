@@ -6,6 +6,7 @@ import { FaRegAddressCard } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import "react-datepicker/dist/react-datepicker.css";
 import { HiOutlineChevronUpDown } from "react-icons/hi2";
+import EditStudentPopup from "./EditStudentPopup"; // Import the new popup component
 
 // Loading Component
 const LoadingOverlay = () => {
@@ -73,6 +74,22 @@ const StudentDetails = ({
   onSave,
   onEditClick,
 }) => {
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+
+  const handleEditClick = () => {
+    setIsPopupOpen(true);
+  };
+
+  const handleClosePopup = () => {
+    setIsPopupOpen(false);
+  };
+
+  const handleSave = () => {
+    // Call the onSave function passed from the parent
+    onSave();
+    handleClosePopup();
+  };
+
   if (!selectedStudent) return <p>Select a student to view details</p>;
 
   // Utility to format date for input (YYYY-MM-DD)
@@ -94,141 +111,54 @@ const StudentDetails = ({
   };
 
   return (
-    <div className="relative ">
-      {isEditing ? (
-        // Edit Mode
-        <div className="p-5 w-3/4 bg-white rounded-xl">
-          <h2 className="text-lg font-semibold mb-4 text-black">
-            Edit Student Details
+    <div className="relative">
+      <div className="p-6 w-full bg-white rounded-xl flex flex-col gap-4">
+        <div className="flex items-center gap-4">
+          <h2 className="text-lg font-semibold text-black">
+            Student Information
           </h2>
-          <form className="flex flex-col gap-4">
-            {/* Personal Information */}
-            <fieldset className="mb-6">
-              <legend className="text-2xl font-bold mb-4 text-black border-b-2 pb-2">
-                Personal Information
-              </legend>
-              <div className="flex flex-wrap gap-4 ml-2">
-                <div>
-                  <p className="mb-2">First Name</p>
-                  <input
-                    type="text"
-                    name="first_name"
-                    value={selectedStudent.first_name}
-                    onChange={onChange}
-                    className="w-60 p-3 text-sm border bg-white rounded-[8px]  placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <p className="mb-2">Last Name</p>
-                  <input
-                    type="text"
-                    name="last_name"
-                    value={selectedStudent.last_name}
-                    onChange={onChange}
-                    className="w-60 p-3 text-sm border bg-white rounded-[8px]  placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <p className="mb-2">Date of Birth</p>
-                  <input
-                    type="date"
-                    name="date_of_birth"
-                    value={formatDateForDisplay(selectedStudent.date_of_birth)}
-                    onChange={onChange}
-                    className="w-60 p-3 text-sm border bg-white rounded-[8px] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-            </fieldset>
-            {/* College Information */}
-            <fieldset className="mb-6">
-              <legend className="text-2xl font-bold mb-4 text-black border-b-2 pb-2">
-                College Information
-              </legend>
-              <div className="flex flex-wrap gap-4">
-                <div>
-                  <p className="mb-2">Email Address</p>
-                  <input
-                    type="text"
-                    name="student_email"
-                    value={selectedStudent.student_email}
-                    onChange={onChange}
-                    className="w-80 p-3 text-sm border bg-white rounded-[8px]  placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <p className="mb-2">Student ID</p>
-                  <input
-                    type="text"
-                    name="stud_id"
-                    value={selectedStudent.stud_id}
-                    onChange={onChange}
-                    className="w-40 p-3 text-sm border bg-white rounded-[8px] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-            </fieldset>
-          </form>
-          <div className="flex  gap-2 mt-4">
-            <button
-              onClick={onCancel}
-              className="px-4 py-1 text-white bg-gray-500 rounded-md"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={onSave}
-              className="px-4 py-1 text-white bg-blue-500 rounded-md"
-            >
-              Save Changes
-            </button>
-          </div>
+          <button onClick={handleEditClick} className="text-blue-500">
+            Edit
+          </button>
         </div>
-      ) : (
-        // View Mode
-        <div className="p-6 w-3/4 bg-white rounded-xl  flex flex-col gap-4 mr-2">
-          <div className="flex items-center gap-4">
-            <h2 className="text-lg font-semibold text-black">
-              Student Information
-            </h2>
-            <button
-              onClick={onEditClick}
-              className="text-blue-500 flex items-center gap-2"
-            >
-              Edit
-              <FiEdit />
-            </button>
-          </div>
-          <div className="flex flex-col gap-1">
-            <p className="font-semibold text-2xl text-black">
-              {selectedStudent.first_name} {selectedStudent.last_name}
+        <div className="flex flex-col gap-1">
+          <p className="font-semibold text-2xl text-black">
+            {selectedStudent.first_name} {selectedStudent.last_name}
+          </p>
+          <p className="text-black">{selectedStudent.student_email}</p>
+          <hr className="my-4" />
+          <div>
+            <p className="text-black">
+              <strong className="text-black">Student ID:</strong>{" "}
+              {selectedStudent.stud_id}
             </p>
-            <p className="text-black">{selectedStudent.student_email}</p>
-            <hr className="my-4" />
-            <div>
-              <p className="text-black">
-                <strong className="text-black">Student ID:</strong>{" "}
-                {selectedStudent.stud_id}
-              </p>
-              <p className="text-black">
-                <strong className="text-black">Semester:</strong>{" "}
-                {selectedStudent.grade_level}
-              </p>
-              <p className="text-black">
-                <strong className="text-black">Group:</strong>{" "}
-                {selectedStudent.stud_group}
-              </p>
-              <p className="text-black">
-                <strong className="text-black">Date of Birth:</strong>{" "}
-                {formatDateForDisplayReadable(selectedStudent.date_of_birth)}
-              </p>
-              <p className="text-black">
-                <strong className="text-black">Enrolled Date:</strong>{" "}
-                {formatDateForDisplayReadable(selectedStudent.enrollment_date)}
-              </p>
-            </div>
+            <p className="text-black">
+              <strong className="text-black">Semester:</strong>{" "}
+              {selectedStudent.grade_level}
+            </p>
+            <p className="text-black">
+              <strong className="text-black">Group:</strong>{" "}
+              {selectedStudent.stud_group}
+            </p>
+            <p className="text-black">
+              <strong className="text-black">Date of Birth:</strong>{" "}
+              {selectedStudent.date_of_birth}
+            </p>
+            <p className="text-black">
+              <strong className="text-black">Enrolled Date:</strong>{" "}
+              {selectedStudent.enrollment_date}
+            </p>
           </div>
         </div>
+      </div>
+
+      {isPopupOpen && (
+        <EditStudentPopup
+          student={selectedStudent}
+          onClose={handleClosePopup}
+          onChange={onChange}
+          onSave={handleSave}
+        />
       )}
     </div>
   );
