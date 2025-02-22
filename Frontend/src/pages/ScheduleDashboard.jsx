@@ -3,8 +3,8 @@ import DashboardMenu from "../components/DashboardMenu";
 import Schedule from "../components/Schedule";
 const ScheduleDashboard = () => {
   return (
-    <div>
-      <div>
+    <div className="flex">
+      <div className>
         <DashboardMenu />
       </div>
       <div>

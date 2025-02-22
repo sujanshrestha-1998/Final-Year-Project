@@ -4,7 +4,7 @@ import Teacher from "../components/Teacher";
 
 const TeacherDashboard = () => {
   return (
-    <div>
+    <div className="flex">
       <div>
         <DashboardMenu />
       </div>

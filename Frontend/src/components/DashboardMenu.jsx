@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { IoSearch } from "react-icons/io5";
-import { IoMdNotifications } from "react-icons/io";
 import { useNavigate, useLocation } from "react-router-dom";
+import { FaChalkboardTeacher } from "react-icons/fa";
+import { BsFillPersonLinesFill } from "react-icons/bs";
+import { BiCollection } from "react-icons/bi";
+import { MdClass } from "react-icons/md";
+import { IoTime } from "react-icons/io5";
+
 import Profile from "./Profile";
 import axios from "axios";
-import { FiSearch } from "react-icons/fi";
 
 const DashboardMenu = ({ onStudentSelect }) => {
   const navigate = useNavigate();
@@ -12,38 +15,31 @@ const DashboardMenu = ({ onStudentSelect }) => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
-  const [isProfileOpen, setIsProfileOpen] = useState(false); // Profile modal state
-  const [userData, setUserData] = useState(null); // Fetched user data
-  const [roleId, setRoleId] = useState(null); // Role ID for role-based logic
-  const [isSearching, setIsSearching] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [userData, setUserData] = useState(null);
+  const [roleId, setRoleId] = useState(null);
+  const [isScheduleOpen, setIsScheduleOpen] = useState(false);
 
-  // Fetch user data and role based on email in localStorage
+  // Fetch user data based on email in localStorage
   useEffect(() => {
     const fetchUserData = async () => {
-      const email = localStorage.getItem("userEmail"); // Retrieve email from localStorage
-
-      if (!email) {
-        console.error("No email found in localStorage");
-        return;
-      }
+      const email = localStorage.getItem("userEmail");
+      if (!email) return console.error("No email found in localStorage");
 
       try {
         const response = await fetch(
           "http://localhost:3000/api/fetch_profile",
           {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ email }), // Pass email in request body
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email }),
           }
         );
 
         const data = await response.json();
-
         if (response.ok) {
-          setUserData(data.user); // Store fetched user data
-          setRoleId(data.user.role_id); // Store role_id
+          setUserData(data.user);
+          setRoleId(data.user.role_id);
         } else {
           console.error("Failed to fetch user data:", data.message);
         }
@@ -55,79 +51,28 @@ const DashboardMenu = ({ onStudentSelect }) => {
     fetchUserData();
   }, []);
 
-  // Determine which search endpoint to use based on current route
+  // Determine search endpoint based on current route
   const getSearchEndpoint = () => {
-    if (location.pathname.includes("/students")) {
-      return "search_students";
-    } else if (location.pathname.includes("/teachers")) {
-      return "search_teachers";
-    }
+    if (location.pathname.includes("/students")) return "search_students";
+    if (location.pathname.includes("/teachers")) return "search_teachers";
     return null;
   };
 
-  // Update search function to use dynamic endpoint
-  const handleSearch = async (query) => {
-    if (!query.trim()) {
-      setSearchResults([]);
-      return;
-    }
-
-    const endpoint = getSearchEndpoint();
-    if (!endpoint) return;
-
-    setIsSearching(true);
-    try {
-      const response = await axios.get(
-        `http://localhost:3000/api/${endpoint}`,
-        {
-          params: { query: query },
-        }
-      );
-
-      setSearchResults(
-        response.data[endpoint.includes("students") ? "students" : "teachers"]
-      );
-    } catch (error) {
-      console.error("Search error:", error);
-      setSearchResults([]);
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  // Debounced search
-  useEffect(() => {
-    const debounceTimer = setTimeout(() => {
-      if (searchQuery) {
-        handleSearch(searchQuery);
-      } else {
-        setSearchResults([]);
-      }
-    }, 300);
-
-    return () => clearTimeout(debounceTimer);
-  }, [searchQuery]);
-
+  // Handle search result click
   const handleSearchResultClick = (result) => {
-    setSearchQuery(""); // Clear search
-    setSearchResults([]); // Clear results
+    setSearchQuery("");
+    setSearchResults([]);
 
     if (location.pathname.includes("/students")) {
-      // Store the selected student ID in localStorage
       localStorage.setItem("selectedStudentId", result.stud_id);
-
-      // If already on students page, reload with loading state
       if (location.pathname === "/students") {
-        localStorage.setItem("isLoading", "true"); // Set loading state
+        localStorage.setItem("isLoading", "true");
         window.location.reload();
       } else {
-        // If not on students page, navigate to it
         navigate("/students");
       }
     } else if (location.pathname.includes("/teachers")) {
-      // Handle teacher selection similarly
       localStorage.setItem("selectedTeacherId", result.teacher_id);
-
       if (location.pathname === "/teachers") {
         localStorage.setItem("isLoading", "true");
         window.location.reload();
@@ -137,7 +82,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
     }
   };
 
-  // Render search results with click handler
+  // Render search results
   const renderSearchResults = () => {
     if (!searchResults.length) return null;
 
@@ -164,129 +109,110 @@ const DashboardMenu = ({ onStudentSelect }) => {
   const openProfile = () => setIsProfileOpen(true);
   const closeProfile = () => setIsProfileOpen(false);
 
+  const toggleScheduleMenu = () => {
+    setIsScheduleOpen((prev) => !prev);
+  };
+
   return (
-    <div className="bg-[#f2f1f1]">
-      {/* Header Section */}
-      <div className="flex justify-between items-center">
-        <div className="p-8 flex items-center gap-7">
-          <img
-            src="/src/assets/hck-logo.png"
-            alt="HCK Logo"
-            className="w-44 h-auto"
-          />
-
-          {/* Navigation Buttons */}
-          <div className="flex gap-6 mt-4">
-            <button
-              className={`text-lg font-semibold ${
-                location.pathname === "/dashboard"
-                  ? "text-blue-500"
-                  : "text-gray-700"
-              }`}
-              onClick={() => navigate("/dashboard")}
-            >
-              CLASSROOM
-            </button>
-            <button
-              className={`text-lg font-semibold ${
-                location.pathname === "/teachers"
-                  ? "text-blue-500"
-                  : "text-gray-700"
-              }`}
-              onClick={() => navigate("/teachers")}
-            >
-              TEACHERS
-            </button>
-            {roleId !== 4 && (
-              <button
-                className={`text-lg font-semibold ${
-                  location.pathname === "/students"
-                    ? "text-blue-500"
-                    : "text-gray-700"
-                }`}
-                onClick={() => navigate("/students")}
-              >
-                STUDENTS
-              </button>
-            )}
-            <button
-              className={`text-lg font-semibold ${
-                location.pathname === "/schedule"
-                  ? "text-blue-500"
-                  : "text-gray-700"
-              }`}
-              onClick={() => navigate("/schedule")}
-            >
-              SCHEDULE
-            </button>
+    <div className="bg-[#28282B] flex flex-col h-full w-[280px] pl-10 py-10">
+      <div className="flex flex-col items-start gap-4 h-full">
+        <div className="flex gap-4 mb-10 items-center">
+          <div className="bg-blue-700 p-3 rounded-lg ">
+            <BiCollection className="text-white text-[25px]" />
           </div>
-
-          {/* Search Bar */}
-          <div className="relative mt-4 w-96">
-            <div className="bg-gray-300 h-8 flex items-center p-2 rounded-md gap-2">
-              {/* Remove this icon as we're using FiSearch below */}
-              <IoSearch className="text-gray-700 ml-2 bg-gray-300" />
-              <input
-                type="text"
-                placeholder={
-                  location.pathname.includes("/students")
-                    ? "Search students..."
-                    : location.pathname.includes("/teachers")
-                    ? "Search teachers..."
-                    : "Search..."
-                }
-                className="bg-gray-300 flex-grow text-sm text-gray-700 placeholder-gray-500 outline-none"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-
-            {isSearching ? (
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                <div className="animate-spin h-5 w-5 border-2 border-blue-500 rounded-full border-t-transparent"></div>
-              </div>
-            ) : (
-              <FiSearch className="absolute hidden left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            )}
-
-            {renderSearchResults()}
+          <div>
+            <h1 className="text-white font-medium">Herald College Kathmandu</h1>
           </div>
         </div>
-
-        {/* Notifications and Profile Section */}
-        <div className="flex items-center p-10 gap-6">
-          <IoMdNotifications className="text-4xl" />
-          <div
-            className="flex items-center gap-2 cursor-pointer"
-            onClick={openProfile}
+        <button
+          className={`text-lg font-regular text-white flex items-center gap-3 ${
+            location.pathname === "/dashboard" ? "text-blue-500" : ""
+          }`}
+          onClick={() => navigate("/dashboard")}
+        >
+          <MdClass className="text-gray-200" />
+          Classroom
+        </button>
+        <button
+          className={`text-lg font-regular text-white flex items-center gap-3 ${
+            location.pathname === "/teachers" ? "text-blue-500" : ""
+          }`}
+          onClick={() => navigate("/teachers")}
+        >
+          <FaChalkboardTeacher className="text-gray-200" />
+          Teachers
+        </button>
+        {roleId !== 4 && (
+          <button
+            className={`text-lg font-regular flex items-center gap-3 text-white ${
+              location.pathname === "/students" ? "text-blue-500" : ""
+            }`}
+            onClick={() => navigate("/students")}
           >
-            <img src="/src/assets/Profile.png" alt="" className="w-12 h-auto" />
-            <div>
-              <h1 className="font-semibold">{userData?.username || "User"}</h1>
-              <p className="text-sm text-gray-500 font-medium">
-                {userData?.role_id
-                  ? `${(() => {
-                      switch (userData.role_id) {
-                        case 1:
-                          return "Admin";
-                        case 2:
-                          return "Teacher";
-                        case 3:
-                          return "Staff";
-                        case 4:
-                          return "Student";
-                        default:
-                          return "Unknown Role";
-                      }
-                    })()}`
-                  : "Loading..."}
-              </p>
-            </div>
+            <BsFillPersonLinesFill className="text-gray-200" />
+            Students
+          </button>
+        )}
+        <button
+          className={`text-lg font-regular flex items-center gap-3 text-white ${
+            location.pathname === "/schedule" ? "text-blue-500" : ""
+          }`}
+          onClick={toggleScheduleMenu}
+        >
+          <IoTime className="text-gray-200" />
+          Schedule
+          <span className="ml-2">{isScheduleOpen ? "▼" : ">"}</span>
+        </button>
+        {isScheduleOpen && (
+          <div className="ml-4 flex flex-col">
+            <button
+              className="text-white text-sm"
+              onClick={() => {
+                /* Handle Allocate Group */
+              }}
+            >
+              Allocate Group
+            </button>
+            <button
+              className="text-white text-sm"
+              onClick={() => {
+                /* Handle Allocate Time */
+              }}
+            >
+              Allocate Time
+            </button>
+          </div>
+        )}
+      </div>
+      <div className="flex flex-col items-start text-white gap-4 mb-4">
+        <div
+          className="flex items-center gap-2 cursor-pointer"
+          onClick={openProfile}
+        >
+          <img src="/src/assets/Profile.png" alt="" className="w-12 h-auto" />
+          <div>
+            <h1 className="font-normal">{userData?.username || "User"}</h1>
+            <p className="text-sm text-gray-500 font-medium">
+              {userData?.role_id
+                ? `${(() => {
+                    switch (userData.role_id) {
+                      case 1:
+                        return "Admin";
+                      case 2:
+                        return "Teacher";
+                      case 3:
+                        return "Staff";
+                      case 4:
+                        return "Student";
+                      default:
+                        return "Unknown Role";
+                    }
+                  })()}`
+                : "Loading..."}
+            </p>
           </div>
         </div>
       </div>
-
-      {/* Profile Modal */}
       {isProfileOpen && <Profile userData={userData} onClose={closeProfile} />}
     </div>
   );

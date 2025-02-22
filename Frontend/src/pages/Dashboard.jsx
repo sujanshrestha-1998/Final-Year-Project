@@ -4,8 +4,8 @@ import Classroom from "../components/Classroom";
 
 const Dashboard = () => {
   return (
-    <div>
-      <div className="w-full h-10  ">
+    <div className="flex">
+      <div className="">
         <DashboardMenu />
       </div>
       <div>

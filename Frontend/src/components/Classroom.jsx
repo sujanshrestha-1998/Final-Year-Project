@@ -4,11 +4,11 @@ import { MdUnfoldMore } from "react-icons/md";
 
 const Classroom = () => {
   return (
-    <div className="bg-[#f2f1f1] h-screen my-24 ">
+    <div className="bg-[#18181b] h-screen w-[83.2vw]">
       <div>
-        <div className="flex items-center gap-2 mx-8 ">
-          <h1 className="font-semibold text-2xl">CLASSROOM DETAILS</h1>
-          <IoMdInformationCircleOutline className="text-2xl" />
+        <div className="flex items-center gap-2 px-5 py-5">
+          <h1 className="font-medium text-2xl text-white">CLASSROOM DETAILS</h1>
+          <IoMdInformationCircleOutline className="text-2xl text-white" />
         </div>
         {/* Body */}
       </div>

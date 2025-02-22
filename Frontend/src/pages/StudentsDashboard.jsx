@@ -14,7 +14,7 @@ const StudentsDashboard = () => {
   };
 
   return (
-    <div>
+    <div className="flex">
       <div>
         <DashboardMenu onStudentSelect={handleStudentSelect} />
       </div>
