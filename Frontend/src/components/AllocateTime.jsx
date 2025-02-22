@@ -4,6 +4,16 @@ const AllocateTime = () => {
   const [schedules, setSchedules] = useState([]);
   const [groups, setGroups] = useState([]);
   const [selectedGroupId, setSelectedGroupId] = useState("1");
+  const [showUpdatePopup, setShowUpdatePopup] = useState(false);
+  const [formData, setFormData] = useState({
+    group_id: "",
+    classroom_id: "",
+    course_id: "",
+    teacher_id: "",
+    day_of_week: "Sunday",
+    start_time: "",
+    end_time: "",
+  });
 
   useEffect(() => {
     const fetchGroups = async () => {
@@ -47,6 +57,10 @@ const AllocateTime = () => {
     "Thursday",
     "Friday",
   ];
+
+  const handleInputChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   return (
     <div className="bg-[#f2f2f7] h-full flex flex-col items-center p-6">
@@ -127,6 +141,82 @@ const AllocateTime = () => {
           </tbody>
         </table>
       </div>
+
+      <button
+        className="mt-4 p-2 bg-blue-500 text-white rounded"
+        onClick={() => setShowUpdatePopup(true)}
+      >
+        Update Schedule
+      </button>
+
+      {showUpdatePopup && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
+          <div className="bg-white p-6 rounded shadow-lg w-96">
+            <h2 className="text-xl font-semibold mb-4">Update Schedule</h2>
+            <select
+              name="group_id"
+              onChange={handleInputChange}
+              className="p-2 border rounded w-full mb-2"
+            >
+              {groups.map((group) => (
+                <option key={group.id} value={group.id}>
+                  {group.name}
+                </option>
+              ))}
+            </select>
+            <input
+              type="text"
+              name="classroom_id"
+              placeholder="Classroom ID"
+              onChange={handleInputChange}
+              className="p-2 border rounded w-full mb-2"
+            />
+            <input
+              type="text"
+              name="course_id"
+              placeholder="Course ID"
+              onChange={handleInputChange}
+              className="p-2 border rounded w-full mb-2"
+            />
+            <input
+              type="text"
+              name="teacher_id"
+              placeholder="Teacher ID"
+              onChange={handleInputChange}
+              className="p-2 border rounded w-full mb-2"
+            />
+            <select
+              name="day_of_week"
+              onChange={handleInputChange}
+              className="p-2 border rounded w-full mb-2"
+            >
+              {daysOfWeek.map((day) => (
+                <option key={day} value={day}>
+                  {day}
+                </option>
+              ))}
+            </select>
+            <input
+              type="time"
+              name="start_time"
+              onChange={handleInputChange}
+              className="p-2 border rounded w-full mb-2"
+            />
+            <input
+              type="time"
+              name="end_time"
+              onChange={handleInputChange}
+              className="p-2 border rounded w-full mb-2"
+            />
+            <button
+              className="mt-2 p-2 bg-red-500 text-white rounded"
+              onClick={() => setShowUpdatePopup(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
