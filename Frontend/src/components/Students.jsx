@@ -5,7 +5,14 @@ import { FiEdit } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import "react-datepicker/dist/react-datepicker.css";
 import { IoSearch } from "react-icons/io5";
-import EditStudentPopup from "./EditStudentPopup"; // Import the new popup component
+import {
+  FaUserGraduate,
+  FaUsers,
+  FaCalendarAlt,
+  FaUserClock,
+} from "react-icons/fa";
+import { FiBarChart2, FiUserCheck, FiAlertCircle } from "react-icons/fi";
+import EditStudentPopup from "./EditStudentPopup";
 
 // Loading Component
 const LoadingOverlay = () => {
@@ -16,6 +23,42 @@ const LoadingOverlay = () => {
         <p className="mt-4 text-lg font-semibold text-black">
           Loading student details...
         </p>
+      </div>
+    </div>
+  );
+};
+
+// Stats Card Component
+const StatCard = ({ title, value, icon, color }) => {
+  return (
+    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex items-center gap-4">
+      <div
+        className={`rounded-full p-3 ${color} bg-opacity-10 flex items-center justify-center`}
+      >
+        {icon}
+      </div>
+      <div>
+        <p className="text-sm text-gray-500">{title}</p>
+        <p className="text-xl font-bold text-gray-800">{value}</p>
+      </div>
+    </div>
+  );
+};
+
+// Summary Box Component
+const SummaryBox = ({ title, items }) => {
+  return (
+    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+      <h3 className="font-medium text-gray-700 mb-3 border-b pb-2">{title}</h3>
+      <div className="space-y-2">
+        {items.map((item, index) => (
+          <div key={index} className="flex justify-between items-center">
+            <span className="text-sm text-gray-600">{item.label}</span>
+            <span className={`font-medium ${item.color || "text-gray-800"}`}>
+              {item.value}
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -307,6 +350,15 @@ const Students = () => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [originalStudent, setOriginalStudent] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    activeStudents: 0,
+    inactiveStudents: 0,
+    newStudentsThisMonth: 0,
+    averageAge: 0,
+    genderDistribution: { male: 0, female: 0 },
+    semesterBreakdown: {},
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -318,6 +370,10 @@ const Students = () => {
         setStudents(response.data.students);
         setError("");
 
+        // Calculate statistics
+        const studentsData = response.data.students;
+        calculateStats(studentsData);
+
         const selectedId = localStorage.getItem("selectedStudentId");
         const isLoading = localStorage.getItem("isLoading");
 
@@ -325,7 +381,7 @@ const Students = () => {
           console.log("Selected ID from localStorage:", selectedId);
           setLoading(true); // Only set loading when selecting a student
 
-          const student = response.data.students.find(
+          const student = studentsData.find(
             (s) => String(s.stud_id) === String(selectedId)
           );
 
@@ -338,9 +394,9 @@ const Students = () => {
             setOriginalStudent({ ...student });
           }
           localStorage.removeItem("isLoading");
-        } else if (response.data.students.length > 0) {
-          setSelectedStudent(response.data.students[0]);
-          setOriginalStudent({ ...response.data.students[0] });
+        } else if (studentsData.length > 0) {
+          setSelectedStudent(studentsData[0]);
+          setOriginalStudent({ ...studentsData[0] });
         }
       } catch (err) {
         console.error("Error fetching student details:", err);
@@ -356,6 +412,68 @@ const Students = () => {
 
     fetchStudents();
   }, []);
+
+  const calculateStats = (studentsData) => {
+    if (!studentsData || studentsData.length === 0) return;
+
+    // Total students count
+    const totalStudents = studentsData.length;
+
+    // Active students (assuming 90% are active for this example)
+    const activeStudents = Math.floor(totalStudents * 0.9);
+
+    // Inactive students
+    const inactiveStudents = totalStudents - activeStudents;
+
+    // Current date for calculations
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+
+    // New students this month (random number for demo)
+    const newStudentsThisMonth = Math.floor(Math.random() * 10) + 1;
+
+    // Calculate average age
+    let totalAge = 0;
+    studentsData.forEach((student) => {
+      if (student.date_of_birth) {
+        const birthDate = new Date(student.date_of_birth);
+        let age = currentDate.getFullYear() - birthDate.getFullYear();
+        const monthDifference = currentDate.getMonth() - birthDate.getMonth();
+
+        if (
+          monthDifference < 0 ||
+          (monthDifference === 0 && currentDate.getDate() < birthDate.getDate())
+        ) {
+          age--;
+        }
+
+        totalAge += age;
+      }
+    });
+    const averageAge = Math.round(totalAge / studentsData.length);
+
+    // Gender distribution (mock data for this example)
+    const maleCount = Math.floor(totalStudents * 0.55);
+    const femaleCount = totalStudents - maleCount;
+
+    // Semester breakdown (use grade_level field)
+    const semesterBreakdown = {};
+    studentsData.forEach((student) => {
+      const semester = student.grade_level || "Unknown";
+      semesterBreakdown[semester] = (semesterBreakdown[semester] || 0) + 1;
+    });
+
+    setStats({
+      totalStudents,
+      activeStudents,
+      inactiveStudents,
+      newStudentsThisMonth,
+      averageAge,
+      genderDistribution: { male: maleCount, female: femaleCount },
+      semesterBreakdown,
+    });
+  };
 
   const handleStudentClick = async (student) => {
     setLoading(true); // Start loading animation
@@ -429,12 +547,12 @@ const Students = () => {
   return (
     <div className="h-screen w-full overflow-hidden">
       <div className="mx-8 w-full overflow-auto">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 ">
           <div className="flex items-center gap-2 py-5">
             <h1 className="font-medium text-2xl text-black">STUDENT DETAILS</h1>
-            <IoMdInformationCircleOutline className="text-2xl " />
+            <IoMdInformationCircleOutline className="text-2xl" />
           </div>
-          <div className="relative w-80 ml-2">
+          <div className="relative w-80">
             <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
             <input
               type="text"
@@ -442,6 +560,34 @@ const Students = () => {
               className="w-full pl-8 pr-4 py-1 bg-gray-200 rounded-md 
                text-[14px] border-none 
                transition-all duration-200 placeholder-gray-500"
+            />
+          </div>
+        </div>
+
+        {/* New Statistics Section */}
+        <div className="flex gap-4 mb-6">
+          {/* Main stats cards - first row */}
+          <div className="w-48">
+            <StatCard
+              title="Total Students"
+              value={stats.totalStudents}
+              icon={<FaUsers className="text-blue-500" />}
+              color="text-blue-500"
+            />
+          </div>
+
+          {/* Second row with summary boxes */}
+
+          <div className="w-60">
+            <SummaryBox
+              title="Semester Distribution"
+              items={Object.entries(stats.semesterBreakdown).map(
+                ([semester, count]) => ({
+                  label: `${semester}`,
+                  value: count,
+                  color: "text-blue-600",
+                })
+              )}
             />
           </div>
         </div>
@@ -466,6 +612,7 @@ const Students = () => {
               <p className="text-gray-600 mt-6">No students found</p>
             )}
           </div>
+          <div className="w-0.5 my-10 h-screen bg-gray-200"></div>
 
           {/* Details Section - With loading state */}
           <div className="w-4/5 flex flex-col mt-6">

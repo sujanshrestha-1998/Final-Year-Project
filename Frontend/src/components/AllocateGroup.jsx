@@ -207,7 +207,7 @@ const AllocateGroup = () => {
       </div>
 
       {/* Header Section */}
-      <div className="w-full border-b flex mt-10 items-center justify-between"></div>
+      <div className="w-full border-b flex mt-5 items-center justify-between"></div>
       {/* Table Section */}
       <div className="overflow-x-auto w-full flex  justify-start">
         <table className="w-full divide-y divide-[#e5e5ea]">
@@ -224,6 +224,20 @@ const AllocateGroup = () => {
                 <div className="flex items-center gap-2">
                   <span className="text-[12px] font-medium text-[#8e8e93] uppercase tracking-wider">
                     Name
+                  </span>
+                </div>
+              </th>
+              <th className="px-6 py-1 text-left">
+                <div className="flex items-center gap-2">
+                  <span className="text-[12px] font-medium text-[#8e8e93] uppercase tracking-wider">
+                    Course
+                  </span>
+                </div>
+              </th>
+              <th className="px-6 py-1 text-left">
+                <div className="flex items-center gap-2">
+                  <span className="text-[12px] font-medium text-[#8e8e93] uppercase tracking-wider">
+                    Status
                   </span>
                 </div>
               </th>
@@ -253,6 +267,16 @@ const AllocateGroup = () => {
                 <td className="px-6 py-2">
                   <div className="text-[14px] font-medium text-gray-900">
                     {student.first_name} {student.last_name}
+                  </div>
+                </td>
+                <td className="px-6 py-2">
+                  <div className="text-[14px] font-medium text-gray-900">
+                    Bsc (Hons) Computer Science
+                  </div>
+                </td>
+                <td className="px-6 py-2">
+                  <div className="text-[14px] font-medium text-gray-900">
+                    Active
                   </div>
                 </td>
                 <td className="px-6 py-2 text-[14px] text-gray-500">

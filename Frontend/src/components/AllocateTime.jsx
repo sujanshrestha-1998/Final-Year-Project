@@ -166,42 +166,45 @@ const AllocateTime = () => {
   };
 
   return (
-    <div className="h-screen w-full overflow-hidden flex flex-col mx-8">
-      <div className="flex items-center gap-2 py-5">
-        <h1 className="font-semibold text-2xl text-gray-800">
-          TIME ALLOCATION
-        </h1>
-        <IoMdInformationCircleOutline className="text-2xl text-gray-600" />
-      </div>
-      <div className="mb-4 flex items-center space-x-2">
-        <label className="font-medium whitespace-nowrap">Select Group:</label>
-        <div className="relative w-32">
-          <select
-            value={selectedGroupId}
-            onChange={(e) => setSelectedGroupId(e.target.value)}
-            className="w-full px-2 py-1 text-[14px] bg-gray-200
+    <div className="h-screen w-[78vw] overflow-hidden flex flex-col mx-8">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 py-5">
+          <h1 className="font-semibold text-2xl text-gray-800">
+            TIME ALLOCATION
+          </h1>
+          <IoMdInformationCircleOutline className="text-2xl text-gray-600" />
+        </div>
+        <div className="flex items-center gap-4">
+          {/* <label className="font-medium whitespace-nowrap">Select Group:</label> */}
+          <div className="relative w-32">
+            <select
+              value={selectedGroupId}
+              onChange={(e) => setSelectedGroupId(e.target.value)}
+              className="w-full px-2 py-1 text-[14px] bg-gray-200
               border-none rounded-lg appearance-none
               pr-8 focus:ring-2 focus:ring-[#0066FF] focus:bg-white
               transition-all duration-200"
-          >
-            {groups.map((group) => (
-              <option key={group.id} value={group.id}>
-                {group.name}
-              </option>
-            ))}
-          </select>
-          <div className="absolute inset-y-0 right-1 flex items-center pointer-events-none">
-            <HiChevronUpDown className="bg-blue-500 rounded-md text-white h-5" />
+            >
+              {groups.map((group) => (
+                <option key={group.id} value={group.id}>
+                  {group.name}
+                </option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 right-1 flex items-center pointer-events-none">
+              <HiChevronUpDown className="bg-blue-500 rounded-md text-white h-5" />
+            </div>
           </div>
+          <button
+            className="bg-blue-500 text-white px-2 py-0.5 rounded-md"
+            onClick={() => handleOpenModal()}
+          >
+            + Add Schedule
+          </button>
         </div>
-        <button
-          className="bg-blue-500 text-white px-2 py-0.5 rounded-md"
-          onClick={() => handleOpenModal()}
-        >
-          + Add Schedule
-        </button>
       </div>
-      <div className="overflow-x-auto w-full flex justify-center">
+
+      <div className="overflow-x-auto border-t w-full mt-5 flex justify-center">
         <table className="min-w-full divide-y divide-[#e5e5ea]">
           <thead>
             <tr className="bg-[#f5f5f7]">
