@@ -113,10 +113,6 @@ const DashboardMenu = ({ onStudentSelect }) => {
 
       {/* Navigation menu */}
       <div className="flex flex-col flex-grow pt-4 overflow-y-auto">
-        <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-          Main Menu
-        </div>
-
         {/* Dashboard */}
         <button
           className={`flex items-center gap-3 px-6 py-3 transition-colors ${

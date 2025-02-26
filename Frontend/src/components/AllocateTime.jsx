@@ -227,14 +227,10 @@ const AllocateTime = () => {
               </th>
               <th className="px-6 py-1 text-left">
                 <span className="text-[12px] font-medium text-[#8e8e93] uppercase tracking-wider">
-                  START TIME
+                  TIME
                 </span>
               </th>
-              <th className="px-6 py-1 text-left">
-                <span className="text-[12px] font-medium text-[#8e8e93] uppercase tracking-wider">
-                  END TIME
-                </span>
-              </th>
+
               <th className="px-6 py-1 text-left">
                 <span className="text-[12px] font-medium text-[#8e8e93] uppercase tracking-wider">
                   ACTIONS
@@ -261,11 +257,10 @@ const AllocateTime = () => {
                   {schedule.teacher_name}
                 </td>
                 <td className="px-6 py-2 text-[14px] text-gray-900">
-                  {formatTime(schedule.start_time)}
-                </td>
-                <td className="px-6 py-2 text-[14px] text-gray-900">
+                  {formatTime(schedule.start_time)} -{" "}
                   {formatTime(schedule.end_time)}
                 </td>
+
                 <td className="px-6 py-2">
                   <div className="flex gap-2">
                     <button

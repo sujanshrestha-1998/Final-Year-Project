@@ -11,13 +11,33 @@ import EditStudentPopup from "./EditStudentPopup"; // Import the new popup compo
 // Loading Component
 const LoadingOverlay = () => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="fixed  backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white p-5 rounded-lg flex flex-col items-center">
         <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
         <p className="mt-4 text-lg font-semibold text-black">
           Loading student details...
         </p>
       </div>
+    </div>
+  );
+};
+
+// Initials Avatar Component
+const InitialsAvatar = ({ firstName, lastName, size = "md" }) => {
+  const initials = `${firstName?.charAt(0) || ""}${lastName?.charAt(0) || ""}`;
+
+  // Size classes
+  const sizeClasses = {
+    sm: "w-10 h-10 text-sm",
+    md: "w-12 h-12 text-base",
+    lg: "w-16 h-16 text-xl",
+  };
+
+  return (
+    <div
+      className={`${sizeClasses[size]} rounded-full bg-gray-500 flex items-center justify-center text-white font-normal`}
+    >
+      {initials}
     </div>
   );
 };
@@ -29,7 +49,7 @@ const StudentList = ({ students, selectedStudent, onStudentClick }) => {
       {students.map((student) => (
         <div
           key={student.stud_id}
-          className={`border-b p-2 flex gap-5 cursor-pointer ${
+          className={`border-b p-2 flex gap-5  rounded-md transition-all cursor-pointer ${
             selectedStudent && selectedStudent.stud_id === student.stud_id
               ? "bg-blue-500 text-white"
               : "bg-white text-black"
@@ -37,11 +57,15 @@ const StudentList = ({ students, selectedStudent, onStudentClick }) => {
           onClick={() => onStudentClick(student)}
         >
           <div>
-            <img src="/src/assets/Profile.png" alt="" className="w-12 h-auto" />
+            <InitialsAvatar
+              firstName={student.first_name}
+              lastName={student.last_name}
+              size="sm"
+            />
           </div>
           <div>
             <p
-              className={` text-md font-semibold ${
+              className={`text-md font-semibold ${
                 selectedStudent && selectedStudent.stud_id === student.stud_id
                   ? "bg-blue-500 text-white"
                   : "bg-white text-black"
@@ -50,7 +74,7 @@ const StudentList = ({ students, selectedStudent, onStudentClick }) => {
               {student.first_name} {student.last_name}
             </p>
             <p
-              className={` text-sm ${
+              className={`text-sm ${
                 selectedStudent && selectedStudent.stud_id === student.stud_id
                   ? "bg-blue-500 text-white"
                   : "bg-white text-black"
@@ -92,14 +116,7 @@ const StudentDetails = ({
 
   if (!selectedStudent) return <p>Select a student to view details</p>;
 
-  // Utility to format date for input (YYYY-MM-DD)
-  const formatDateForDisplay = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toISOString().split("T")[0];
-  };
-
-  // Utility to format date for readable display
+  // Utility to format date for display
   const formatDateForDisplayReadable = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -110,55 +127,168 @@ const StudentDetails = ({
     });
   };
 
+  // Calculate age based on date of birth
+  const calculateAge = (birthDateString) => {
+    if (!birthDateString) return "N/A";
+
+    const birthDate = new Date(birthDateString);
+    const today = new Date();
+
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDifference = today.getMonth() - birthDate.getMonth();
+
+    if (
+      monthDifference < 0 ||
+      (monthDifference === 0 && today.getDate() < birthDate.getDate())
+    ) {
+      age--;
+    }
+
+    return age;
+  };
+
+  // Calculate days since enrollment
+  const calculateDaysEnrolled = (enrollmentDateString) => {
+    if (!enrollmentDateString) return "N/A";
+
+    const enrollmentDate = new Date(enrollmentDateString);
+    const today = new Date();
+
+    const differenceInTime = today.getTime() - enrollmentDate.getTime();
+    const differenceInDays = Math.floor(differenceInTime / (1000 * 3600 * 24));
+
+    return differenceInDays;
+  };
+
   return (
     <div className="relative">
-      <div className="p-6 w-full bg-white rounded-xl flex flex-col gap-4">
-        <div className="flex items-center gap-4">
-          <h2 className="text-lg font-semibold text-black">
-            Student Information
-          </h2>
+      <div className=" w-3/4 bg-white rounded-md flex flex-col gap-6">
+        {/* Header with avatar and edit button */}
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-6">
+            <InitialsAvatar
+              firstName={selectedStudent.first_name}
+              lastName={selectedStudent.last_name}
+              size="lg"
+            />
+            <div>
+              <h2 className="font-semibold text-2xl text-black">
+                {selectedStudent.first_name} {selectedStudent.last_name}
+              </h2>
+              <p className="text-gray-600">{selectedStudent.student_email}</p>
+            </div>
+          </div>
           <button
             onClick={handleEditClick}
-            className="text-blue-500 flex items-center gap-2"
+            className="bg-blue-500 hover:bg-blue-600 text-white flex items-center gap-2 py-2 px-4 rounded-md transition-colors font-medium"
           >
-            <FiEdit /> Edit
+            <FiEdit /> Edit Profile
           </button>
         </div>
-        <div className="flex flex-col gap-1">
-          <p className="font-semibold text-2xl text-black">
-            {selectedStudent.first_name} {selectedStudent.last_name}
-          </p>
-          <p className="text-black">{selectedStudent.student_email}</p>
-          <hr className="my-4" />
-          <div>
-            <p className="text-black">
-              <strong className="text-black">Student ID:</strong>{" "}
-              {selectedStudent.stud_id}
-            </p>
-            <p className="text-black">
-              <strong className="text-black">Semester:</strong>{" "}
-              {selectedStudent.grade_level}
-            </p>
-            <p className="text-black">
-              <strong className="text-black">Group:</strong>{" "}
-              {selectedStudent.stud_group}
-            </p>
-            <p className="text-black">
-              <strong className="text-black">Date of Birth:</strong>{" "}
-              {formatDateForDisplayReadable(selectedStudent.date_of_birth)}
-            </p>
-            <p className="text-black">
-              <strong className="text-black">Enrolled Date:</strong>{" "}
-              {formatDateForDisplayReadable(selectedStudent.enrollment_date)}
-            </p>
+
+        <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
+          <h3 className="font-semibold text-blue-800 mb-1">Student Overview</h3>
+          <div className="flex gap-6">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-gray-700">ID:</span>
+              <span className="bg-blue-100 px-3 py-1 rounded-full text-blue-800 font-medium">
+                {selectedStudent.stud_id}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-gray-700">Group:</span>
+              <span className="bg-blue-100 px-3 py-1 rounded-full text-blue-800 font-medium">
+                {selectedStudent.stud_group}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-gray-700">Semester:</span>
+              <span className="bg-blue-100 px-3 py-1 rounded-full text-blue-800 font-medium">
+                {selectedStudent.grade_level}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Information cards grid */}
+        <div className="grid grid-cols-2 gap-6">
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Personal Information
+              </h3>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <p className="text-gray-500 text-sm">Full Name</p>
+                <p className="text-black font-semibold">
+                  {selectedStudent.first_name} {selectedStudent.last_name}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-500 text-sm">Date of Birth</p>
+                <p className="text-black font-semibold">
+                  {formatDateForDisplayReadable(selectedStudent.date_of_birth)}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-500 text-sm">Age</p>
+                <p className="text-black font-semibold">
+                  {calculateAge(selectedStudent.date_of_birth)} years
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Enrollment Details
+              </h3>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <p className="text-gray-500 text-sm">Enrollment Date</p>
+                <p className="text-black font-semibold">
+                  {formatDateForDisplayReadable(
+                    selectedStudent.enrollment_date
+                  )}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-500 text-sm">Days Enrolled</p>
+                <p className="text-black font-semibold">
+                  {calculateDaysEnrolled(selectedStudent.enrollment_date)} days
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-500 text-sm">Current Status</p>
+                <p className="text-green-600 font-semibold">Active</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow col-span-2">
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Contact Information
+              </h3>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-gray-500 text-sm">Email Address</p>
+                <p className="text-black font-semibold">
+                  {selectedStudent.student_email}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {isPopupOpen && (
         <>
-          <div className="fixed inset-0 backdrop-blur-sm z-40" />{" "}
-          {/* Blur effect overlay */}
+          <div className="fixed inset-0 backdrop-blur-sm z-40" />
           <EditStudentPopup
             student={selectedStudent}
             onClose={handleClosePopup}
@@ -305,16 +435,6 @@ const Students = () => {
           <IoMdInformationCircleOutline className="text-2xl " />
         </div>
 
-        {/* <div className="flex mt-5">
-          <button
-            onClick={handleRegisterClick}
-            className="bg-blue-500 rounded-[8px] px-6 py-1 flex justify-center font-medium items-center gap-2 text-white transform transition-all duration-300"
-          >
-            Register Student
-            <FaRegAddressCard className="bg-blue-500 text-lg" />
-          </button>
-        </div> */}
-
         {error && <p className="text-red-600 font-bold">{error}</p>}
 
         <div className="flex gap-20 overflow-hidden">
@@ -335,12 +455,11 @@ const Students = () => {
               <p className="text-gray-600 mt-6">No students found</p>
             )}
           </div>
-          {/* Keep the divider always visible */}
-          <div className="h-[80vh] w-[0.5px] bg-black"></div>
+
           {/* Details Section - With loading state */}
           <div className="w-4/5 flex flex-col mt-6">
             {loading ? (
-              <p className="text-black">Loading student details...</p>
+              <LoadingOverlay />
             ) : (
               selectedStudent && (
                 <StudentDetails
