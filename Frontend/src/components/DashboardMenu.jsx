@@ -8,16 +8,13 @@ import {
   MdOutlineKeyboardArrowRight,
   MdOutlineKeyboardArrowDown,
 } from "react-icons/md";
-
 import { IoTime } from "react-icons/io5";
-
 import Profile from "./Profile";
 import axios from "axios";
 
 const DashboardMenu = ({ onStudentSelect }) => {
   const navigate = useNavigate();
   const location = useLocation();
-
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -27,12 +24,22 @@ const DashboardMenu = ({ onStudentSelect }) => {
   const [isStudentOpen, setIsStudentOpen] = useState(false);
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
 
+  // Automatically open the dropdown that matches the current path
+  useEffect(() => {
+    if (location.pathname.includes("/teachers")) {
+      setIsTeacherOpen(true);
+    } else if (location.pathname.includes("/students")) {
+      setIsStudentOpen(true);
+    } else if (location.pathname.includes("/schedule")) {
+      setIsScheduleOpen(true);
+    }
+  }, [location.pathname]);
+
   // Fetch user data based on email in localStorage
   useEffect(() => {
     const fetchUserData = async () => {
       const email = localStorage.getItem("userEmail");
       if (!email) return console.error("No email found in localStorage");
-
       try {
         const response = await fetch(
           "http://localhost:3000/api/fetch_profile",
@@ -42,7 +49,6 @@ const DashboardMenu = ({ onStudentSelect }) => {
             body: JSON.stringify({ email }),
           }
         );
-
         const data = await response.json();
         if (response.ok) {
           setUserData(data.user);
@@ -54,7 +60,6 @@ const DashboardMenu = ({ onStudentSelect }) => {
         console.error("Error fetching user data:", error);
       }
     };
-
     fetchUserData();
   }, []);
 
@@ -62,7 +67,6 @@ const DashboardMenu = ({ onStudentSelect }) => {
   const handleSearchResultClick = (result) => {
     setSearchQuery("");
     setSearchResults([]);
-
     if (location.pathname.includes("/students")) {
       localStorage.setItem("selectedStudentId", result.stud_id);
       if (location.pathname === "/students") {
@@ -86,156 +90,266 @@ const DashboardMenu = ({ onStudentSelect }) => {
   const toggleTeacherMenu = () => setIsTeacherOpen((prev) => !prev);
   const toggleStudentMenu = () => setIsStudentOpen((prev) => !prev);
   const toggleScheduleMenu = () => setIsScheduleOpen((prev) => !prev);
-
   const openProfile = () => setIsProfileOpen(true);
   const closeProfile = () => setIsProfileOpen(false);
 
+  // Helper function to determine if a menu item is active
+  const isActive = (path) => {
+    return location.pathname.includes(path);
+  };
+
   return (
-    <div className="bg-[#f0f0f0] flex flex-col h-full w-[280px] px-4 py-10">
-      <div className="flex flex-col items-start gap-4 h-full">
-        <div className="flex gap-4 mb-10 items-center px-8">
-          <div className="bg-blue-700 p-3 rounded-lg ">
-            <BiCollection className="text-white text-[25px]" />
-          </div>
-          <div>
-            <h1 className=" font-semibold">Herald College Kathmandu</h1>
-          </div>
+    <div className="bg-[#f5f7fa] flex flex-col h-full w-[280px] shadow-md">
+      {/* Header with logo */}
+      <div className="flex items-center gap-3 p-6 border-b border-gray-200">
+        <div className="bg-blue-600 p-3 rounded-lg shadow-md">
+          <BiCollection className="text-white text-[22px]" />
         </div>
+        <div>
+          <h1 className="font-semibold">Herald College Kathmandu</h1>
+          <div className="h-0.5 w-16 bg-blue-500 mt-1"></div>
+        </div>
+      </div>
+
+      {/* Navigation menu */}
+      <div className="flex flex-col flex-grow pt-4 overflow-y-auto">
+        <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          Main Menu
+        </div>
+
+        {/* Dashboard */}
         <button
-          className={`text-lg font-regular flex items-center gap-3 px-4 ${
-            location.pathname === "/dashboard" ? "text-blue-500" : "text-black"
+          className={`flex items-center gap-3 px-6 py-3 transition-colors ${
+            location.pathname === "/dashboard"
+              ? "text-blue-600 bg-blue-50 border-r-4 border-blue-600"
+              : "text-gray-700 hover:bg-gray-100"
           }`}
           onClick={() => navigate("/dashboard")}
         >
-          <MdClass className="text-gray-800" />
-          Classroom
+          <MdClass
+            className={
+              location.pathname === "/dashboard"
+                ? "text-blue-600"
+                : "text-gray-600"
+            }
+            size={20}
+          />
+          <span className="font-medium">Classroom</span>
         </button>
 
         {/* Teachers Dropdown */}
-        <button
-          className={`text-lg font-regular text-black flex items-center justify-between w-full px-4 ${
-            location.pathname === "/teachers" ? "text-blue-500" : ""
-          }`}
-          onClick={toggleTeacherMenu}
-        >
-          <div className="flex items-center gap-3">
-            <FaChalkboardTeacher className="text-gray-800" />
-            Teacher
-          </div>
-          <span className="text-2xl font-bold">
-            {isTeacherOpen ? (
-              <MdOutlineKeyboardArrowDown />
-            ) : (
-              <MdOutlineKeyboardArrowRight />
-            )}
-          </span>
-        </button>
-        {isTeacherOpen && (
-          <div className="ml-4 flex flex-col border-l-2 border-gray-300 gap-2 pl-4">
-            <div
-              className="text-black text-sm cursor-pointer"
-              onClick={() => navigate("/teachers")}
-            >
-              View Teacher Data
-            </div>
-            <div
-              className="text-black text-sm cursor-pointer"
-              onClick={() => navigate("/teachers/register")}
-            >
-              Register Teacher
-            </div>
-          </div>
-        )}
-
-        {/* Students Dropdown */}
-        {roleId !== 4 && (
+        <div className="mb-1">
           <button
-            className={`text-lg font-regular flex items-center justify-between w-full px-4 text-black ${
-              location.pathname === "/students" ? "text-blue-500" : ""
+            className={`flex items-center justify-between w-full px-6 py-3 transition-colors ${
+              isActive("/teachers")
+                ? "text-blue-600 bg-blue-50 border-r-4 border-blue-600"
+                : "text-gray-700 hover:bg-gray-100"
             }`}
-            onClick={toggleStudentMenu}
+            onClick={toggleTeacherMenu}
           >
             <div className="flex items-center gap-3">
-              <BsFillPersonLinesFill className="text-gray-800" />
-              Student
+              <FaChalkboardTeacher
+                className={
+                  isActive("/teachers") ? "text-blue-600" : "text-gray-600"
+                }
+                size={20}
+              />
+              <span className="font-medium">Teacher</span>
             </div>
-            <span className="text-2xl font-bold">
-              {isStudentOpen ? (
-                <MdOutlineKeyboardArrowDown />
+            <span>
+              {isTeacherOpen ? (
+                <MdOutlineKeyboardArrowDown
+                  className={
+                    isActive("/teachers") ? "text-blue-600" : "text-gray-600"
+                  }
+                />
               ) : (
-                <MdOutlineKeyboardArrowRight />
+                <MdOutlineKeyboardArrowRight
+                  className={
+                    isActive("/teachers") ? "text-blue-600" : "text-gray-600"
+                  }
+                />
               )}
             </span>
           </button>
-        )}
-        {isStudentOpen && (
-          <div className="ml-4 flex flex-col border-l-2 border-gray-300 gap-2 pl-4">
-            <div
-              className="text-black text-sm cursor-pointer"
-              onClick={() => navigate("/students")}
-            >
-              View Student Data
+
+          {isTeacherOpen && (
+            <div className="bg-gray-50 py-1">
+              <div
+                className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
+                  location.pathname === "/teachers"
+                    ? "text-blue-600 font-medium"
+                    : "text-gray-600 hover:text-blue-500"
+                }`}
+                onClick={() => navigate("/teachers")}
+              >
+                View Teacher Data
+              </div>
+              <div
+                className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
+                  location.pathname === "/teachers/register"
+                    ? "text-blue-600 font-medium"
+                    : "text-gray-600 hover:text-blue-500"
+                }`}
+                onClick={() => navigate("/teachers/register")}
+              >
+                Register Teacher
+              </div>
             </div>
-            <div
-              className="text-black text-sm cursor-pointer"
-              onClick={() => navigate("/students/register")}
+          )}
+        </div>
+
+        {/* Students Dropdown */}
+        {roleId !== 4 && (
+          <div className="mb-1">
+            <button
+              className={`flex items-center justify-between w-full px-6 py-3 transition-colors ${
+                isActive("/students")
+                  ? "text-blue-600 bg-blue-50 border-r-4 border-blue-600"
+                  : "text-gray-700 hover:bg-gray-100"
+              }`}
+              onClick={toggleStudentMenu}
             >
-              Register Student
-            </div>
+              <div className="flex items-center gap-3">
+                <BsFillPersonLinesFill
+                  className={
+                    isActive("/students") ? "text-blue-600" : "text-gray-600"
+                  }
+                  size={20}
+                />
+                <span className="font-medium">Student</span>
+              </div>
+              <span>
+                {isStudentOpen ? (
+                  <MdOutlineKeyboardArrowDown
+                    className={
+                      isActive("/students") ? "text-blue-600" : "text-gray-600"
+                    }
+                  />
+                ) : (
+                  <MdOutlineKeyboardArrowRight
+                    className={
+                      isActive("/students") ? "text-blue-600" : "text-gray-600"
+                    }
+                  />
+                )}
+              </span>
+            </button>
+
+            {isStudentOpen && (
+              <div className="bg-gray-50 py-1">
+                <div
+                  className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
+                    location.pathname === "/students"
+                      ? "text-blue-600 font-medium"
+                      : "text-gray-600 hover:text-blue-500"
+                  }`}
+                  onClick={() => navigate("/students")}
+                >
+                  View Student Data
+                </div>
+                <div
+                  className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
+                    location.pathname === "/students/register"
+                      ? "text-blue-600 font-medium"
+                      : "text-gray-600 hover:text-blue-500"
+                  }`}
+                  onClick={() => navigate("/students/register")}
+                >
+                  Register Student
+                </div>
+              </div>
+            )}
           </div>
         )}
 
         {/* Schedule Dropdown */}
-        <button
-          className={`text-lg font-regular flex items-center justify-between w-full px-4 text-black ${
-            location.pathname === "/schedule" ? "text-blue-500" : ""
-          }`}
-          onClick={toggleScheduleMenu}
-        >
-          <div className="flex items-center gap-3">
-            <IoTime className="text-gray-800" />
-            Schedule
-          </div>
-          <span className="text-2xl font-bold">
-            {isScheduleOpen ? (
-              <MdOutlineKeyboardArrowDown />
-            ) : (
-              <MdOutlineKeyboardArrowRight />
-            )}
-          </span>
-        </button>
-        {isScheduleOpen && (
-          <div className="ml-4 flex flex-col border-l-2 border-gray-300 gap-2 pl-4">
-            <div
-              className="text-black text-sm cursor-pointer"
-              onClick={() => navigate("/schedule/allocate-groups")}
-            >
-              Allocate Group
+        <div className="mb-1">
+          <button
+            className={`flex items-center justify-between w-full px-6 py-3 transition-colors ${
+              isActive("/schedule")
+                ? "text-blue-600 bg-blue-50 border-r-4 border-blue-600"
+                : "text-gray-700 hover:bg-gray-100"
+            }`}
+            onClick={toggleScheduleMenu}
+          >
+            <div className="flex items-center gap-3">
+              <IoTime
+                className={
+                  isActive("/schedule") ? "text-blue-600" : "text-gray-600"
+                }
+                size={20}
+              />
+              <span className="font-medium">Schedule</span>
             </div>
-            <div
-              className="text-black text-sm cursor-pointer"
-              onClick={() => navigate("/schedule/allocate-time")}
-            >
-              Allocate Time
+            <span>
+              {isScheduleOpen ? (
+                <MdOutlineKeyboardArrowDown
+                  className={
+                    isActive("/schedule") ? "text-blue-600" : "text-gray-600"
+                  }
+                />
+              ) : (
+                <MdOutlineKeyboardArrowRight
+                  className={
+                    isActive("/schedule") ? "text-blue-600" : "text-gray-600"
+                  }
+                />
+              )}
+            </span>
+          </button>
+
+          {isScheduleOpen && (
+            <div className="bg-gray-50 py-1">
+              <div
+                className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
+                  location.pathname === "/schedule/allocate-groups"
+                    ? "text-blue-600 font-medium"
+                    : "text-gray-600 hover:text-blue-500"
+                }`}
+                onClick={() => navigate("/schedule/allocate-groups")}
+              >
+                Allocate Group
+              </div>
+              <div
+                className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
+                  location.pathname === "/schedule/allocate-time"
+                    ? "text-blue-600 font-medium"
+                    : "text-gray-600 hover:text-blue-500"
+                }`}
+                onClick={() => navigate("/schedule/allocate-time")}
+              >
+                Allocate Time
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-      <div className="flex flex-col items-start text-black gap-4 mb-4">
+
+      {/* User profile section */}
+      <div className="border-t border-gray-200 p-4 mt-auto">
         <div
-          className="flex items-center gap-2 cursor-pointer"
+          className="flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
           onClick={openProfile}
         >
-          <img src="/src/assets/Profile.png" alt="" className="w-12 h-auto" />
+          <div className="relative">
+            <img
+              src="/src/assets/Profile.png"
+              alt="Profile"
+              className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+            />
+            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+          </div>
           <div>
-            <h1 className="font-semibold">{userData?.username || "User"}</h1>
-            {/* <h2 className="text-[12px]">{userData?.email || "User"}</h2> */}
-            <p className="text-sm text-gray-600 font-regular">
+            <h1 className="font-semibold text-gray-800">
+              {userData?.username || "User"}
+            </h1>
+            <p className="text-xs text-gray-500">
               {userData?.role_id
                 ? `${(() => {
                     switch (userData.role_id) {
                       case 1:
-                        return "Admin";
+                        return "Administrator";
                       case 2:
                         return "RTE Officer";
                       case 3:
@@ -251,6 +365,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
           </div>
         </div>
       </div>
+
       {isProfileOpen && <Profile userData={userData} onClose={closeProfile} />}
     </div>
   );

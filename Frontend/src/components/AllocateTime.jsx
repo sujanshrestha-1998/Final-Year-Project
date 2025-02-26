@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { HiChevronUpDown } from "react-icons/hi2";
-import { FaRegEdit } from "react-icons/fa";
+import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 
 const AllocateTime = () => {
@@ -19,6 +19,22 @@ const AllocateTime = () => {
     start_time: "",
     end_time: "",
   });
+
+  // Format time from "12:00:00" to "12:00 AM"
+  const formatTime = (timeString) => {
+    if (!timeString) return "";
+
+    // Parse the time string
+    const [hours, minutes] = timeString.split(":");
+    let hour = parseInt(hours, 10);
+    const ampm = hour >= 12 ? "PM" : "AM";
+
+    // Convert to 12-hour format
+    hour = hour % 12;
+    hour = hour ? hour : 12; // If hour is 0, make it 12
+
+    return `${hour}:${minutes} ${ampm}`;
+  };
 
   // Fetch groups on component mount
   useEffect(() => {
@@ -106,7 +122,6 @@ const AllocateTime = () => {
       );
       const data = await response.json();
       alert(data.message);
-
       // Refresh schedules after update
       const updatedResponse = await fetch(
         "http://localhost:3000/api/fetch_schedule",
@@ -118,7 +133,6 @@ const AllocateTime = () => {
       );
       const updatedData = await updatedResponse.json();
       setSchedules(updatedData.schedules);
-
       setIsModalOpen(false);
     } catch (error) {
       console.error("Error updating schedule:", error);
@@ -140,7 +154,6 @@ const AllocateTime = () => {
         );
         const data = await response.json();
         alert(data.message);
-
         // Refresh schedules after deletion
         setSchedules(
           schedules.filter((schedule) => schedule.schedule_id !== scheduleId)
@@ -160,7 +173,6 @@ const AllocateTime = () => {
         </h1>
         <IoMdInformationCircleOutline className="text-2xl text-gray-600" />
       </div>
-
       <div className="mb-4 flex items-center space-x-2">
         <label className="font-medium whitespace-nowrap">Select Group:</label>
         <div className="relative w-32">
@@ -168,9 +180,9 @@ const AllocateTime = () => {
             value={selectedGroupId}
             onChange={(e) => setSelectedGroupId(e.target.value)}
             className="w-full px-2 py-1 text-[14px] bg-gray-200
-                 border-none rounded-lg appearance-none 
-                 pr-8 focus:ring-2 focus:ring-[#0066FF] focus:bg-white 
-                 transition-all duration-200"
+              border-none rounded-lg appearance-none
+              pr-8 focus:ring-2 focus:ring-[#0066FF] focus:bg-white
+              transition-all duration-200"
           >
             {groups.map((group) => (
               <option key={group.id} value={group.id}>
@@ -183,13 +195,12 @@ const AllocateTime = () => {
           </div>
         </div>
         <button
-          className="bg-green-500 text-white px-2 py-0.5 rounded-md "
+          className="bg-blue-500 text-white px-2 py-0.5 rounded-md"
           onClick={() => handleOpenModal()}
         >
           + Add Schedule
         </button>
       </div>
-
       <div className="overflow-x-auto w-full flex justify-center">
         <table className="min-w-full divide-y divide-[#e5e5ea]">
           <thead>
@@ -250,26 +261,26 @@ const AllocateTime = () => {
                   {schedule.teacher_name}
                 </td>
                 <td className="px-6 py-2 text-[14px] text-gray-900">
-                  {schedule.start_time}
+                  {formatTime(schedule.start_time)}
                 </td>
                 <td className="px-6 py-2 text-[14px] text-gray-900">
-                  {schedule.end_time}
+                  {formatTime(schedule.end_time)}
                 </td>
                 <td className="px-6 py-2">
                   <div className="flex gap-2">
                     <button
-                      className="bg-blue-500 text-white px-3 py-1 flex items-center gap-2 rounded-md hover:bg-blue-600 transition"
+                      className="p-1.5 rounded-md text-blue-500 hover:bg-blue-50 transition-colors duration-200"
                       onClick={() => handleOpenModal(schedule)}
+                      aria-label="Edit"
                     >
-                      Edit
-                      <FaRegEdit />
+                      <FaEdit className="text-lg" />
                     </button>
                     <button
-                      className="bg-red-500 text-white px-3 py-1 flex items-center gap-2 rounded-md hover:bg-red-600 transition"
+                      className="p-1.5 rounded-md text-red-500 hover:bg-red-50 transition-colors duration-200"
                       onClick={() => handleDelete(schedule.schedule_id)}
+                      aria-label="Delete"
                     >
-                      Delete
-                      <MdDelete />
+                      <MdDelete className="text-lg" />
                     </button>
                   </div>
                 </td>
@@ -278,7 +289,6 @@ const AllocateTime = () => {
           </tbody>
         </table>
       </div>
-
       {/* Modal for Adding/Editing Schedule */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
