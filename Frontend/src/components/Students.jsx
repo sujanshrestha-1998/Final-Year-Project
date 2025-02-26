@@ -2,16 +2,15 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { FiEdit } from "react-icons/fi";
-import { FaRegAddressCard } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import "react-datepicker/dist/react-datepicker.css";
-import { HiOutlineChevronUpDown } from "react-icons/hi2";
+import { IoSearch } from "react-icons/io5";
 import EditStudentPopup from "./EditStudentPopup"; // Import the new popup component
 
 // Loading Component
 const LoadingOverlay = () => {
   return (
-    <div className="fixed  backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="fixed w-2/4 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white p-5 rounded-lg flex flex-col items-center">
         <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
         <p className="mt-4 text-lg font-semibold text-black">
@@ -49,7 +48,7 @@ const StudentList = ({ students, selectedStudent, onStudentClick }) => {
       {students.map((student) => (
         <div
           key={student.stud_id}
-          className={`border-b p-2 flex gap-5  rounded-md transition-all cursor-pointer ${
+          className={`border-b p-2 flex gap-5  rounded-md  cursor-pointer ${
             selectedStudent && selectedStudent.stud_id === student.stud_id
               ? "bg-blue-500 text-white"
               : "bg-white text-black"
@@ -211,7 +210,7 @@ const StudentDetails = ({
         </div>
 
         {/* Information cards grid */}
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 w-full gap-6">
           <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start mb-4">
               <h3 className="text-lg font-semibold text-gray-800">
@@ -430,9 +429,21 @@ const Students = () => {
   return (
     <div className="h-screen w-full overflow-hidden">
       <div className="mx-8 w-full overflow-auto">
-        <div className="flex items-center gap-2 py-5">
-          <h1 className="font-medium text-2xl text-black">STUDENT DETAILS</h1>
-          <IoMdInformationCircleOutline className="text-2xl " />
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 py-5">
+            <h1 className="font-medium text-2xl text-black">STUDENT DETAILS</h1>
+            <IoMdInformationCircleOutline className="text-2xl " />
+          </div>
+          <div className="relative w-80 ml-2">
+            <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+            <input
+              type="text"
+              placeholder="Search"
+              className="w-full pl-8 pr-4 py-1 bg-gray-200 rounded-md 
+               text-[14px] border-none 
+               transition-all duration-200 placeholder-gray-500"
+            />
+          </div>
         </div>
 
         {error && <p className="text-red-600 font-bold">{error}</p>}
