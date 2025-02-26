@@ -229,17 +229,17 @@ const DashboardMenu = ({ onStudentSelect }) => {
           <img src="/src/assets/Profile.png" alt="" className="w-12 h-auto" />
           <div>
             <h1 className="font-semibold">{userData?.username || "User"}</h1>
-            <h2 className="text-[12px]">{userData?.email || "User"}</h2>
-            {/* <p className="text-sm text-gray-600 font-medium">
+            {/* <h2 className="text-[12px]">{userData?.email || "User"}</h2> */}
+            <p className="text-sm text-gray-600 font-regular">
               {userData?.role_id
                 ? `${(() => {
                     switch (userData.role_id) {
                       case 1:
                         return "Admin";
                       case 2:
-                        return "Teacher";
+                        return "RTE Officer";
                       case 3:
-                        return "Staff";
+                        return "Teacher";
                       case 4:
                         return "Student";
                       default:
@@ -247,7 +247,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
                     }
                   })()}`
                 : "Loading..."}
-            </p> */}
+            </p>
           </div>
         </div>
       </div>

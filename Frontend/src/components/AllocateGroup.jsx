@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { IoSearch } from "react-icons/io5";
+import { HiChevronUpDown } from "react-icons/hi2";
+import { FiEdit } from "react-icons/fi";
 
 import axios from "axios";
 import {
@@ -20,6 +22,7 @@ const AllocateGroup = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAutoAllocating, setIsAutoAllocating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedGroup, setSelectedGroup] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -95,12 +98,18 @@ const AllocateGroup = () => {
     }
   };
 
-  const filteredStudents = students.filter(
-    (student) =>
+  const filteredStudents = students.filter((student) => {
+    const matchesSearchTerm =
       student.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.stud_id.toString().includes(searchTerm)
-  );
+      student.stud_id.toString().includes(searchTerm);
+
+    const matchesGroup = selectedGroup
+      ? student.stud_group.toString() === selectedGroup // Ensure both are strings for comparison
+      : true;
+
+    return matchesSearchTerm && matchesGroup;
+  });
 
   if (isLoading) {
     return (
@@ -137,7 +146,7 @@ const AllocateGroup = () => {
 
   return (
     <div className="h-screen w-full overflow-hidden flex flex-col mx-8">
-      <div className="flex items-center gap-2 py-5">
+      <div className="flex items-center gap-4 py-5">
         <h1 className="font-medium text-2xl text-black">GROUP ALLOCATION</h1>
         <IoMdInformationCircleOutline className="text-2xl " />
         <div className="relative w-80 ml-2">
@@ -151,6 +160,24 @@ const AllocateGroup = () => {
                text-[14px] border-none 
                transition-all duration-200 placeholder-gray-500"
           />
+        </div>
+        {/* Combo Box for Group Filtering */}
+        <div className="relative w-48">
+          <select
+            onChange={(e) => setSelectedGroup(e.target.value)}
+            className="block w-full pl-3 pr-8 py-1 text-[14px]
+                     bg-gray-200 border-none rounded-md
+                     focus:ring-2 focus:ring-[#0066FF] focus:bg-white
+                     transition-all duration-200 appearance-none"
+          >
+            <option value="">All Groups</option>
+            {groups.map((group) => (
+              <option key={group.id} value={group.id}>
+                {group.name}
+              </option>
+            ))}
+          </select>
+          <HiChevronUpDown className="absolute inset-y-0 right-1 flex h-5 items-center text-white pointer-events-none mt-1 bg-blue-500 rounded-md" />
         </div>
       </div>
       {/* Header Section */}
@@ -234,10 +261,10 @@ const AllocateGroup = () => {
                       onChange={(e) =>
                         handleGroupChange(student.stud_id, e.target.value)
                       }
-                      className="block w-full pl-3 pr-10 py-2 text-[14px]
-                               bg-[#f5f5f7] border-none rounded-lg
+                      className="w-full pl-3  py-1 text-[14px]
+                               bg-gray-200 border-none rounded-md
                                focus:ring-2 focus:ring-[#0066FF] focus:bg-white
-                               transition-all duration-200"
+                               transition-all duration-200 appearance-none"
                     >
                       <option value="none">None</option>
                       {groups.map((group) => (
@@ -246,7 +273,7 @@ const AllocateGroup = () => {
                         </option>
                       ))}
                     </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#8e8e93]"></div>
+                    <FiEdit className="absolute inset-y-0 right-2 flex items-center text-blue-500 mt-1.5 pointer-events-none" />
                   </div>
                 </td>
               </tr>
