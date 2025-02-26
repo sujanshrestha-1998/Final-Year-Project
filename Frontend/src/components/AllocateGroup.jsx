@@ -145,68 +145,72 @@ const AllocateGroup = () => {
   }
 
   return (
-    <div className="h-screen w-full overflow-hidden flex flex-col mx-8">
-      <div className="flex items-center gap-4 py-5">
-        <h1 className="font-medium text-2xl text-black">GROUP ALLOCATION</h1>
-        <IoMdInformationCircleOutline className="text-2xl " />
-        <div className="relative w-80 ml-2">
-          <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-          <input
-            type="text"
-            placeholder="Search"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-8 pr-4 py-1 bg-gray-200 rounded-md 
+    <div className="h-screen w-[78vw] overflow-hidden flex flex-col mx-8">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4 py-5">
+          <h1 className="font-medium text-2xl text-black">GROUP ALLOCATION</h1>
+          <IoMdInformationCircleOutline className="text-2xl " />
+          <div className="relative w-80 ml-2">
+            <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+            <input
+              type="text"
+              placeholder="Search"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-8 pr-4 py-1 bg-gray-200 rounded-md 
                text-[14px] border-none 
                transition-all duration-200 placeholder-gray-500"
-          />
+            />
+          </div>
         </div>
-        {/* Combo Box for Group Filtering */}
-        <div className="relative w-48">
-          <select
-            onChange={(e) => setSelectedGroup(e.target.value)}
-            className="block w-full pl-3 pr-8 py-1 text-[14px]
+
+        <div className="flex items-center gap-2">
+          {/* Combo Box for Group Filtering */}
+          <div className="relative w-48 mr-2">
+            <select
+              onChange={(e) => setSelectedGroup(e.target.value)}
+              className="block w-full pl-3 pr-8 py-1 text-[14px]
                      bg-gray-200 border-none rounded-md
                      focus:ring-2 focus:ring-[#0066FF] focus:bg-white
                      transition-all duration-200 appearance-none"
-          >
-            <option value="">All Groups</option>
-            {groups.map((group) => (
-              <option key={group.id} value={group.id}>
-                {group.name}
-              </option>
-            ))}
-          </select>
-          <HiChevronUpDown className="absolute inset-y-0 right-1 flex h-5 items-center text-white pointer-events-none mt-1 bg-blue-500 rounded-md" />
-        </div>
-      </div>
-      {/* Header Section */}
-      <div className=" border-b border-[#e5e5ea] w-full flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          {/* Search Input */}
+            >
+              <option value="">All Groups</option>
+              {groups.map((group) => (
+                <option key={group.id} value={group.id}>
+                  {group.name}
+                </option>
+              ))}
+            </select>
+            <HiChevronUpDown className="absolute inset-y-0 right-1 flex h-5 items-center text-white pointer-events-none mt-1 bg-blue-500 rounded-md" />
+          </div>
+          <div className="flex  selection:items-center gap-4 justify-center">
+            {/* Search Input */}
 
-          {/* <button
-            onClick={handleAutoAllocate}
-            disabled={isAutoAllocating}
-            className={`
-              inline-flex items-center gap-2.5 px-4 py-2 rounded-lg text-[14px]
-              font-medium transition-all duration-200
+            <button
+              onClick={handleAutoAllocate}
+              disabled={isAutoAllocating}
+              className={`
+              inline-flex items-center gap-2.5 px-4 py-1 rounded-md text-[14px]
+              font-medium transition-all duration-200 text-white
               ${
                 isAutoAllocating
                   ? "bg-[#e5e5ea] text-gray-400 cursor-not-allowed"
-                  : "bg-[#34c759] text-white hover:bg-[#2db14f]"
+                  : "bg-blue-500 text-white]"
               }
             `}
-          >
-            <FaShuffle className="text-lg" />
-            {isAutoAllocating ? "Allocating..." : "Auto Allocate"}
-          </button> */}
+            >
+              <FaShuffle className="text-lg" />
+              {isAutoAllocating ? "Allocating..." : "Auto Allocate"}
+            </button>
+          </div>
         </div>
       </div>
 
+      {/* Header Section */}
+      <div className="w-full border-b flex mt-10 items-center justify-between"></div>
       {/* Table Section */}
-      <div className="overflow-x-auto w-full flex justify-center">
-        <table className="min-w-full divide-y divide-[#e5e5ea]">
+      <div className="overflow-x-auto w-full flex  justify-start">
+        <table className="w-full divide-y divide-[#e5e5ea]">
           <thead>
             <tr className="bg-[#f5f5f7]">
               <th className="px-6 py-1 text-left">
@@ -241,7 +245,7 @@ const AllocateGroup = () => {
             {filteredStudents.map((student) => (
               <tr
                 key={student.stud_id}
-                className="hover:bg-[#f5f5f7] transition-colors duration-150"
+                className="font-medium transition-colors duration-150"
               >
                 <td className="px-6 py-2 text-[14px] text-gray-900">
                   {student.stud_id}
@@ -261,10 +265,10 @@ const AllocateGroup = () => {
                       onChange={(e) =>
                         handleGroupChange(student.stud_id, e.target.value)
                       }
-                      className="w-full pl-3  py-1 text-[14px]
-                               bg-gray-200 border-none rounded-md
-                               focus:ring-2 focus:ring-[#0066FF] focus:bg-white
-                               transition-all duration-200 appearance-none"
+                      className="w-full pl-3 py-1 text-[14px]
+                         bg-gray-200 border-none rounded-md
+                         focus:ring-2 focus:ring-[#0066FF] focus:bg-white
+                         transition-all duration-200 appearance-none"
                     >
                       <option value="none">None</option>
                       {groups.map((group) => (
