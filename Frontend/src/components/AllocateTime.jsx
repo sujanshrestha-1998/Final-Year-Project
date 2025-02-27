@@ -135,6 +135,7 @@ const AllocateTime = () => {
 
   // Open side panel for adding/editing a schedule
   const handleOpenSidePanel = (schedule = null) => {
+    console.log("Opening side panel with schedule:", schedule);
     setFormData(
       schedule
         ? {
@@ -159,14 +160,12 @@ const AllocateTime = () => {
           }
     );
     setIsSidePanelOpen(true);
-    // Add no-scroll class to body when panel is open
     document.body.classList.add("overflow-hidden");
   };
 
   // Close side panel
   const handleCloseSidePanel = () => {
     setIsSidePanelOpen(false);
-    // Remove no-scroll class from body when panel is closed
     document.body.classList.remove("overflow-hidden");
   };
 
@@ -445,6 +444,24 @@ const AllocateTime = () => {
             <div className="h-full overflow-y-auto p-6">
               <form onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Group
+                    </label>
+                    <select
+                      name="group_id"
+                      value={formData.group_id}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    >
+                      {groups.map((group) => (
+                        <option key={group.id} value={group.id}>
+                          {group.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Day of Week

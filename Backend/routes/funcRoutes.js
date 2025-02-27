@@ -86,7 +86,7 @@ router.post("/fetch_schedule", (req, res) => {
     JOIN \`group\` ON schedules.group_id = \`group\`.id
     LEFT JOIN classrooms ON schedules.classroom_id = classrooms.id
     LEFT JOIN courses ON schedules.course_id = courses.id
-    LEFT JOIN teachers ON schedules.teacher_id = teachers.id
+    LEFT JOIN teachers ON schedules.teacher_id = teachers.teacher_id
     WHERE schedules.group_id = ?;
   `;
   // Execute the query
