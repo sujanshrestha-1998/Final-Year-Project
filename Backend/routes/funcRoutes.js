@@ -81,7 +81,7 @@ router.post("/fetch_schedule", (req, res) => {
     \`group\`.name AS group_name,
     classrooms.name AS classroom_name,
     courses.name AS course_name,
-    teachers.first_name AS teacher_name
+    CONCAT(teachers.first_name, ' ', teachers.last_name) AS teacher_name
     FROM schedules
     JOIN \`group\` ON schedules.group_id = \`group\`.id
     LEFT JOIN classrooms ON schedules.classroom_id = classrooms.id

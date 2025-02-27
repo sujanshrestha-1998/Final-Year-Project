@@ -408,203 +408,281 @@ const AllocateTime = () => {
         </table>
       </div>
 
-      {/* Side Panel with Blur Background */}
+      {/* Apple UI-themed Side Panel with Blur Background */}
       {isSidePanelOpen && (
         <div className="fixed inset-0 z-50 overflow-hidden">
           {/* Backdrop with blur effect */}
           <div
-            className="absolute inset-0 bg-black bg-opacity-30 backdrop-blur-sm transition-opacity"
+            className="absolute inset-0 bg-black bg-opacity-20 backdrop-blur-sm transition-opacity"
             onClick={handleCloseSidePanel}
           ></div>
 
           {/* Side Panel */}
           <div className="absolute inset-y-0 right-0 max-w-md w-full bg-white shadow-xl transform transition-transform duration-300 ease-in-out">
-            <button
-              type="button"
-              onClick={handleCloseSidePanel}
-              className="text-blue-500 flex items-center p-5 gap-2 font-semibold"
-            >
-              <IoChevronBackOutline />
-              Back
-            </button>
-            {/* Panel Header */}
-            <div className="px-6 flex justify-between items-center">
-              <h2 className="text-lg font-semibold">
-                {formData.schedule_id ? "Edit Schedule" : "Add New Schedule"}
-              </h2>
-              <button
-                onClick={handleCloseSidePanel}
-                className="text-white hover:text-gray-200 transition-colors"
-              >
-                <IoClose className="text-2xl" />
-              </button>
+            {/* Panel Header with Apple-style design */}
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center gap-20 mb-2">
+                <button
+                  type="button"
+                  onClick={handleCloseSidePanel}
+                  className="text-blue-500 flex items-center gap-1 font-medium text-sm"
+                >
+                  <IoChevronBackOutline className="text-lg" />
+                  Cancel
+                </button>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {formData.schedule_id ? "Edit Schedule" : "New Schedule"}
+                </h2>
+                {/* <button
+                  type="submit"
+                  form="schedule-form"
+                  className="text-blue-500 font-medium text-sm"
+                >
+                  {formData.schedule_id ? "Update" : "Add"}
+                </button> */}
+              </div>
             </div>
 
-            {/* Panel Body */}
-            <div className="h-full overflow-y-auto p-6">
-              <form onSubmit={handleSubmit}>
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Group
-                    </label>
-                    <select
-                      name="group_id"
-                      value={formData.group_id}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                    >
-                      {groups.map((group) => (
-                        <option key={group.id} value={group.id}>
-                          {group.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Day of Week
-                    </label>
-                    <select
-                      name="day_of_week"
-                      value={formData.day_of_week}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                    >
-                      <option value="Sunday">Sunday</option>
-                      <option value="Monday">Monday</option>
-                      <option value="Tuesday">Tuesday</option>
-                      <option value="Wednesday">Wednesday</option>
-                      <option value="Thursday">Thursday</option>
-                      <option value="Friday">Friday</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Type
-                    </label>
-                    <select
-                      value={selectedType}
-                      onChange={(e) => setSelectedType(e.target.value)}
-                      className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                    >
-                      <option value="">Select a type</option>
-                      {classroomTypes.map((type) => (
-                        <option key={type} value={type}>
-                          {type}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Classroom
-                    </label>
-                    <select
-                      name="classroom_id"
-                      value={formData.classroom_id}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                    >
-                      <option value="">Select a classroom</option>
-                      {filteredClassrooms.map((classroom) => (
-                        <option key={classroom.id} value={classroom.id}>
-                          {classroom.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Course
-                    </label>
-                    <select
-                      name="course_id"
-                      value={formData.course_id}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                    >
-                      <option value="">Select a course</option>
-                      {courses.map((course) => (
-                        <option key={course.id} value={course.id}>
-                          {course.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Teacher
-                    </label>
-                    <select
-                      name="teacher_id"
-                      value={formData.teacher_id}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                    >
-                      <option value="">Select a teacher</option>
-                      {teachers.map((teacher) => (
-                        <option
-                          key={teacher.teacher_id}
-                          value={teacher.teacher_id}
+            {/* Panel Body with Apple-style form elements */}
+            <div className="h-full overflow-y-auto p-6 pb-20">
+              <form id="schedule-form" onSubmit={handleSubmit}>
+                <div className="space-y-6">
+                  {/* Group Section */}
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
+                          Group
+                        </label>
+                        <select
+                          name="group_id"
+                          value={formData.group_id}
+                          onChange={handleChange}
+                          className="w-full px-3 py-2 text-base bg-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 border-0 transition-all duration-200 appearance-none"
+                          style={{
+                            backgroundImage:
+                              "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E\")",
+                            backgroundRepeat: "no-repeat",
+                            backgroundPosition: "right 0.5rem center",
+                            backgroundSize: "1.5em 1.5em",
+                            paddingRight: "2.5rem",
+                          }}
                         >
-                          {teacher.first_name} {teacher.last_name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                          {groups.map((group) => (
+                            <option key={group.id} value={group.id}>
+                              {group.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Start Time
-                      </label>
-                      <input
-                        type="time"
-                        name="start_time"
-                        value={formData.start_time}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                      />
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
+                          Day
+                        </label>
+                        <select
+                          name="day_of_week"
+                          value={formData.day_of_week}
+                          onChange={handleChange}
+                          className="w-full px-3 py-2 text-base bg-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 border-0 transition-all duration-200 appearance-none"
+                          style={{
+                            backgroundImage:
+                              "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E\")",
+                            backgroundRepeat: "no-repeat",
+                            backgroundPosition: "right 0.5rem center",
+                            backgroundSize: "1.5em 1.5em",
+                            paddingRight: "2.5rem",
+                          }}
+                        >
+                          <option value="Sunday">Sunday</option>
+                          <option value="Monday">Monday</option>
+                          <option value="Tuesday">Tuesday</option>
+                          <option value="Wednesday">Wednesday</option>
+                          <option value="Thursday">Thursday</option>
+                          <option value="Friday">Friday</option>
+                        </select>
+                      </div>
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        End Time
-                      </label>
-                      <input
-                        type="time"
-                        name="end_time"
-                        value={formData.end_time}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                      />
+                    {/* Time Selection */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
+                          Start Time
+                        </label>
+                        <input
+                          type="time"
+                          name="start_time"
+                          value={formData.start_time}
+                          onChange={handleChange}
+                          className="w-full px-3 py-2 text-base bg-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 border-0 transition-all duration-200"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
+                          End Time
+                        </label>
+                        <input
+                          type="time"
+                          name="end_time"
+                          value={formData.end_time}
+                          onChange={handleChange}
+                          className="w-full px-3 py-2 text-base bg-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 border-0 transition-all duration-200"
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Panel Footer */}
-                <div className="mt-8 flex justify-end space-x-3">
-                  <button
-                    type="button"
-                    onClick={handleCloseSidePanel}
-                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-medium"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium shadow-sm"
-                  >
-                    {formData.schedule_id ? "Update" : "Save"}
-                  </button>
+                  {/* Classroom Section */}
+                  <div className="pt-4 border-t border-gray-200">
+                    <h3 className="text-lg font-semibold mb-4 text-gray-900">
+                      Location
+                    </h3>
+
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
+                          Classroom Type
+                        </label>
+                        <select
+                          value={selectedType}
+                          onChange={(e) => setSelectedType(e.target.value)}
+                          className="w-full px-3 py-2 text-base bg-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 border-0 transition-all duration-200 appearance-none"
+                          style={{
+                            backgroundImage:
+                              "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E\")",
+                            backgroundRepeat: "no-repeat",
+                            backgroundPosition: "right 0.5rem center",
+                            backgroundSize: "1.5em 1.5em",
+                            paddingRight: "2.5rem",
+                          }}
+                        >
+                          <option value="">All Types</option>
+                          {classroomTypes.map((type) => (
+                            <option key={type} value={type}>
+                              {type}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
+                          Classroom
+                        </label>
+                        <select
+                          name="classroom_id"
+                          value={formData.classroom_id}
+                          onChange={handleChange}
+                          className="w-full px-3 py-2 text-base bg-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 border-0 transition-all duration-200 appearance-none"
+                          style={{
+                            backgroundImage:
+                              "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E\")",
+                            backgroundRepeat: "no-repeat",
+                            backgroundPosition: "right 0.5rem center",
+                            backgroundSize: "1.5em 1.5em",
+                            paddingRight: "2.5rem",
+                          }}
+                        >
+                          <option value="">Select a classroom</option>
+                          {filteredClassrooms.map((classroom) => (
+                            <option key={classroom.id} value={classroom.id}>
+                              {classroom.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Course and Teacher Section */}
+                  <div className="pt-4 border-t border-gray-200">
+                    <h3 className="text-lg font-semibold mb-4 text-gray-900">
+                      Class Details
+                    </h3>
+
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
+                          Course
+                        </label>
+                        <select
+                          name="course_id"
+                          value={formData.course_id}
+                          onChange={handleChange}
+                          className="w-full px-3 py-2 text-base bg-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 border-0 transition-all duration-200 appearance-none"
+                          style={{
+                            backgroundImage:
+                              "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E\")",
+                            backgroundRepeat: "no-repeat",
+                            backgroundPosition: "right 0.5rem center",
+                            backgroundSize: "1.5em 1.5em",
+                            paddingRight: "2.5rem",
+                          }}
+                        >
+                          <option value="">Select a course</option>
+                          {courses.map((course) => (
+                            <option key={course.id} value={course.id}>
+                              {course.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
+                          Teacher
+                        </label>
+                        <select
+                          name="teacher_id"
+                          value={formData.teacher_id}
+                          onChange={handleChange}
+                          className="w-full px-3 py-2 text-base bg-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 border-0 transition-all duration-200 appearance-none"
+                          style={{
+                            backgroundImage:
+                              "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E\")",
+                            backgroundRepeat: "no-repeat",
+                            backgroundPosition: "right 0.5rem center",
+                            backgroundSize: "1.5em 1.5em",
+                            paddingRight: "2.5rem",
+                          }}
+                        >
+                          <option value="">Select a teacher</option>
+                          {teachers.map((teacher) => (
+                            <option
+                              key={teacher.teacher_id}
+                              value={teacher.teacher_id}
+                            >
+                              {teacher.first_name} {teacher.last_name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </form>
+            </div>
+
+            {/* Bottom floating action bar with shadow */}
+            <div className="absolute bottom-0 left-0 right-0 bg-white bg-opacity-90 backdrop-blur-sm border-t border-gray-200 p-4">
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={handleCloseSidePanel}
+                  className="px-6 py-2 bg-gray-200 text-gray-800 rounded-full hover:bg-gray-300 transition-colors font-medium text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  form="schedule-form"
+                  className="px-6 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors font-medium text-sm shadow-sm"
+                >
+                  {formData.schedule_id ? "Update" : "Save"}
+                </button>
+              </div>
             </div>
           </div>
         </div>
