@@ -22,6 +22,8 @@ const AllocateTime = () => {
     end_time: "",
   });
   const [classrooms, setClassrooms] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [teachers, setTeachers] = useState([]);
   const [selectedType, setSelectedType] = useState("");
 
   // Format time from "12:00:00" to "12:00 AM"
@@ -89,6 +91,36 @@ const AllocateTime = () => {
       }
     };
     fetchClassrooms();
+  }, []);
+
+  // Fetch courses on component mount
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/api/get_courses");
+        const data = await response.json();
+        setCourses(data.data);
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+      }
+    };
+    fetchCourses();
+  }, []);
+
+  // Fetch teachers on component mount
+  useEffect(() => {
+    const fetchTeachers = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:3000/api/teacher_details"
+        );
+        const data = await response.json();
+        setTeachers(data.teachers);
+      } catch (error) {
+        console.error("Error fetching teachers:", error);
+      }
+    };
+    fetchTeachers();
   }, []);
 
   // Get unique types from classrooms
@@ -473,28 +505,41 @@ const AllocateTime = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Course
                     </label>
-                    <input
-                      type="text"
+                    <select
                       name="course_id"
                       value={formData.course_id}
                       onChange={handleChange}
-                      placeholder="Enter course ID"
                       className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                    />
+                    >
+                      <option value="">Select a course</option>
+                      {courses.map((course) => (
+                        <option key={course.id} value={course.id}>
+                          {course.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Teacher
                     </label>
-                    <input
-                      type="text"
+                    <select
                       name="teacher_id"
                       value={formData.teacher_id}
                       onChange={handleChange}
-                      placeholder="Enter teacher ID"
                       className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                    />
+                    >
+                      <option value="">Select a teacher</option>
+                      {teachers.map((teacher) => (
+                        <option
+                          key={teacher.teacher_id}
+                          value={teacher.teacher_id}
+                        >
+                          {teacher.first_name} {teacher.last_name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">

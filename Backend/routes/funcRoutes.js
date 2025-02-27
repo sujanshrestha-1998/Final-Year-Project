@@ -257,4 +257,17 @@ router.get("/get_classrooms", (req, res) => {
   });
 });
 
+router.get("/get_courses", (req, res) => {
+  const query = "SELECT * FROM courses";
+  connection.query(query, (err, result) => {
+    if (err) {
+      console.error("Database error:", err.message);
+      return res.status(500).json({ message: "Database error" });
+    }
+    return res
+      .status(200)
+      .json({ message: "Classrooms fetched successfully", data: result });
+  });
+});
+
 module.exports = router;
