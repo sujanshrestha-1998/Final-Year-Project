@@ -565,8 +565,7 @@ const Students = () => {
         </div>
 
         {/* New Statistics Section */}
-        <div className="flex gap-4 mb-6">
-          {/* Main stats cards - first row */}
+        {/* <div className="flex gap-4 mb-6">
           <div className="w-48">
             <StatCard
               title="Total Students"
@@ -575,8 +574,6 @@ const Students = () => {
               color="text-blue-500"
             />
           </div>
-
-          {/* Second row with summary boxes */}
 
           <div className="w-60">
             <SummaryBox
@@ -590,7 +587,7 @@ const Students = () => {
               )}
             />
           </div>
-        </div>
+        </div> */}
 
         {error && <p className="text-red-600 font-bold">{error}</p>}
 
