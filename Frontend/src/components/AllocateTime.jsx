@@ -327,35 +327,35 @@ const AllocateTime = () => {
       <div className="overflow-x-auto border-t w-full mt-5 flex justify-center">
         <table className="min-w-full divide-y divide-[#e5e5ea]">
           <thead>
-            <tr className="bg-[#f5f5f7]">
+            <tr className="bg-[#f5f5f7] divide-x divide-[#e5e5ea]">
               <th className="px-6 py-1 text-left">
-                <span className="text-[12px] font-medium text-[#8e8e93] uppercase tracking-wider">
+                <span className="text-[15px] font-semibold  uppercase tracking-wider">
                   DAY
                 </span>
               </th>
               <th className="px-6 py-1 text-left">
-                <span className="text-[12px] font-medium text-[#8e8e93] uppercase tracking-wider">
+                <span className="text-[15px] font-semibold  uppercase tracking-wider">
                   CLASSROOM
                 </span>
               </th>
               <th className="px-6 py-1 text-left">
-                <span className="text-[12px] font-medium text-[#8e8e93] uppercase tracking-wider">
+                <span className="text-[15px] font-semibold  uppercase tracking-wider">
                   COURSE
                 </span>
               </th>
               <th className="px-6 py-1 text-left">
-                <span className="text-[12px] font-medium text-[#8e8e93] uppercase tracking-wider">
+                <span className="text-[15px] font-semibold  uppercase tracking-wider">
                   TEACHER
                 </span>
               </th>
               <th className="px-6 py-1 text-left">
-                <span className="text-[12px] font-medium text-[#8e8e93] uppercase tracking-wider">
+                <span className="text-[15px] font-semibold  uppercase tracking-wider">
                   TIME
                 </span>
               </th>
 
               <th className="px-6 py-1 text-left">
-                <span className="text-[12px] font-medium text-[#8e8e93] uppercase tracking-wider">
+                <span className="text-[15px] font-semibold  uppercase tracking-wider">
                   ACTIONS
                 </span>
               </th>
@@ -365,21 +365,21 @@ const AllocateTime = () => {
             {schedules.map((schedule) => (
               <tr
                 key={schedule.schedule_id}
-                className="hover:bg-[#f5f5f7] transition-colors duration-150"
+                className="hover:bg-[#f5f5f7] transition-colors duration-150 divide-x divide-[#e5e5ea]"
               >
-                <td className="px-6 py-2 text-[14px] text-gray-900">
+                <td className="px-6 py-2 text-[14px] font-medium">
                   {schedule.day_of_week}
                 </td>
-                <td className="px-6 py-2 text-[14px] text-gray-900">
+                <td className="px-6 py-2 text-[14px] font-medium">
                   {schedule.classroom_name}
                 </td>
-                <td className="px-6 py-2 text-[14px] text-gray-900">
+                <td className="px-6 py-2 text-[14px] font-medium">
                   {schedule.course_name}
                 </td>
-                <td className="px-6 py-2 text-[14px] text-gray-900">
+                <td className="px-6 py-2 text-[14px] font-medium">
                   {schedule.teacher_name}
                 </td>
-                <td className="px-6 py-2 text-[14px] text-gray-900">
+                <td className="px-6 py-2 text-[14px] font-medium">
                   {formatTime(schedule.start_time)} -{" "}
                   {formatTime(schedule.end_time)}
                 </td>
