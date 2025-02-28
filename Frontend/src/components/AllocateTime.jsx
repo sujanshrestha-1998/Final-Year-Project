@@ -394,7 +394,7 @@ const AllocateTime = () => {
                   >
                     {index === 0 ? (
                       <td
-                        className="px-6 py-2 text-[14px] font-medium border-r border-[#e5e5ea]"
+                        className="px-6 py-2 text-[15px] font-medium border-r border-[#e5e5ea]"
                         rowSpan={daySchedules.length}
                       >
                         {day}
@@ -403,16 +403,16 @@ const AllocateTime = () => {
                       // Add an empty hidden cell to maintain table structure
                       <td className="hidden"></td>
                     )}
-                    <td className="px-6 py-2 text-[14px] font-medium">
+                    <td className="px-6 py-2 text-[15px] font-medium">
                       {schedule.classroom_name}
                     </td>
-                    <td className="px-6 py-2 text-[14px] font-medium">
+                    <td className="px-6 py-2 text-[15px] font-medium">
                       {schedule.course_name}
                     </td>
-                    <td className="px-6 py-2 text-[14px] font-medium">
+                    <td className="px-6 py-2 text-[15px] font-medium">
                       {schedule.teacher_name}
                     </td>
-                    <td className="px-6 py-2 text-[14px] font-medium">
+                    <td className="px-6 py-2 text-[15px] font-medium">
                       {formatTime(schedule.start_time)} -{" "}
                       {formatTime(schedule.end_time)}
                     </td>
@@ -705,14 +705,14 @@ const AllocateTime = () => {
                 <button
                   type="button"
                   onClick={handleCloseSidePanel}
-                  className="px-6 py-2 bg-gray-200 text-gray-800 rounded-full hover:bg-gray-300 transition-colors font-medium text-sm"
+                  className="px-6 py-1 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors font-medium text-sm"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   form="schedule-form"
-                  className="px-6 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors font-medium text-sm shadow-sm"
+                  className="px-6 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors font-medium text-sm shadow-sm"
                 >
                   {formData.schedule_id ? "Update" : "Save"}
                 </button>
