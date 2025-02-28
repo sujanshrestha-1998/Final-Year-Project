@@ -17,7 +17,7 @@ const AllocateTime = () => {
     classroom_id: "",
     course_id: "",
     teacher_id: "",
-    day_of_week: "Sunday",
+    day_of_week: "Monday",
     start_time: "",
     end_time: "",
   });
@@ -154,7 +154,7 @@ const AllocateTime = () => {
             classroom_id: "",
             course_id: "",
             teacher_id: "",
-            day_of_week: "Sunday",
+            day_of_week: "Monday",
             start_time: "",
             end_time: "",
           }
@@ -286,6 +286,26 @@ const AllocateTime = () => {
     }
   };
 
+  // Add this constant at the top of the component
+  const dayOrder = {
+    Monday: 1,
+    Tuesday: 2,
+    Wednesday: 3,
+    Thursday: 4,
+    Friday: 5,
+    Saturday: 6,
+    Sunday: 7,
+  };
+
+  // First, let's group the schedules by day
+  const groupedSchedules = schedules.reduce((acc, schedule) => {
+    if (!acc[schedule.day_of_week]) {
+      acc[schedule.day_of_week] = [];
+    }
+    acc[schedule.day_of_week].push(schedule);
+    return acc;
+  }, {});
+
   return (
     <div className="h-screen w-[78vw] overflow-hidden flex flex-col mx-8">
       <div className="flex items-center justify-between">
@@ -362,48 +382,61 @@ const AllocateTime = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-[#e5e5ea]">
-            {schedules.map((schedule) => (
-              <tr
-                key={schedule.schedule_id}
-                className="hover:bg-[#f5f5f7] transition-colors duration-150 divide-x divide-[#e5e5ea]"
-              >
-                <td className="px-6 py-2 text-[14px] font-medium">
-                  {schedule.day_of_week}
-                </td>
-                <td className="px-6 py-2 text-[14px] font-medium">
-                  {schedule.classroom_name}
-                </td>
-                <td className="px-6 py-2 text-[14px] font-medium">
-                  {schedule.course_name}
-                </td>
-                <td className="px-6 py-2 text-[14px] font-medium">
-                  {schedule.teacher_name}
-                </td>
-                <td className="px-6 py-2 text-[14px] font-medium">
-                  {formatTime(schedule.start_time)} -{" "}
-                  {formatTime(schedule.end_time)}
-                </td>
-
-                <td className="px-6 py-2">
-                  <div className="flex gap-2">
-                    <button
-                      className="p-1.5 rounded-md text-blue-500 hover:bg-blue-50 transition-colors duration-200"
-                      onClick={() => handleOpenSidePanel(schedule)}
-                      aria-label="Edit"
-                    >
-                      <FaEdit className="text-lg" />
-                    </button>
-                    <button
-                      className="p-1.5 rounded-md text-red-500 hover:bg-red-50 transition-colors duration-200"
-                      onClick={() => handleDelete(schedule.schedule_id)}
-                      aria-label="Delete"
-                    >
-                      <MdDelete className="text-lg" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {Object.entries(groupedSchedules)
+              .sort(([dayA], [dayB]) => dayOrder[dayA] - dayOrder[dayB])
+              .map(([day, daySchedules]) =>
+                daySchedules.map((schedule, index) => (
+                  <tr
+                    key={`${day}-${schedule.schedule_id}`}
+                    className={`divide-x divide-[#e5e5ea] ${
+                      index !== 0 ? "border-t border-[#e5e5ea]" : ""
+                    }`}
+                  >
+                    {index === 0 ? (
+                      <td
+                        className="px-6 py-2 text-[14px] font-medium border-r border-[#e5e5ea]"
+                        rowSpan={daySchedules.length}
+                      >
+                        {day}
+                      </td>
+                    ) : (
+                      // Add an empty hidden cell to maintain table structure
+                      <td className="hidden"></td>
+                    )}
+                    <td className="px-6 py-2 text-[14px] font-medium">
+                      {schedule.classroom_name}
+                    </td>
+                    <td className="px-6 py-2 text-[14px] font-medium">
+                      {schedule.course_name}
+                    </td>
+                    <td className="px-6 py-2 text-[14px] font-medium">
+                      {schedule.teacher_name}
+                    </td>
+                    <td className="px-6 py-2 text-[14px] font-medium">
+                      {formatTime(schedule.start_time)} -{" "}
+                      {formatTime(schedule.end_time)}
+                    </td>
+                    <td className="px-6 py-2">
+                      <div className="flex gap-2">
+                        <button
+                          className="p-1.5 rounded-md text-blue-500 hover:bg-blue-50 transition-colors duration-200"
+                          onClick={() => handleOpenSidePanel(schedule)}
+                          aria-label="Edit"
+                        >
+                          <FaEdit className="text-lg" />
+                        </button>
+                        <button
+                          className="p-1.5 rounded-md text-red-500 hover:bg-red-50 transition-colors duration-200"
+                          onClick={() => handleDelete(schedule.schedule_id)}
+                          aria-label="Delete"
+                        >
+                          <MdDelete className="text-lg" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
           </tbody>
         </table>
       </div>
@@ -494,12 +527,13 @@ const AllocateTime = () => {
                             paddingRight: "2.5rem",
                           }}
                         >
-                          <option value="Sunday">Sunday</option>
                           <option value="Monday">Monday</option>
                           <option value="Tuesday">Tuesday</option>
                           <option value="Wednesday">Wednesday</option>
                           <option value="Thursday">Thursday</option>
                           <option value="Friday">Friday</option>
+                          <option value="Saturday">Saturday</option>
+                          <option value="Sunday">Sunday</option>
                         </select>
                       </div>
                     </div>

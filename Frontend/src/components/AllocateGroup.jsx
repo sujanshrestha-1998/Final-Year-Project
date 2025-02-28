@@ -209,46 +209,46 @@ const AllocateGroup = () => {
       {/* Header Section */}
       <div className="w-full border-b flex mt-5 items-center justify-between"></div>
       {/* Table Section */}
-      <div className="overflow-x-auto w-full flex  justify-start">
-        <table className="w-full divide-y divide-[#e5e5ea]">
+      <div className="overflow-x-auto w-full flex justify-start">
+        <table className="w-full divide-y divide-[#e5e5ea] ">
           <thead>
-            <tr className="bg-[#f5f5f7]">
-              <th className="px-6 py-1 text-left">
+            <tr className="bg-[#f5f5f7] divide-x divide-[#e5e5ea]">
+              <th className="px-6 py-2 text-left border-r border-[#e5e5ea]">
                 <div className="flex items-center gap-2">
-                  <span className="text-[12px] font-medium text-[#8e8e93] uppercase tracking-wider">
+                  <span className="text-[15px] font-semibold  uppercase tracking-wider">
                     Student ID
                   </span>
                 </div>
               </th>
-              <th className="px-6 py-1 text-left">
+              <th className="px-6 py-2 text-left border-r border-[#e5e5ea]">
                 <div className="flex items-center gap-2">
-                  <span className="text-[12px] font-medium text-[#8e8e93] uppercase tracking-wider">
+                  <span className="text-[15px] font-semibold  uppercase tracking-wider">
                     Name
                   </span>
                 </div>
               </th>
-              <th className="px-6 py-1 text-left">
+              <th className="px-6 py-2 text-left border-r border-[#e5e5ea]">
                 <div className="flex items-center gap-2">
-                  <span className="text-[12px] font-medium text-[#8e8e93] uppercase tracking-wider">
+                  <span className="text-[15px] font-semibold  uppercase tracking-wider">
                     Course
                   </span>
                 </div>
               </th>
-              <th className="px-6 py-1 text-left">
+              <th className="px-6 py-2 text-left border-r border-[#e5e5ea]">
                 <div className="flex items-center gap-2">
-                  <span className="text-[12px] font-medium text-[#8e8e93] uppercase tracking-wider">
+                  <span className="text-[15px] font-semibold  uppercase tracking-wider">
                     Status
                   </span>
                 </div>
               </th>
-              <th className="px-6 py-1 text-left">
-                <span className="text-[12px] font-medium text-[#8e8e93] uppercase tracking-wider">
+              <th className="px-6 py-2 text-left border-r border-[#e5e5ea]">
+                <span className="text-[15px] font-semibold  uppercase tracking-wider">
                   Grade Level
                 </span>
               </th>
-              <th className="px-6 py-1 text-left">
+              <th className="px-6 py-2 text-left">
                 <div className="flex items-center gap-2">
-                  <span className="text-[12px] font-medium text-[#8e8e93] uppercase tracking-wider">
+                  <span className="text-[15px] font-semibold  uppercase tracking-wider">
                     Group
                   </span>
                 </div>
@@ -259,27 +259,19 @@ const AllocateGroup = () => {
             {filteredStudents.map((student) => (
               <tr
                 key={student.stud_id}
-                className="font-medium transition-colors duration-150"
+                className="divide-x divide-[#e5e5ea] hover:bg-[#f5f5f7] transition-colors duration-150"
               >
-                <td className="px-6 py-2 text-[14px] text-gray-900">
+                <td className="px-6 py-2 text-[15px] font-medium border-r border-[#e5e5ea]">
                   {student.stud_id}
                 </td>
-                <td className="px-6 py-2">
-                  <div className="text-[14px] font-medium text-gray-900">
-                    {student.first_name} {student.last_name}
-                  </div>
+                <td className="px-6 py-2 text-[15px] font-medium">
+                  {student.first_name} {student.last_name}
                 </td>
-                <td className="px-6 py-2">
-                  <div className="text-[14px] font-medium text-gray-900">
-                    Bsc (Hons) Computer Science
-                  </div>
+                <td className="px-6 py-2 text-[15px] font-medium">
+                  Bsc (Hons) Computer Science
                 </td>
-                <td className="px-6 py-2">
-                  <div className="text-[14px] font-medium text-gray-900">
-                    Active
-                  </div>
-                </td>
-                <td className="px-6 py-2 text-[14px] text-gray-500">
+                <td className="px-6 py-2 text-[15px] font-medium">Active</td>
+                <td className="px-6 py-2 text-[15px] font-medium">
                   {student.grade_level}
                 </td>
                 <td className="px-6 py-2">
