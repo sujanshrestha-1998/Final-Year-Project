@@ -6,6 +6,7 @@ import { MdDelete, MdWarning, MdCheckCircle } from "react-icons/md";
 import { IoClose } from "react-icons/io5";
 import { IoChevronBackOutline } from "react-icons/io5";
 import ConfirmationModal from "./ConfirmationModal";
+import ErrorModal from "./ErrorModal";
 
 const AllocateTime = () => {
   const [schedules, setSchedules] = useState([]);
@@ -35,6 +36,10 @@ const AllocateTime = () => {
     message: "",
   });
   const [successModal, setSuccessModal] = useState({
+    isOpen: false,
+    message: "",
+  });
+  const [errorModal, setErrorModal] = useState({
     isOpen: false,
     message: "",
   });
@@ -239,7 +244,10 @@ const AllocateTime = () => {
       !start_time ||
       !end_time
     ) {
-      alert("Please fill in all mandatory fields.");
+      setErrorModal({
+        isOpen: true,
+        message: "Please fill in all mandatory fields.",
+      });
       return;
     }
 
@@ -805,6 +813,13 @@ const AllocateTime = () => {
         icon={<MdCheckCircle className="h-6 w-6 text-green-600" />}
         iconBgClass="bg-green-100"
         hideCancel={true}
+      />
+
+      {/* Error Modal */}
+      <ErrorModal
+        isOpen={errorModal.isOpen}
+        onClose={() => setErrorModal({ isOpen: false, message: "" })}
+        message={errorModal.message}
       />
     </div>
   );
