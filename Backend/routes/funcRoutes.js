@@ -270,4 +270,37 @@ router.get("/get_courses", (req, res) => {
   });
 });
 
+router.post("/add_classroom", (req, res) => {
+  const { name, type } = req.body;
+
+  if (!name || !type) {
+    return res.status(400).json({ message: "Name and type are required" });
+  }
+
+  const query = "INSERT INTO classrooms (name, type) VALUES (?, ?)";
+  connection.query(query, [name, type], (err, result) => {
+    if (err) {
+      console.error("Database error:", err.message);
+      return res.status(500).json({ message: "Database error" });
+    }
+    return res.status(201).json({
+      message: "Classroom added successfully",
+      data: { id: result.insertId, name, type },
+    });
+  });
+});
+
+router.delete("/delete_classroom/:id", (req, res) => {
+  const { id } = req.params;
+
+  const query = "DELETE FROM classrooms WHERE id = ?";
+  connection.query(query, [id], (err, result) => {
+    if (err) {
+      console.error("Database error:", err.message);
+      return res.status(500).json({ message: "Database error" });
+    }
+    return res.status(200).json({ message: "Classroom deleted successfully" });
+  });
+});
+
 module.exports = router;

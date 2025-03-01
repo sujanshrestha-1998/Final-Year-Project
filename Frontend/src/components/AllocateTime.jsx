@@ -2,9 +2,10 @@ import React, { useEffect, useState } from "react";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { HiChevronUpDown } from "react-icons/hi2";
 import { FaEdit } from "react-icons/fa";
-import { MdDelete } from "react-icons/md";
+import { MdDelete, MdWarning, MdCheckCircle } from "react-icons/md";
 import { IoClose } from "react-icons/io5";
 import { IoChevronBackOutline } from "react-icons/io5";
+import ConfirmationModal from "./ConfirmationModal";
 
 const AllocateTime = () => {
   const [schedules, setSchedules] = useState([]);
@@ -25,6 +26,18 @@ const AllocateTime = () => {
   const [courses, setCourses] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [selectedType, setSelectedType] = useState("");
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    scheduleId: null,
+  });
+  const [overlapModal, setOverlapModal] = useState({
+    isOpen: false,
+    message: "",
+  });
+  const [successModal, setSuccessModal] = useState({
+    isOpen: false,
+    message: "",
+  });
 
   // Format time from "12:00:00" to "12:00 AM"
   const formatTime = (timeString) => {
@@ -218,9 +231,11 @@ const AllocateTime = () => {
 
     // Check for overlapping schedules client-side
     if (isOverlappingSchedule()) {
-      alert(
-        "Cannot schedule: This classroom is already booked during this time period on the selected day."
-      );
+      setOverlapModal({
+        isOpen: true,
+        message:
+          "Cannot schedule: This classroom is already booked during this time period on the selected day.",
+      });
       return;
     }
 
@@ -237,11 +252,18 @@ const AllocateTime = () => {
 
       // Check if the response indicates an error (specifically for overlap)
       if (response.status === 409) {
-        alert(data.message);
+        setOverlapModal({
+          isOpen: true,
+          message: data.message,
+        });
         return;
       }
 
-      alert(data.message);
+      // Show success modal
+      setSuccessModal({
+        isOpen: true,
+        message: data.message,
+      });
 
       // Refresh schedules after update
       const updatedResponse = await fetch(
@@ -257,32 +279,44 @@ const AllocateTime = () => {
       handleCloseSidePanel();
     } catch (error) {
       console.error("Error updating schedule:", error);
-      alert("Failed to update schedule.");
+      setOverlapModal({
+        isOpen: true,
+        message: "Failed to update schedule.",
+      });
     }
   };
 
   // Handle schedule deletion
   const handleDelete = async (scheduleId) => {
-    if (window.confirm("Are you sure you want to delete this schedule?")) {
-      try {
-        const response = await fetch(
-          "http://localhost:3000/api/delete_schedule",
-          {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ schedule_id: scheduleId }),
-          }
-        );
-        const data = await response.json();
-        alert(data.message);
-        // Refresh schedules after deletion
-        setSchedules(
-          schedules.filter((schedule) => schedule.schedule_id !== scheduleId)
-        );
-      } catch (error) {
-        console.error("Error deleting schedule:", error);
-        alert("Failed to delete schedule.");
-      }
+    setDeleteModal({
+      isOpen: true,
+      scheduleId,
+    });
+  };
+
+  // Add new function for confirming deletion
+  const confirmDelete = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:3000/api/delete_schedule",
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ schedule_id: deleteModal.scheduleId }),
+        }
+      );
+      const data = await response.json();
+      alert(data.message);
+      setSchedules(
+        schedules.filter(
+          (schedule) => schedule.schedule_id !== deleteModal.scheduleId
+        )
+      );
+    } catch (error) {
+      console.error("Error deleting schedule:", error);
+      alert("Failed to delete schedule.");
+    } finally {
+      setDeleteModal({ isOpen: false, scheduleId: null });
     }
   };
 
@@ -721,6 +755,43 @@ const AllocateTime = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, scheduleId: null })}
+        onConfirm={confirmDelete}
+        title="Delete Schedule"
+        message="Are you sure you want to delete this schedule? This action cannot be undone."
+      />
+
+      {/* Overlap Warning Modal */}
+      <ConfirmationModal
+        isOpen={overlapModal.isOpen}
+        onClose={() => setOverlapModal({ isOpen: false, message: "" })}
+        onConfirm={() => setOverlapModal({ isOpen: false, message: "" })}
+        title="Schedule Conflict"
+        message={overlapModal.message}
+        confirmText="OK"
+        confirmButtonClass="bg-blue-600 hover:bg-blue-500"
+        icon={<MdWarning className="h-6 w-6 text-yellow-600" />}
+        iconBgClass="bg-yellow-100"
+        hideCancel={true}
+      />
+
+      {/* Success Modal */}
+      <ConfirmationModal
+        isOpen={successModal.isOpen}
+        onClose={() => setSuccessModal({ isOpen: false, message: "" })}
+        onConfirm={() => setSuccessModal({ isOpen: false, message: "" })}
+        title="Success"
+        message={successModal.message}
+        confirmText="OK"
+        confirmButtonClass="bg-green-600 hover:bg-green-500"
+        icon={<MdCheckCircle className="h-6 w-6 text-green-600" />}
+        iconBgClass="bg-green-100"
+        hideCancel={true}
+      />
     </div>
   );
 };

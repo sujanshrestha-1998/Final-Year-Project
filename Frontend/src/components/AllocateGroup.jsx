@@ -3,6 +3,7 @@ import { IoMdInformationCircleOutline } from "react-icons/io";
 import { IoSearch } from "react-icons/io5";
 import { HiChevronUpDown } from "react-icons/hi2";
 import { FiEdit } from "react-icons/fi";
+import { MdAutorenew } from "react-icons/md";
 
 import axios from "axios";
 import {
@@ -13,6 +14,7 @@ import {
   FaLayerGroup,
   FaChevronDown,
 } from "react-icons/fa6"; // Using only fa6 icons
+import ConfirmationModal from "./ConfirmationModal";
 
 const AllocateGroup = () => {
   const [students, setStudents] = useState([]);
@@ -23,6 +25,9 @@ const AllocateGroup = () => {
   const [isAutoAllocating, setIsAutoAllocating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedGroup, setSelectedGroup] = useState("");
+  const [autoAllocateModal, setAutoAllocateModal] = useState({
+    isOpen: false,
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -75,26 +80,28 @@ const AllocateGroup = () => {
     }
   };
 
-  const handleAutoAllocate = async () => {
+  const handleAutoAllocate = () => {
+    setAutoAllocateModal({ isOpen: true });
+  };
+
+  const confirmAutoAllocate = async () => {
     try {
       setIsAutoAllocating(true);
       const response = await axios.post(
         "http://localhost:3000/api/auto_allocate_groups"
       );
 
-      // Refresh the student list after auto allocation
       const studentsResponse = await axios.get(
         "http://localhost:3000/api/stud_details"
       );
       setStudents(studentsResponse.data.students);
-
-      // Show success message (you might want to add a toast notification here)
-      console.log(response.data.message);
+      toast.success(response.data.message);
     } catch (err) {
       console.error("Error in auto allocation:", err);
-      setError("Error in auto allocation process");
+      toast.error("Error in auto allocation process");
     } finally {
       setIsAutoAllocating(false);
+      setAutoAllocateModal({ isOpen: false });
     }
   };
 
@@ -145,163 +152,182 @@ const AllocateGroup = () => {
   }
 
   return (
-    <div className="h-screen w-[78vw] overflow-hidden flex flex-col mx-8">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4 py-5">
-          <h1 className="font-medium text-2xl text-black">GROUP ALLOCATION</h1>
-          <IoMdInformationCircleOutline className="text-2xl " />
-          <div className="relative w-80 ml-2">
-            <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-            <input
-              type="text"
-              placeholder="Search"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-8 pr-4 py-1 bg-gray-200 rounded-md 
-               text-[14px] border-none 
-               transition-all duration-200 placeholder-gray-500"
-            />
+    <>
+      <div className="h-screen w-[78vw] overflow-hidden flex flex-col mx-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4 py-5">
+            <h1 className="font-medium text-2xl text-black">
+              GROUP ALLOCATION
+            </h1>
+            <IoMdInformationCircleOutline className="text-2xl " />
+            <div className="relative w-80 ml-2">
+              <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+              <input
+                type="text"
+                placeholder="Search"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-8 pr-4 py-1 bg-gray-200 rounded-md 
+                 text-[14px] border-none 
+                 transition-all duration-200 placeholder-gray-500"
+              />
+            </div>
           </div>
-        </div>
 
-        <div className="flex items-center gap-2">
-          {/* Combo Box for Group Filtering */}
-          <div className="relative w-48 mr-2">
-            <select
-              onChange={(e) => setSelectedGroup(e.target.value)}
-              className="block w-full pl-3 pr-8 py-1 text-[14px]
-                     bg-gray-200 border-none rounded-md
-                     focus:ring-2 focus:ring-[#0066FF] focus:bg-white
-                     transition-all duration-200 appearance-none"
-            >
-              <option value="">All Groups</option>
-              {groups.map((group) => (
-                <option key={group.id} value={group.id}>
-                  {group.name}
-                </option>
-              ))}
-            </select>
-            <HiChevronUpDown className="absolute inset-y-0 right-1 flex h-5 items-center text-white pointer-events-none mt-1 bg-blue-500 rounded-md" />
-          </div>
-          <div className="flex  selection:items-center gap-4 justify-center">
-            {/* Search Input */}
-
-            <button
-              onClick={handleAutoAllocate}
-              disabled={isAutoAllocating}
-              className={`
-              inline-flex items-center gap-2.5 px-4 py-1 rounded-md text-[14px]
-              font-medium transition-all duration-200 text-white
-              ${
-                isAutoAllocating
-                  ? "bg-[#e5e5ea] text-gray-400 cursor-not-allowed"
-                  : "bg-blue-500 text-white]"
-              }
-            `}
-            >
-              <FaShuffle className="text-lg" />
-              {isAutoAllocating ? "Allocating..." : "Auto Allocate"}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Header Section */}
-      <div className="w-full border-b flex mt-5 items-center justify-between"></div>
-      {/* Table Section */}
-      <div className="overflow-x-auto w-full flex justify-start">
-        <table className="w-full divide-y divide-[#e5e5ea] ">
-          <thead>
-            <tr className="bg-[#f5f5f7] divide-x divide-[#e5e5ea]">
-              <th className="px-6 py-2 text-left border-r border-[#e5e5ea]">
-                <div className="flex items-center gap-2">
-                  <span className="text-[15px] font-semibold  uppercase tracking-wider">
-                    Student ID
-                  </span>
-                </div>
-              </th>
-              <th className="px-6 py-2 text-left border-r border-[#e5e5ea]">
-                <div className="flex items-center gap-2">
-                  <span className="text-[15px] font-semibold  uppercase tracking-wider">
-                    Name
-                  </span>
-                </div>
-              </th>
-              <th className="px-6 py-2 text-left border-r border-[#e5e5ea]">
-                <div className="flex items-center gap-2">
-                  <span className="text-[15px] font-semibold  uppercase tracking-wider">
-                    Course
-                  </span>
-                </div>
-              </th>
-              <th className="px-6 py-2 text-left border-r border-[#e5e5ea]">
-                <div className="flex items-center gap-2">
-                  <span className="text-[15px] font-semibold  uppercase tracking-wider">
-                    Status
-                  </span>
-                </div>
-              </th>
-              <th className="px-6 py-2 text-left border-r border-[#e5e5ea]">
-                <span className="text-[15px] font-semibold  uppercase tracking-wider">
-                  Grade Level
-                </span>
-              </th>
-              <th className="px-6 py-2 text-left">
-                <div className="flex items-center gap-2">
-                  <span className="text-[15px] font-semibold  uppercase tracking-wider">
-                    Group
-                  </span>
-                </div>
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#e5e5ea]">
-            {filteredStudents.map((student) => (
-              <tr
-                key={student.stud_id}
-                className="divide-x divide-[#e5e5ea] hover:bg-[#f5f5f7] transition-colors duration-150"
+          <div className="flex items-center gap-2">
+            {/* Combo Box for Group Filtering */}
+            <div className="relative w-48 mr-2">
+              <select
+                onChange={(e) => setSelectedGroup(e.target.value)}
+                className="block w-full pl-3 pr-8 py-1 text-[14px]
+                       bg-gray-200 border-none rounded-md
+                       focus:ring-2 focus:ring-[#0066FF] focus:bg-white
+                       transition-all duration-200 appearance-none"
               >
-                <td className="px-6 py-2 text-[15px] font-medium border-r border-[#e5e5ea]">
-                  {student.stud_id}
-                </td>
-                <td className="px-6 py-2 text-[15px] font-medium">
-                  {student.first_name} {student.last_name}
-                </td>
-                <td className="px-6 py-2 text-[15px] font-medium">
-                  Bsc (Hons) Computer Science
-                </td>
-                <td className="px-6 py-2 text-[15px] font-medium">Active</td>
-                <td className="px-6 py-2 text-[15px] font-medium">
-                  {student.grade_level}
-                </td>
-                <td className="px-6 py-2">
-                  <div className="relative">
-                    <select
-                      value={student.stud_group || "none"}
-                      onChange={(e) =>
-                        handleGroupChange(student.stud_id, e.target.value)
-                      }
-                      className="w-full pl-3 py-1 text-[14px]
-                         bg-gray-200 border-none rounded-md
-                         focus:ring-2 focus:ring-[#0066FF] focus:bg-white
-                         transition-all duration-200 appearance-none"
-                    >
-                      <option value="none">None</option>
-                      {groups.map((group) => (
-                        <option key={group.id} value={group.id}>
-                          {group.name}
-                        </option>
-                      ))}
-                    </select>
-                    <FiEdit className="absolute inset-y-0 right-2 flex items-center text-blue-500 mt-1.5 pointer-events-none" />
+                <option value="">All Groups</option>
+                {groups.map((group) => (
+                  <option key={group.id} value={group.id}>
+                    {group.name}
+                  </option>
+                ))}
+              </select>
+              <HiChevronUpDown className="absolute inset-y-0 right-1 flex h-5 items-center text-white pointer-events-none mt-1 bg-blue-500 rounded-md" />
+            </div>
+            <div className="flex  selection:items-center gap-4 justify-center">
+              {/* Search Input */}
+
+              <button
+                onClick={handleAutoAllocate}
+                disabled={isAutoAllocating}
+                className={`
+                inline-flex items-center gap-2.5 px-4 py-1 rounded-md text-[14px]
+                font-medium transition-all duration-200 text-white
+                ${
+                  isAutoAllocating
+                    ? "bg-[#e5e5ea] text-gray-400 cursor-not-allowed"
+                    : "bg-blue-500 text-white]"
+                }
+              `}
+              >
+                <FaShuffle className="text-lg" />
+                {isAutoAllocating ? "Allocating..." : "Auto Allocate"}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Header Section */}
+        <div className="w-full border-b flex mt-5 items-center justify-between"></div>
+        {/* Table Section */}
+        <div className="overflow-x-auto w-full flex justify-start">
+          <table className="w-full divide-y divide-[#e5e5ea] ">
+            <thead>
+              <tr className="bg-[#f5f5f7] divide-x divide-[#e5e5ea]">
+                <th className="px-6 py-2 text-left border-r border-[#e5e5ea]">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[15px] font-semibold  uppercase tracking-wider">
+                      Student ID
+                    </span>
                   </div>
-                </td>
+                </th>
+                <th className="px-6 py-2 text-left border-r border-[#e5e5ea]">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[15px] font-semibold  uppercase tracking-wider">
+                      Name
+                    </span>
+                  </div>
+                </th>
+                <th className="px-6 py-2 text-left border-r border-[#e5e5ea]">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[15px] font-semibold  uppercase tracking-wider">
+                      Course
+                    </span>
+                  </div>
+                </th>
+                <th className="px-6 py-2 text-left border-r border-[#e5e5ea]">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[15px] font-semibold  uppercase tracking-wider">
+                      Status
+                    </span>
+                  </div>
+                </th>
+                <th className="px-6 py-2 text-left border-r border-[#e5e5ea]">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[15px] font-semibold  uppercase tracking-wider">
+                      Grade Level
+                    </span>
+                  </div>
+                </th>
+                <th className="px-6 py-2 text-left">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[15px] font-semibold  uppercase tracking-wider">
+                      Group
+                    </span>
+                  </div>
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-[#e5e5ea]">
+              {filteredStudents.map((student) => (
+                <tr
+                  key={student.stud_id}
+                  className="divide-x divide-[#e5e5ea] hover:bg-[#f5f5f7] transition-colors duration-150"
+                >
+                  <td className="px-6 py-2 text-[15px] font-medium border-r border-[#e5e5ea]">
+                    {student.stud_id}
+                  </td>
+                  <td className="px-6 py-2 text-[15px] font-medium">
+                    {student.first_name} {student.last_name}
+                  </td>
+                  <td className="px-6 py-2 text-[15px] font-medium">
+                    Bsc (Hons) Computer Science
+                  </td>
+                  <td className="px-6 py-2 text-[15px] font-medium">Active</td>
+                  <td className="px-6 py-2 text-[15px] font-medium">
+                    {student.grade_level}
+                  </td>
+                  <td className="px-6 py-2">
+                    <div className="relative">
+                      <select
+                        value={student.stud_group || "none"}
+                        onChange={(e) =>
+                          handleGroupChange(student.stud_id, e.target.value)
+                        }
+                        className="w-full pl-3 py-1 text-[14px]
+                           bg-gray-200 border-none rounded-md
+                           focus:ring-2 focus:ring-[#0066FF] focus:bg-white
+                           transition-all duration-200 appearance-none"
+                      >
+                        <option value="none">None</option>
+                        {groups.map((group) => (
+                          <option key={group.id} value={group.id}>
+                            {group.name}
+                          </option>
+                        ))}
+                      </select>
+                      <FiEdit className="absolute inset-y-0 right-2 flex items-center text-blue-500 mt-1.5 pointer-events-none" />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+
+      {/* Add ConfirmationModal with custom styling for auto-allocate */}
+      <ConfirmationModal
+        isOpen={autoAllocateModal.isOpen}
+        onClose={() => setAutoAllocateModal({ isOpen: false })}
+        onConfirm={confirmAutoAllocate}
+        title="Auto Allocate Groups"
+        message="Are you sure you want to automatically allocate all students to groups? This will modify existing group assignments."
+        confirmText="Auto Allocate"
+        confirmButtonClass="bg-blue-600 hover:bg-blue-500"
+        icon={<MdAutorenew className="h-6 w-6 text-blue-600" />}
+        iconBgClass="bg-blue-100"
+      />
+    </>
   );
 };
 
