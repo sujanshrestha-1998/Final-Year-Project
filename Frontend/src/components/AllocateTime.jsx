@@ -229,6 +229,20 @@ const AllocateTime = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Check for mandatory fields
+    const { classroom_id, course_id, teacher_id, start_time, end_time } =
+      formData;
+    if (
+      !classroom_id ||
+      !course_id ||
+      !teacher_id ||
+      !start_time ||
+      !end_time
+    ) {
+      alert("Please fill in all mandatory fields.");
+      return;
+    }
+
     // Check for overlapping schedules client-side
     if (isOverlappingSchedule()) {
       setOverlapModal({

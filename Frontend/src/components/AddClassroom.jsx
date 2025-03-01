@@ -24,7 +24,7 @@ const AddClassroom = () => {
   });
   const [classroomCounts, setClassroomCounts] = useState({
     Lecture: 0,
-    "Tutorial Room": 0,
+    Tutorial: 0,
     Workshop: 0,
   });
 
@@ -37,7 +37,7 @@ const AddClassroom = () => {
   useEffect(() => {
     const counts = {
       Lecture: 0,
-      "Tutorial Room": 0,
+      Tutorial: 0,
       Workshop: 0,
     };
 
@@ -144,14 +144,14 @@ const AddClassroom = () => {
   // Type icons mapping
   const typeIcons = {
     Lecture: <MdDesktopMac className="text-2xl" />,
-    "Tutorial Room": <MdPeople className="text-2xl" />,
+    Tutorial: <MdPeople className="text-2xl" />,
     Workshop: <MdBuild className="text-2xl" />,
   };
 
   // Type colors mapping
   const typeColors = {
     Lecture: "bg-blue-500 text-white",
-    "Tutorial Room": "bg-purple-500 text-white",
+    Tutorial: "bg-purple-500 text-white",
     Workshop: "bg-orange-500 text-white",
   };
 
@@ -169,11 +169,9 @@ const AddClassroom = () => {
     <div className="p-6 h-full bg-gray-100 overflow-auto">
       {/* Header with summary cards */}
       <div className="mb-6">
-        <div className="flex items-center gap-2 mb-4">
-          <h1 className="text-2xl font-bold text-gray-800">
-            Classroom Dashboard
-          </h1>
-          <IoMdInformationCircleOutline className="text-2xl text-gray-500" />
+        <div className="flex items-center gap-2 p-5">
+          <h1 className="font-medium text-2xl">CLASSROOM MANAGEMENT</h1>
+          <IoMdInformationCircleOutline className="text-2xl" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -334,13 +332,15 @@ const AddClassroom = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span
-                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${
                                 typeColors[classroom.type] ||
                                 "bg-gray-100 text-gray-800"
                               }`}
                             >
                               {typeIcons[classroom.type]}
-                              <span className="ml-1">{classroom.type}</span>
+                              <span className="ml-1">
+                                {classroom.type.replace(" Room", "")}
+                              </span>
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right">
