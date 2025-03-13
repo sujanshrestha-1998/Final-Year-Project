@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from "react";
-import {
-  IoInformationCircleOutline,
-  IoGrid,
-  IoList,
-  IoCalendarOutline,
-} from "react-icons/io5";
+import { IoMdInformationCircleOutline } from "react-icons/io";
+import { MdBookmarkAdd } from "react-icons/md";
+import { IoGrid, IoList, IoCalendarOutline, IoSearch } from "react-icons/io5";
 import axios from "axios";
 
 const Classroom = () => {
@@ -27,7 +24,15 @@ const Classroom = () => {
     "Friday",
     "Saturday",
   ];
-  const currentDay = daysOfWeek[currentDayNumber];
+  // const currentDay = daysOfWeek[currentDayNumber];
+  const currentDay = new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+  }).format(new Date());
+  const formattedDate = new Intl.DateTimeFormat("en-US", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(new Date());
 
   // Function to fetch schedules for a specific group
   const fetchGroupSchedule = async (groupId) => {
@@ -176,7 +181,7 @@ const Classroom = () => {
 
   if (loading)
     return (
-      <div className="h-screen w-[90vw] flex items-center justify-center">
+      <div className="h-screen w-full flex items-center justify-center">
         <div className="flex flex-col items-center">
           <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-600 rounded-full animate-spin mb-2"></div>
           <p className="text-gray-600">Loading classroom data...</p>
@@ -185,20 +190,38 @@ const Classroom = () => {
     );
 
   return (
-    <div className="h-screen w-full overflow-auto bg-gray-50">
+    <div className="h-screen w-[82vw] ml-4 overflow-auto ">
       <div className="w-full mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-5 bg-white border-b border-gray-200">
-          <div className="flex items-center gap-2">
-            <h1 className="font-medium text-xl text-gray-800">Classrooms</h1>
-            <IoInformationCircleOutline className="text-lg text-gray-400" />
+          <div className="flex gap-4">
+            <div className="flex items-center gap-2">
+              <h1 className="font-medium text-2xl text-black">
+                CLASSROOM DETAILS
+              </h1>
+              <IoMdInformationCircleOutline className="text-2xl" />
+            </div>
+            <div className="relative w-80">
+              <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+              <input
+                type="text"
+                placeholder="Search"
+                className="w-full pl-8 pr-4 py-1 bg-gray-200 rounded-md 
+               text-[14px] border-none 
+               transition-all duration-200 placeholder-gray-500"
+              />
+            </div>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center text-sm text-gray-600">
-              <IoCalendarOutline className="mr-2" />
-              {currentDay}, {new Date().toLocaleDateString()}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center text-sm text-gray-600">
+                <span className="font-medium">
+                  {currentDay}, {formattedDate}
+                </span>
+              </div>
             </div>
-            <button className="px-4 py-2 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 transition-colors">
+            <button className="px-4 py-1 bg-blue-500 flex items-center gap-1 text-white text-sm rounded-md hover:bg-blue-600 transition-colors">
+              <MdBookmarkAdd className="text-md" />
               Book a Classroom
             </button>
           </div>
