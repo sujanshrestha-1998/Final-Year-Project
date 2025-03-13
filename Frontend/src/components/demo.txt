@@ -1,0 +1,369 @@
+import React, { useState, useEffect } from "react";
+import { IoMdInformationCircleOutline } from "react-icons/io";
+import { MdBookmarkAdd } from "react-icons/md";
+import { IoGrid, IoList, IoCalendarOutline, IoSearch } from "react-icons/io5";
+import { MdDesktopMac, MdPeople, MdBuild, MdFilterList } from "react-icons/md";
+import axios from "axios";
+
+const Classroom = () => {
+  const [classrooms, setClassrooms] = useState([]);
+  const [allSchedules, setAllSchedules] = useState([]);
+  const [groups, setGroups] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState("all");
+  const [viewMode, setViewMode] = useState("table"); // "table" or "card"
+  const [classroomTypeFilter, setClassroomTypeFilter] = useState("all"); // "all", "Lecture", "Tutorial", "Workshop"
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Get current day of week
+  const currentDayNumber = new Date().getDay();
+  const daysOfWeek = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+  // const currentDay = daysOfWeek[currentDayNumber];
+  const currentDay = new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+  }).format(new Date());
+  const formattedDate = new Intl.DateTimeFormat("en-US", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(new Date());
+
+  // Function to fetch schedules for a specific group
+  const fetchGroupSchedule = async (groupId) => {
+    try {
+      const response = await axios.post(
+        "http://localhost:3000/api/fetch_schedule",
+        { group_id: groupId }
+      );
+      return response.data.schedules || [];
+    } catch (err) {
+      console.error(`Error fetching schedule for group ${groupId}:`, err);
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    const fetchAllData = async () => {
+      try {
+        // Fetch classrooms
+        const classroomsResponse = await axios.get(
+          "http://localhost:3000/api/get_classrooms"
+        );
+        const classroomData = classroomsResponse.data.data || [];
+        setClassrooms(classroomData);
+
+        // Fetch groups
+        const groupsResponse = await axios.get(
+          "http://localhost:3000/api/get_groups"
+        );
+        const groupData = groupsResponse.data.data || [];
+        setGroups(groupData);
+
+        // Fetch schedules for all groups and combine them
+        let allGroupSchedules = [];
+        for (const group of groupData) {
+          const groupSchedules = await fetchGroupSchedule(group.id);
+          const schedulesWithGroup = groupSchedules.map((schedule) => ({
+            ...schedule,
+            group_id: group.id,
+          }));
+          allGroupSchedules = [...allGroupSchedules, ...schedulesWithGroup];
+        }
+
+        setAllSchedules(allGroupSchedules);
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError(`Failed to load classroom data: ${err.message}`);
+        setLoading(false);
+      }
+    };
+
+    fetchAllData();
+  }, []);
+
+  // Define continuous time slots for the day (7 AM to 5 PM)
+  const timeSlots = [
+    { id: 1, label: "7:00 - 9:00", start: "07:00", end: "09:00" },
+    { id: 2, label: "9:00 - 11:00", start: "09:00", end: "11:00" },
+    { id: 3, label: "11:00 - 13:00", start: "11:00", end: "13:00" },
+    { id: 4, label: "13:00 - 15:00", start: "13:00", end: "15:00" },
+    { id: 5, label: "15:00 - 17:00", start: "15:00", end: "17:00" },
+  ];
+
+  // Type icons mapping
+  const typeIcons = {
+    Lecture: <MdDesktopMac className="text-lg" />,
+    Tutorial: <MdPeople className="text-lg" />,
+    Workshop: <MdBuild className="text-lg" />,
+  };
+
+  // Type colors mapping
+  const typeColors = {
+    Lecture: "bg-blue-100 text-blue-800",
+    Tutorial: "bg-purple-100 text-purple-800",
+    Workshop: "bg-orange-100 text-orange-800",
+  };
+
+  // Get filtered classrooms based on type filter and search query
+  const getFilteredClassrooms = () => {
+    let filtered = [...classrooms];
+    
+    // Filter by classroom type
+    if (classroomTypeFilter !== "all") {
+      filtered = filtered.filter(classroom => classroom.type === classroomTypeFilter);
+    }
+    
+    // Filter by search query
+    if (searchQuery.trim() !== "") {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(classroom => 
+        classroom.name.toLowerCase().includes(query) || 
+        classroom.type.toLowerCase().includes(query)
+      );
+    }
+    
+    return filtered;
+  };
+
+  // Filter schedules based on active tab and current day
+  const getFilteredSchedules = () => {
+    // First filter by day
+    const daySchedules = allSchedules.filter(
+      (schedule) => schedule.day_of_week === currentDay
+    );
+
+    // Then filter by group if a specific group is selected
+    let filteredSchedules = daySchedules;
+    if (activeTab !== "all") {
+      filteredSchedules = daySchedules.filter(
+        (schedule) => schedule.group_id.toString() === activeTab
+      );
+    }
+
+    return filteredSchedules;
+  };
+
+  // Function to check if a classroom is occupied at a certain time
+  const getClassroomStatus = (classroomId, timeSlot) => {
+    const filteredSchedules = getFilteredSchedules();
+
+    const [startHour, startMinute] = timeSlot.start.split(":").map(Number);
+    const [endHour, endMinute] = timeSlot.end.split(":").map(Number);
+
+    // Convert to minutes for easier comparison
+    const slotStartMinutes = startHour * 60 + startMinute;
+    const slotEndMinutes = endHour * 60 + endMinute;
+
+    // Check if classroom is occupied during this time slot
+    const occupyingSchedule = filteredSchedules.find((schedule) => {
+      // Check if it's for this classroom
+      if (parseInt(schedule.classroom_id) !== parseInt(classroomId))
+        return false;
+
+      // Parse schedule times
+      const [scheduleStartHour, scheduleStartMinute] = schedule.start_time
+        .split(":")
+        .map(Number);
+      const [scheduleEndHour, scheduleEndMinute] = schedule.end_time
+        .split(":")
+        .map(Number);
+
+      const scheduleStartMinutes = scheduleStartHour * 60 + scheduleStartMinute;
+      const scheduleEndMinutes = scheduleEndHour * 60 + scheduleEndMinute;
+
+      // Check for overlap
+      return (
+        slotStartMinutes < scheduleEndMinutes &&
+        slotEndMinutes > scheduleStartMinutes
+      );
+    });
+
+    return occupyingSchedule
+      ? {
+          occupied: true,
+          course: occupyingSchedule.course_name,
+          teacher: occupyingSchedule.teacher_name,
+          group: occupyingSchedule.group_name,
+          startTime: occupyingSchedule.start_time,
+          endTime: occupyingSchedule.end_time,
+        }
+      : {
+          occupied: false,
+        };
+  };
+
+  // Get all classroom schedules for card view
+  const getAllClassroomSchedules = () => {
+    const filteredSchedules = getFilteredSchedules();
+    const filteredClassrooms = getFilteredClassrooms();
+    
+    // Group schedules by classroom
+    const schedulesByClassroom = filteredClassrooms.map((classroom) => {
+      const classroomSchedules = filteredSchedules.filter(
+        (schedule) => parseInt(schedule.classroom_id) === classroom.id
+      );
+      return {
+        ...classroom,
+        schedules: classroomSchedules,
+      };
+    });
+    return schedulesByClassroom;
+  };
+
+  if (loading)
+    return (
+      <div className="h-screen w-full flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-600 rounded-full animate-spin mb-2"></div>
+          <p className="text-gray-600">Loading classroom data...</p>
+        </div>
+      </div>
+    );
+
+  return (
+    <div className="h-screen w-[82vw] ml-4 overflow-auto">
+      <div className="w-full mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between p-5 bg-white border-b border-gray-200">
+          <div className="flex gap-4">
+            <div className="flex items-center gap-2">
+              <h1 className="font-medium text-2xl text-black">
+                CLASSROOM DETAILS
+              </h1>
+              <IoMdInformationCircleOutline className="text-2xl" />
+            </div>
+            <div className="relative w-80">
+              <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+              <input
+                type="text"
+                placeholder="Search"
+                className="w-full pl-8 pr-4 py-1 bg-gray-200 rounded-md 
+                text-[14px] border-none 
+                transition-all duration-200 placeholder-gray-500"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center text-sm text-gray-600">
+                <span className="font-medium">
+                  {currentDay}, {formattedDate}
+                </span>
+              </div>
+            </div>
+            <button className="px-4 py-1 bg-blue-500 flex items-center gap-1 text-white text-sm rounded-md hover:bg-blue-600 transition-colors">
+              <MdBookmarkAdd className="text-md" />
+              Book a Classroom
+            </button>
+          </div>
+        </div>
+
+        {/* Controls - Group Tabs and View Toggle */}
+        <div className="flex justify-between border-b border-gray-200 bg-white">
+          <div className="flex overflow-x-auto">
+            <button
+              className={`px-4 py-3 text-sm font-medium whitespace-nowrap ${
+                activeTab === "all"
+                  ? "border-b-2 border-blue-500 text-blue-500"
+                  : "text-gray-500 hover:text-gray-800"
+              }`}
+              onClick={() => setActiveTab("all")}
+            >
+              All Groups
+            </button>
+
+            {groups.map((group) => (
+              <button
+                key={group.id}
+                className={`px-4 py-3 text-sm font-medium whitespace-nowrap ${
+                  activeTab === group.id.toString()
+                    ? "border-b-2 border-blue-500 text-blue-500"
+                    : "text-gray-500 hover:text-gray-800"
+                }`}
+                onClick={() => setActiveTab(group.id.toString())}
+              >
+                {group.name}
+              </button>
+            ))}
+          </div>
+
+          {/* View Toggle */}
+          <div className="flex items-center mr-4">
+            <button
+              className={`p-2 rounded-l-md ${
+                viewMode === "table"
+                  ? "bg-gray-200 text-gray-800"
+                  : "bg-white text-gray-500 hover:bg-gray-100"
+              }`}
+              onClick={() => setViewMode("table")}
+            >
+              <IoList className="text-lg" />
+            </button>
+            <button
+              className={`p-2 rounded-r-md ${
+                viewMode === "card"
+                  ? "bg-gray-200 text-gray-800"
+                  : "bg-white text-gray-500 hover:bg-gray-100"
+              }`}
+              onClick={() => setViewMode("card")}
+            >
+              <IoGrid className="text-lg" />
+            </button>
+          </div>
+        </div>
+
+        {/* Classroom Type Filter */}
+        <div className="bg-white border-b border-gray-200 p-3">
+          <div className="flex items-center gap-2">
+            <MdFilterList className="text-lg text-gray-500" />
+            <span className="text-sm font-medium text-gray-600">Filter by Type:</span>
+            
+            <div className="flex space-x-2 ml-2">
+              <button
+                onClick={() => setClassroomTypeFilter("all")}
+                className={`px-3 py-1 text-xs rounded-md font-medium ${
+                  classroomTypeFilter === "all"
+                    ? "bg-gray-200 text-gray-800"
+                    : "bg-white border border-gray-300 text-gray-500 hover:bg-gray-50"
+                }`}
+              >
+                All Types
+              </button>
+              
+              {Object.entries(typeIcons).map(([type, icon]) => (
+                <button
+                  key={type}
+                  onClick={() => setClassroomTypeFilter(type)}
+                  className={`px-3 py-1 text-xs rounded-md font-medium flex items-center gap-1 ${
+                    classroomTypeFilter === type
+                      ? `${typeColors[type].replace("bg-blue-100", "bg-blue-500").replace("bg-purple-100", "bg-purple-500").replace("bg-orange-100", "bg-orange-500")} text-white`
+                      : "bg-white border border-gray-300 text-gray-500 hover:bg-gray-50"
+                  }`}
+                >
+                  {icon} {type}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="p-5">
+          <div className="mb-5 flex justify-between items-center">
+            <h2 className="text-lg font-medium text-gray-800">
+              {activeTab === "all" ? "All Groups" : `Group ${activeTab}`} -
+              Today's Schedule
+              {classroomTypeFilter !== "all" && (
+                <span className="ml-2
