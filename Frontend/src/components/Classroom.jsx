@@ -86,11 +86,16 @@ const Classroom = () => {
 
   // Define continuous time slots for the day (7 AM to 5 PM)
   const timeSlots = [
-    { id: 1, label: "7:00 - 9:00", start: "07:00", end: "09:00" },
-    { id: 2, label: "9:00 - 11:00", start: "09:00", end: "11:00" },
-    { id: 3, label: "11:00 - 13:00", start: "11:00", end: "13:00" },
-    { id: 4, label: "13:00 - 15:00", start: "13:00", end: "15:00" },
-    { id: 5, label: "15:00 - 17:00", start: "15:00", end: "17:00" },
+    { id: 1, label: "07:00 - 08:00", start: "07:00", end: "08:00" },
+    { id: 2, label: "08:00 - 09:00", start: "08:00", end: "09:00" },
+    { id: 3, label: "09:00 - 10:00", start: "09:00", end: "10:00" },
+    { id: 4, label: "10:00 - 11:00", start: "10:00", end: "11:00" },
+    { id: 5, label: "11:00 - 12:00", start: "11:00", end: "12:00" },
+    { id: 6, label: "12:00 - 13:00", start: "12:00", end: "13:00" },
+    { id: 7, label: "13:00 - 14:00", start: "13:00", end: "14:00" },
+    { id: 8, label: "14:00 - 15:00", start: "14:00", end: "15:00" },
+    { id: 9, label: "15:00 - 16:00", start: "15:00", end: "16:00" },
+    { id: 10, label: "16:00 - 17:00", start: "16:00", end: "17:00" },
   ];
 
   // Filter schedules based on active tab and current day
@@ -205,7 +210,7 @@ const Classroom = () => {
           <div className="flex items-center gap-8">
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2 py-1">
-                <h1 className="font-medium text-2xl text-black">
+                <h1 className="font-semibold text-2xl text-black">
                   CLASSROOM DETAILS
                 </h1>
                 <IoMdInformationCircleOutline className="text-2xl" />
@@ -228,7 +233,7 @@ const Classroom = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="px-4 py-2 flex gap-1 items-center bg-blue-500 text-white text-sm font-semibold rounded-md shadow-md transition-transform duration-200 hover:scale-105 hover:brightness-105">
+            <button className="px-3 py-2 flex gap-1 items-center bg-blue-500 text-white text-sm font-semibold rounded-md shadow-md transition-transform duration-200 hover:scale-105 hover:brightness-105">
               <MdBookmarkAdd />
               Reserve Classroom
             </button>
@@ -236,12 +241,12 @@ const Classroom = () => {
         </div>
 
         {/* Controls - Group Tabs and View Toggle */}
-        <div className="flex justify-between border-b border-gray-200 bg-white">
+        <div className="flex justify-between border-b border-gray-200 bg-gray-50">
           <div className="flex">
             <button
               className={`px-4 py-3 text-sm font-medium ${
                 activeTab === "all"
-                  ? "border-b-2 border-blue-500 text-blue-500"
+                  ? "border-b-2 border-black text-black"
                   : "text-gray-500 hover:text-gray-800"
               }`}
               onClick={() => setActiveTab("all")}
@@ -254,7 +259,7 @@ const Classroom = () => {
                 key={group.id}
                 className={`px-4 py-3 text-sm font-medium ${
                   activeTab === group.id.toString()
-                    ? "border-b-2 border-blue-500 text-blue-500"
+                    ? "border-b-2 border-black text-black"
                     : "text-gray-500 hover:text-gray-800"
                 }`}
                 onClick={() => setActiveTab(group.id.toString())}
@@ -265,27 +270,31 @@ const Classroom = () => {
           </div>
 
           {/* View Toggle */}
-          <div className="flex items-center mr-4">
-            <button
-              className={`p-2 rounded-l-md ${
-                viewMode === "table"
-                  ? "bg-gray-200 text-gray-800"
-                  : "bg-white text-gray-500 hover:bg-gray-100"
-              }`}
-              onClick={() => setViewMode("table")}
-            >
-              <IoList className="text-lg" />
-            </button>
-            <button
-              className={`p-2 rounded-r-md ${
-                viewMode === "card"
-                  ? "bg-gray-200 text-gray-800"
-                  : "bg-white text-gray-500 hover:bg-gray-100"
-              }`}
-              onClick={() => setViewMode("card")}
-            >
-              <IoGrid className="text-lg" />
-            </button>
+          <div className="flex items-center mr-4 gap-2">
+            <h1 className="font-medium text-gray-500 text-sm">View:</h1>
+            <div>
+              {" "}
+              <button
+                className={`p-2 rounded-full ${
+                  viewMode === "table"
+                    ? "bg-gray-200 text-gray-800"
+                    : "bg-gray-50 text-gray-500 hover:bg-gray-100"
+                }`}
+                onClick={() => setViewMode("table")}
+              >
+                <IoList className="text-lg" />
+              </button>
+              <button
+                className={`p-2 rounded-full ${
+                  viewMode === "card"
+                    ? "bg-gray-200 text-gray-800"
+                    : "bg-gray-50 text-gray-500 hover:bg-gray-100"
+                }`}
+                onClick={() => setViewMode("card")}
+              >
+                <IoGrid className="text-lg" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -305,34 +314,34 @@ const Classroom = () => {
             </div>
           </div>
 
-          {/* Table View - Fixed height cells */}
+          {/* Table View - Apple UI Design Theme */}
           {viewMode === "table" && (
-            <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="bg-white ">
               <div className="overflow-x-auto">
-                <table className="w-full table-fixed divide-y divide-gray-200">
+                <table className="w-full table-fixed divide-y divide-gray-100">
                   <thead>
-                    <tr className="bg-gray-50">
-                      <th className="py-3 px-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200 w-32">
+                    <tr>
+                      <th className="py-3 px-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide w-32 sticky left-0 bg-white z-10">
                         Classroom
                       </th>
                       {timeSlots.map((slot) => (
                         <th
                           key={slot.id}
-                          className="py-3 px-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200 w-32"
+                          className="py-3 px-1 text-center text-xs font-medium text-gray-500 uppercase tracking-wide w-32"
                         >
                           {slot.label}
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-500">
                     {classrooms.map((classroom) => (
                       <tr key={classroom.id}>
-                        <td className="py-3 px-3 border-r border-gray-200 h-24">
+                        <td className="py-3 px-2 h-20 sticky left-0 bg-white z-10">
                           <div className="font-medium text-gray-800">
                             {classroom.name}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-gray-400 mt-1">
                             {classroom.type}
                           </div>
                         </td>
@@ -341,30 +350,28 @@ const Classroom = () => {
                           return (
                             <td
                               key={`${classroom.id}-${slot.id}`}
-                              className={`py-2 px-2 border-r border-gray-200 h-24 w-32 ${
-                                status.occupied ? "bg-red-50" : "bg-green-50"
+                              className={`p-2 h-20 w-32 ${
+                                status.occupied ? "bg-red-100" : "bg-green-50"
                               }`}
                             >
-                              <div className="h-full flex flex-col justify-center">
+                              <div className="h-full flex flex-col justify-center rounded-lg p-2">
                                 {status.occupied ? (
                                   <div className="text-xs">
-                                    <div className="font-medium text-gray-800 truncate">
+                                    {/* <div className="font-medium text-gray-800 truncate">
                                       {status.course}
-                                    </div>
-                                    <div className="text-blue-600">
+                                    </div> */}
+                                    <div className="text-blue-500 mt-1">
                                       {status.group}
                                     </div>
-                                    <div className="text-gray-500">
+                                    <div className="text-gray-500 mt-1">
                                       {status.startTime} - {status.endTime}
                                     </div>
-                                    <div className="text-gray-500 italic truncate">
+                                    <div className="text-gray-400 truncate mt-1">
                                       {status.teacher}
                                     </div>
                                   </div>
                                 ) : (
-                                  <div className="text-xs text-green-600 font-medium text-center">
-                                    Available
-                                  </div>
+                                  <div className="text-xs text-green-500 font-medium text-center"></div>
                                 )}
                               </div>
                             </td>
