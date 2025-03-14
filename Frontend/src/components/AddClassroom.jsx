@@ -143,9 +143,9 @@ const AddClassroom = () => {
 
   // Type icons mapping
   const typeIcons = {
-    Lecture: <MdDesktopMac className="text-2xl" />,
-    Tutorial: <MdPeople className="text-2xl" />,
-    Workshop: <MdBuild className="text-2xl" />,
+    Lecture: <img src="/src/assets/Lecture.png" alt="" width={30} />,
+    Tutorial: <img src="/src/assets/Tutorial.png" alt="" width={30} />,
+    Workshop: <img src="/src/assets/Workshop.png" alt="" width={30} />,
   };
 
   // Type colors mapping
