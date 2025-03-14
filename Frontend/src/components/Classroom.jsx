@@ -87,16 +87,11 @@ const Classroom = () => {
 
   // Define continuous time slots for the day (7 AM to 5 PM)
   const timeSlots = [
-    { id: 1, label: "7:00 - 8:00", start: "07:00", end: "08:00" },
-    { id: 2, label: "8:00 - 9:00", start: "08:00", end: "09:00" },
-    { id: 3, label: "9:00 - 10:00", start: "09:00", end: "10:00" },
-    { id: 4, label: "10:00 - 11:00", start: "10:00", end: "11:00" },
-    { id: 5, label: "11:00 - 12:00", start: "11:00", end: "12:00" },
-    { id: 6, label: "12:00 - 13:00", start: "12:00", end: "13:00" },
-    { id: 7, label: "13:00 - 14:00", start: "13:00", end: "14:00" },
-    { id: 8, label: "14:00 - 15:00", start: "14:00", end: "15:00" },
-    { id: 9, label: "15:00 - 16:00", start: "15:00", end: "16:00" },
-    { id: 10, label: "16:00 - 17:00", start: "16:00", end: "17:00" },
+    { id: 1, label: "7:00 - 9:00", start: "07:00", end: "09:00" },
+    { id: 2, label: "9:00 - 11:00", start: "09:00", end: "11:00" },
+    { id: 3, label: "11:00 - 13:00", start: "11:00", end: "13:00" },
+    { id: 4, label: "13:00 - 15:00", start: "13:00", end: "15:00" },
+    { id: 5, label: "15:00 - 17:00", start: "15:00", end: "17:00" },
   ];
 
   // Filter schedules based on active tab and current day
@@ -192,7 +187,7 @@ const Classroom = () => {
     );
 
   return (
-    <div className="h-screen w-full overflow-auto bg-gray-50">
+    <div className="h-screen w-[83vw] overflow-auto bg-gray-50">
       <div className="w-full mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-5 bg-white border-b border-gray-200">
@@ -281,11 +276,11 @@ const Classroom = () => {
             </div>
           </div>
 
-          {/* Table View */}
+          {/* Table View - Fixed height cells */}
           {viewMode === "table" && (
             <div className="bg-white rounded-lg shadow overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full divide-y divide-gray-200">
+                <table className="w-full table-fixed divide-y divide-gray-200">
                   <thead>
                     <tr className="bg-gray-50">
                       <th className="py-3 px-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200 w-32">
@@ -294,7 +289,7 @@ const Classroom = () => {
                       {timeSlots.map((slot) => (
                         <th
                           key={slot.id}
-                          className="py-3 px-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200"
+                          className="py-3 px-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200 w-32"
                         >
                           {slot.label}
                         </th>
@@ -304,7 +299,7 @@ const Classroom = () => {
                   <tbody className="divide-y divide-gray-200">
                     {classrooms.map((classroom) => (
                       <tr key={classroom.id}>
-                        <td className="py-3 px-3 border-r border-gray-200">
+                        <td className="py-3 px-3 border-r border-gray-200 h-24">
                           <div className="font-medium text-gray-800">
                             {classroom.name}
                           </div>
@@ -317,30 +312,32 @@ const Classroom = () => {
                           return (
                             <td
                               key={`${classroom.id}-${slot.id}`}
-                              className={`py-2 px-2 border-r border-gray-200 ${
+                              className={`py-2 px-2 border-r border-gray-200 h-24 w-32 ${
                                 status.occupied ? "bg-red-50" : "bg-green-50"
                               }`}
                             >
-                              {status.occupied ? (
-                                <div className="text-xs">
-                                  <div className="font-medium text-gray-800 truncate">
-                                    {status.course}
+                              <div className="h-full flex flex-col justify-center">
+                                {status.occupied ? (
+                                  <div className="text-xs">
+                                    <div className="font-medium text-gray-800 truncate">
+                                      {status.course}
+                                    </div>
+                                    <div className="text-blue-600">
+                                      {status.group}
+                                    </div>
+                                    <div className="text-gray-500">
+                                      {status.startTime} - {status.endTime}
+                                    </div>
+                                    <div className="text-gray-500 italic truncate">
+                                      {status.teacher}
+                                    </div>
                                   </div>
-                                  <div className="text-blue-600">
-                                    {status.group}
+                                ) : (
+                                  <div className="text-xs text-green-600 font-medium text-center">
+                                    Available
                                   </div>
-                                  <div className="text-gray-500">
-                                    {status.startTime} - {status.endTime}
-                                  </div>
-                                  <div className="text-gray-500 italic truncate">
-                                    {status.teacher}
-                                  </div>
-                                </div>
-                              ) : (
-                                <div className="text-xs text-green-600 font-medium text-center">
-                                  Available
-                                </div>
-                              )}
+                                )}
+                              </div>
                             </td>
                           );
                         })}
