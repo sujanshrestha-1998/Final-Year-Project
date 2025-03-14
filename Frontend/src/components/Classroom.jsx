@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
-import {
-  IoInformationCircleOutline,
-  IoGrid,
-  IoList,
-  IoCalendarOutline,
-} from "react-icons/io5";
+import { IoMdInformationCircleOutline } from "react-icons/io";
+import { IoGrid, IoList } from "react-icons/io5";
+import { BsCalendar2EventFill } from "react-icons/bs";
+import { MdBookmarkAdd } from "react-icons/md";
+import { IoSearch } from "react-icons/io5";
 import axios from "axios";
 
 const Classroom = () => {
@@ -111,6 +110,18 @@ const Classroom = () => {
     return daySchedules;
   };
 
+  const formatDate = (date) => {
+    const options = {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    };
+    return date.toLocaleDateString("en-GB", options);
+  };
+  const currentDate = new Date();
+  const formattedDate = formatDate(currentDate);
+
   // Function to check if a classroom is occupied at a certain time
   const getClassroomStatus = (classroomId, timeSlot) => {
     const filteredSchedules = getFilteredSchedules();
@@ -187,21 +198,39 @@ const Classroom = () => {
     );
 
   return (
-    <div className="h-screen w-[83vw] overflow-auto bg-gray-50">
+    <div className="h-screen w-[82vw] overflow-auto pl-6">
       <div className="w-full mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-5 bg-white border-b border-gray-200">
-          <div className="flex items-center gap-2">
-            <h1 className="font-medium text-xl text-gray-800">Classrooms</h1>
-            <IoInformationCircleOutline className="text-lg text-gray-400" />
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center text-sm text-gray-600">
-              <IoCalendarOutline className="mr-2" />
-              {currentDay}, {new Date().toLocaleDateString()}
+          <div className="flex items-center gap-8">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2 py-1">
+                <h1 className="font-medium text-2xl text-black">
+                  CLASSROOM DETAILS
+                </h1>
+                <IoMdInformationCircleOutline className="text-2xl" />
+              </div>
+              <div className="flex gap-2 items-center text-sm text-gray-800">
+                <BsCalendar2EventFill className="text-blue-500" />
+                {formattedDate}
+              </div>
             </div>
-            <button className="px-4 py-2 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 transition-colors">
-              Book a Classroom
+            <div className="relative w-96">
+              <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+              <input
+                type="text"
+                placeholder="Search"
+                className="w-full pl-8 pr-4 py-1 bg-gray-200 rounded-md 
+               text-[14px] border-none 
+               transition-all duration-200 placeholder-gray-500"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <button className="px-4 py-2 flex gap-1 items-center bg-blue-500 text-white text-sm font-semibold rounded-md shadow-md transition-transform duration-200 hover:scale-105 hover:brightness-105">
+              <MdBookmarkAdd />
+              Reserve Classroom
             </button>
           </div>
         </div>
