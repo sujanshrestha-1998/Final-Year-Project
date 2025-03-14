@@ -192,6 +192,20 @@ const Classroom = () => {
     return schedulesByClassroom;
   };
 
+  const formatTime = (time) => {
+    const [hours, minutes] = time.split(":");
+    const date = new Date();
+    date.setHours(hours, minutes);
+
+    // Format the time to 12-hour format with AM/PM
+    const options = {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    };
+    return date.toLocaleTimeString("en-US", options);
+  };
+
   if (loading)
     return (
       <div className="h-screen w-full flex items-center justify-center">
@@ -364,7 +378,8 @@ const Classroom = () => {
                                       {status.group}
                                     </div>
                                     <div className="text-gray-500 mt-1">
-                                      {status.startTime} - {status.endTime}
+                                      {formatTime(status.startTime)} -{" "}
+                                      {formatTime(status.endTime)}
                                     </div>
                                     <div className="text-gray-400 truncate mt-1">
                                       {status.teacher}
