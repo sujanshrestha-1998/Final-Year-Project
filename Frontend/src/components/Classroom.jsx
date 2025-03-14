@@ -330,8 +330,8 @@ const Classroom = () => {
 
           {/* Table View - Apple UI Design Theme */}
           {viewMode === "table" && (
-            <div className="bg-white ">
-              <div className="overflow-x-auto">
+            <div className="bg-white">
+              <div className="overflow-x-auto scrollbar-hidden">
                 <table className="w-full table-fixed divide-y divide-gray-100">
                   <thead>
                     <tr>
@@ -371,9 +371,6 @@ const Classroom = () => {
                               <div className="h-full flex flex-col justify-center rounded-lg p-2">
                                 {status.occupied ? (
                                   <div className="text-xs">
-                                    {/* <div className="font-medium text-gray-800 truncate">
-                                      {status.course}
-                                    </div> */}
                                     <div className="text-blue-500 mt-1">
                                       {status.group}
                                     </div>
