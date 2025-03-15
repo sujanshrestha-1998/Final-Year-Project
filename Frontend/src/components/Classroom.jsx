@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { IoGrid, IoList } from "react-icons/io5";
+import { ChevronDown } from "lucide-react";
 import { BsCalendar2EventFill } from "react-icons/bs";
 import { MdBookmarkAdd } from "react-icons/md";
 import { IoSearch } from "react-icons/io5";
@@ -14,6 +15,9 @@ const Classroom = () => {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("all");
   const [viewMode, setViewMode] = useState("table"); // "table" or "card"
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   // Get current day of week
   const currentDayNumber = new Date().getDay();
@@ -84,6 +88,31 @@ const Classroom = () => {
     fetchAllData();
   }, []);
 
+  const options = [
+    { value: "all", label: "All Types" },
+    { value: "Lecture", label: "Lecture" },
+    { value: "Tutorial", label: "Tutorial" },
+    { value: "Workshop", label: "Workshop" },
+  ];
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleSelect = (value) => {
+    setTypeFilter(value);
+    setIsOpen(false);
+  };
+
   // Define continuous time slots for the day (7 AM to 5 PM)
   const timeSlots = [
     { id: 1, label: "07:00 - 08:00", start: "07:00", end: "08:00" },
@@ -101,18 +130,45 @@ const Classroom = () => {
   // Filter schedules based on active tab and current day
   const getFilteredSchedules = () => {
     // First filter by day
-    const daySchedules = allSchedules.filter(
+    let daySchedules = allSchedules.filter(
       (schedule) => schedule.day_of_week === currentDay
     );
 
     // Then filter by group if a specific group is selected
     if (activeTab !== "all") {
-      return daySchedules.filter(
+      daySchedules = daySchedules.filter(
         (schedule) => schedule.group_id.toString() === activeTab
       );
     }
 
+    // Then filter by classroom type if a specific type is selected
+    if (typeFilter !== "all") {
+      // Get classrooms of the selected type
+      const classroomsOfType = classrooms.filter(
+        (classroom) => classroom.type === typeFilter
+      );
+
+      // Get the IDs of these classrooms
+      const classroomIdsOfType = classroomsOfType.map(
+        (classroom) => classroom.id
+      );
+
+      // Filter schedules to only include those in classrooms of the selected type
+      daySchedules = daySchedules.filter((schedule) =>
+        classroomIdsOfType.includes(parseInt(schedule.classroom_id))
+      );
+    }
+
     return daySchedules;
+  };
+
+  // Filter classrooms based on the type filter
+  const getFilteredClassrooms = () => {
+    if (typeFilter === "all") {
+      return classrooms;
+    } else {
+      return classrooms.filter((classroom) => classroom.type === typeFilter);
+    }
   };
 
   const formatDate = (date) => {
@@ -179,8 +235,11 @@ const Classroom = () => {
   // Get all classroom schedules for card view
   const getAllClassroomSchedules = () => {
     const filteredSchedules = getFilteredSchedules();
+    // Use filtered classrooms based on type
+    const filteredClassrooms = getFilteredClassrooms();
+
     // Group schedules by classroom
-    const schedulesByClassroom = classrooms.map((classroom) => {
+    const schedulesByClassroom = filteredClassrooms.map((classroom) => {
       const classroomSchedules = filteredSchedules.filter(
         (schedule) => parseInt(schedule.classroom_id) === classroom.id
       );
@@ -283,6 +342,47 @@ const Classroom = () => {
             ))}
           </div>
 
+          {/* Type Filter */}
+          <div className="ml-auto flex items-center" ref={dropdownRef}>
+            <div className="relative">
+              <button
+                className="flex items-center justify-between px-4 py-2 w-40 rounded-full bg-gray-100 border border-gray-200 text-sm font-medium text-gray-800 shadow-sm hover:bg-gray-50 transition-colors duration-150 focus:outline-none"
+                onClick={() => setIsOpen(!isOpen)}
+                aria-haspopup="listbox"
+                aria-expanded={isOpen}
+              >
+                {options.find((opt) => opt.value === typeFilter)?.label}
+                <ChevronDown
+                  className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${
+                    isOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {isOpen && (
+                <div className="absolute right-0 mt-2 w-40 rounded-xl bg-white/90 backdrop-blur-sm shadow-lg border border-gray-200 overflow-hidden z-10">
+                  <div className="py-1">
+                    {options.map((option) => (
+                      <button
+                        key={option.value}
+                        className={`w-full text-left px-4 py-2 text-sm ${
+                          typeFilter === option.value
+                            ? "bg-blue-500 text-white font-medium"
+                            : "text-gray-700 hover:bg-gray-50"
+                        }`}
+                        onClick={() => handleSelect(option.value)}
+                        role="option"
+                        aria-selected={typeFilter === option.value}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* View Toggle */}
           <div className="flex items-center mr-4 gap-2">
             <h1 className="font-medium text-gray-500 text-sm">View:</h1>
@@ -316,8 +416,9 @@ const Classroom = () => {
         <div className="p-5">
           <div className="mb-5 flex justify-between items-center">
             <h2 className="text-lg font-medium text-gray-800">
-              {activeTab === "all" ? "All Groups" : `Group ${activeTab}`} -
-              Today's Schedule
+              {activeTab === "all" ? "All Groups" : `Group ${activeTab}`}
+              {typeFilter !== "all" ? ` - ${typeFilter} Rooms` : ""}
+              {" - Today's Schedule"}
             </h2>
 
             <div className="flex items-center text-sm text-gray-500">
@@ -349,13 +450,25 @@ const Classroom = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-500">
-                    {classrooms.map((classroom) => (
+                    {/* Use filtered classrooms instead of all classrooms */}
+                    {getFilteredClassrooms().map((classroom) => (
                       <tr key={classroom.id}>
                         <td className="py-3 px-2 h-20 sticky left-0 bg-white z-10">
                           <div className="font-medium text-gray-800">
                             {classroom.name}
                           </div>
-                          <div className="text-xs text-gray-400 mt-1">
+                          <div className="flex items-center text-xs text-gray-400 mt-1">
+                            <span
+                              className={`inline-block w-2 h-2 rounded-full mr-1 ${
+                                classroom.type === "Lecture"
+                                  ? "bg-blue-500"
+                                  : classroom.type === "Tutorial"
+                                  ? "bg-purple-500"
+                                  : classroom.type === "Workshop"
+                                  ? "bg-orange-500"
+                                  : "bg-gray-500"
+                              }`}
+                            ></span>
                             {classroom.type}
                           </div>
                         </td>
@@ -365,20 +478,20 @@ const Classroom = () => {
                             <td
                               key={`${classroom.id}-${slot.id}`}
                               className={`p-2 h-20 w-32 ${
-                                status.occupied ? "bg-red-100" : "bg-green-50"
+                                status.occupied ? "bg-red-200" : "bg-green-50"
                               }`}
                             >
                               <div className="h-full flex flex-col justify-center rounded-lg p-2">
                                 {status.occupied ? (
-                                  <div className="text-xs">
-                                    <div className="text-blue-500 mt-1">
+                                  <div className="text-sm">
+                                    <div className="text-blue-500 font-semibold mt-1">
                                       {status.group}
                                     </div>
-                                    <div className="text-gray-500 mt-1">
+                                    <div className="text-black mt-1">
                                       {formatTime(status.startTime)} -{" "}
                                       {formatTime(status.endTime)}
                                     </div>
-                                    <div className="text-gray-400 truncate mt-1">
+                                    <div className="text-gray-600 truncate mt-1">
                                       {status.teacher}
                                     </div>
                                   </div>
@@ -397,52 +510,82 @@ const Classroom = () => {
             </div>
           )}
 
-          {/* Card View - Fixed size cards */}
+          {/* Card View - Apple UI Theme */}
           {viewMode === "card" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
               {getAllClassroomSchedules().map((classroom) => (
                 <div
                   key={classroom.id}
-                  className="bg-white rounded-lg shadow border border-gray-200 w-full h-64"
+                  className="bg-white rounded-xl shadow-md border border-gray-100 w-full h-64 overflow-hidden transition-shadow duration-300 hover:shadow-lg"
                 >
-                  <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-                    <h3 className="font-medium text-gray-800">
+                  <div className="px-5 py-4 border-b border-gray-100">
+                    <h3 className="font-semibold text-gray-900">
                       {classroom.name}
                     </h3>
-                    <p className="text-xs text-gray-500">{classroom.type}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {classroom.type}
+                    </p>
                   </div>
-
-                  <div className="p-4 h-48 overflow-y-auto">
+                  <div className="p-5 h-48 overflow-y-auto">
                     {classroom.schedules.length > 0 ? (
                       <div className="space-y-3">
                         {classroom.schedules.map((schedule, idx) => (
                           <div
                             key={idx}
-                            className="p-3 rounded-md bg-blue-50 border border-blue-100"
+                            className="p-3 rounded-lg bg-blue-50 border-0 transition-all duration-200 hover:bg-blue-100"
                           >
                             <div className="flex justify-between items-start mb-1">
                               <span className="font-medium text-gray-800 truncate max-w-xs">
                                 {schedule.course_name}
                               </span>
-                              <span className="text-xs px-2 py-1 bg-blue-100 rounded-full text-blue-600 whitespace-nowrap ml-1">
+                              <span className="text-xs px-2.5 py-1 bg-white rounded-full text-blue-600 whitespace-nowrap ml-1 shadow-sm">
                                 {schedule.group_name}
                               </span>
                             </div>
-                            <div className="text-xs text-gray-500 mb-1 truncate">
+                            <div className="text-xs text-gray-500 mb-1.5 truncate">
                               {schedule.teacher_name}
                             </div>
-                            <div className="text-sm font-medium text-gray-600">
-                              {schedule.start_time} - {schedule.end_time}
+                            <div className="text-sm font-medium text-gray-700 flex items-center">
+                              <svg
+                                className="w-3.5 h-3.5 mr-1.5 text-gray-500"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                              </svg>
+                              {formatTime(schedule.start_time)} -{" "}
+                              {formatTime(schedule.end_time)}
                             </div>
                           </div>
                         ))}
                       </div>
                     ) : (
                       <div className="h-full flex flex-col justify-center items-center">
-                        <p className="text-sm text-gray-500">
-                          No classes scheduled today
+                        <svg
+                          className="w-10 h-10 text-gray-300 mb-2"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                        <p className="text-sm text-gray-500 font-medium">
+                          No classes scheduled
                         </p>
-                        <p className="text-xs text-green-600 mt-1">
+                        <p className="text-xs text-green-600 mt-1.5 bg-green-50 px-3 py-1 rounded-full">
                           Available all day
                         </p>
                       </div>
