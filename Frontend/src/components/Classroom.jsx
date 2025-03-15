@@ -5,6 +5,9 @@ import { LuChevronsUpDown } from "react-icons/lu";
 import { BsCalendar2EventFill } from "react-icons/bs";
 import { MdBookmarkAdd } from "react-icons/md";
 import { IoSearch } from "react-icons/io5";
+import { FaChalkboardTeacher } from "react-icons/fa";
+import { FaUsersLine } from "react-icons/fa6";
+import { RiComputerFill } from "react-icons/ri";
 import axios from "axios";
 
 const Classroom = () => {
@@ -93,10 +96,26 @@ const Classroom = () => {
   }, []);
 
   const options = [
-    { value: "all", label: "All Types" },
-    { value: "Lecture", label: "Lecture" },
-    { value: "Tutorial", label: "Tutorial" },
-    { value: "Workshop", label: "Workshop" },
+    {
+      value: "all",
+      label: "All Types",
+      icon: <IoMdInformationCircleOutline className="text-gray-500" />,
+    },
+    {
+      value: "Lecture",
+      label: "Lecture",
+      icon: <FaChalkboardTeacher className="text-blue-500" />,
+    },
+    {
+      value: "Tutorial",
+      label: "Tutorial",
+      icon: <FaUsersLine className="text-green-500" />,
+    },
+    {
+      value: "Workshop",
+      label: "Workshop",
+      icon: <RiComputerFill className="text-orange-500" />,
+    },
   ];
 
   // Updated click outside handler for both dropdowns
@@ -349,7 +368,7 @@ const Classroom = () => {
                     {activeTab === "all" ? "All Groups" : `Group ${activeTab}`}
                   </div>
                   <LuChevronsUpDown
-                    className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${
+                    className={`h-4 w-4 text-gray-500  ${
                       isGroupOpen ? "rotate-180" : ""
                     }`}
                   />
@@ -357,7 +376,7 @@ const Classroom = () => {
 
                 {isGroupOpen && (
                   <div
-                    className="absolute left-0 mt-2 w-44 rounded-xl bg-white 
+                    className="absolute left-0 mt-2 w-36 rounded-xl bg-white 
                     shadow-lg border border-gray-100 overflow-hidden z-30"
                   >
                     <div className="py-1">
@@ -428,21 +447,13 @@ const Classroom = () => {
                   aria-expanded={isTypeOpen}
                 >
                   <div className="flex items-center gap-2">
-                    <span
-                      className={`w-2 h-2 rounded-full ${
-                        typeFilter === "Lecture"
-                          ? "bg-blue-500"
-                          : typeFilter === "Tutorial"
-                          ? "bg-purple-500"
-                          : typeFilter === "Workshop"
-                          ? "bg-orange-500"
-                          : "bg-gray-400"
-                      }`}
-                    />
+                    {options.find((opt) => opt.value === typeFilter)?.icon || (
+                      <span className="w-2 h-2 rounded-full bg-gray-400"></span>
+                    )}
                     {options.find((opt) => opt.value === typeFilter)?.label}
                   </div>
                   <LuChevronsUpDown
-                    className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${
+                    className={`h-4 w-4 text-gray-500 ${
                       isTypeOpen ? "rotate-180" : ""
                     }`}
                   />
@@ -450,7 +461,7 @@ const Classroom = () => {
 
                 {isTypeOpen && (
                   <div
-                    className="absolute right-0 mt-2 w-44 rounded-xl bg-white 
+                    className="absolute right-0 mt-2 w-36 rounded-xl bg-white 
                     shadow-lg border border-gray-100 overflow-hidden z-30"
                   >
                     <div className="py-1">
@@ -468,17 +479,7 @@ const Classroom = () => {
                           role="option"
                           aria-selected={typeFilter === option.value}
                         >
-                          <span
-                            className={`w-2 h-2 rounded-full ${
-                              option.value === "Lecture"
-                                ? "bg-blue-500"
-                                : option.value === "Tutorial"
-                                ? "bg-purple-500"
-                                : option.value === "Workshop"
-                                ? "bg-orange-500"
-                                : "bg-gray-400"
-                            }`}
-                          />
+                          {option.icon}
                           {option.label}
                         </button>
                       ))}
@@ -566,19 +567,19 @@ const Classroom = () => {
                           <div className="font-medium text-gray-800">
                             {classroom.name}
                           </div>
-                          <div className="flex items-center text-xs text-gray-400 mt-1">
-                            <span
-                              className={`inline-block w-2 h-2 rounded-full mr-1 ${
-                                classroom.type === "Lecture"
-                                  ? "bg-blue-500"
-                                  : classroom.type === "Tutorial"
-                                  ? "bg-purple-500"
-                                  : classroom.type === "Workshop"
-                                  ? "bg-orange-500"
-                                  : "bg-gray-500"
-                              }`}
-                            ></span>
-                            {classroom.type}
+                          <div className="py-2 border-b border-gray-100">
+                            <p className="flex items-center text-xs text-gray-500 mt-1">
+                              {classroom.type === "Lecture" ? (
+                                <FaChalkboardTeacher className="text-blue-500 mr-1" />
+                              ) : classroom.type === "Tutorial" ? (
+                                <FaUsersLine className="text-green-500 mr-1" />
+                              ) : classroom.type === "Workshop" ? (
+                                <RiComputerFill className="text-orange-500 mr-1" />
+                              ) : (
+                                <span className="w-2 h-2 rounded-full mr-1 bg-gray-500"></span>
+                              )}
+                              {classroom.type}
+                            </p>
                           </div>
                         </td>
                         {timeSlots.map((slot) => {
@@ -631,7 +632,16 @@ const Classroom = () => {
                     <h3 className="font-semibold text-gray-900">
                       {classroom.name}
                     </h3>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="flex items-center text-xs text-gray-500 mt-1">
+                      {classroom.type === "Lecture" ? (
+                        <FaChalkboardTeacher className="text-blue-500 mr-1" />
+                      ) : classroom.type === "Tutorial" ? (
+                        <FaUsersLine className="text-green-500 mr-1" />
+                      ) : classroom.type === "Workshop" ? (
+                        <RiComputerFill className="text-orange-500 mr-1" />
+                      ) : (
+                        <span className="w-2 h-2 rounded-full mr-1 bg-gray-500"></span>
+                      )}
                       {classroom.type}
                     </p>
                   </div>
