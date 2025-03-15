@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { IoGrid, IoList } from "react-icons/io5";
-import { ChevronDown } from "lucide-react";
+import { LuChevronsUpDown } from "react-icons/lu";
 import { BsCalendar2EventFill } from "react-icons/bs";
 import { MdBookmarkAdd } from "react-icons/md";
 import { IoSearch } from "react-icons/io5";
@@ -16,8 +16,12 @@ const Classroom = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [viewMode, setViewMode] = useState("table"); // "table" or "card"
   const [typeFilter, setTypeFilter] = useState("all");
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const [isGroupOpen, setIsGroupOpen] = useState(false);
+  const [isTypeOpen, setIsTypeOpen] = useState(false);
+
+  // Add separate refs for each dropdown
+  const groupDropdownRef = useRef(null);
+  const typeDropdownRef = useRef(null);
 
   // Get current day of week
   const currentDayNumber = new Date().getDay();
@@ -95,10 +99,20 @@ const Classroom = () => {
     { value: "Workshop", label: "Workshop" },
   ];
 
+  // Updated click outside handler for both dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
+      if (
+        groupDropdownRef.current &&
+        !groupDropdownRef.current.contains(event.target)
+      ) {
+        setIsGroupOpen(false);
+      }
+      if (
+        typeDropdownRef.current &&
+        !typeDropdownRef.current.contains(event.target)
+      ) {
+        setIsTypeOpen(false);
       }
     };
 
@@ -108,9 +122,10 @@ const Classroom = () => {
     };
   }, []);
 
+  // Updated handleSelect function
   const handleSelect = (value) => {
     setTypeFilter(value);
-    setIsOpen(false);
+    setIsTypeOpen(false);
   };
 
   // Define continuous time slots for the day (7 AM to 5 PM)
@@ -314,97 +329,191 @@ const Classroom = () => {
         </div>
 
         {/* Controls - Group Tabs and View Toggle */}
-        <div className="flex justify-between border-b border-gray-200 bg-gray-50">
-          <div className="flex">
-            <button
-              className={`px-4 py-3 text-sm font-medium ${
-                activeTab === "all"
-                  ? "border-b-2 border-black text-black"
-                  : "text-gray-500 hover:text-gray-800"
-              }`}
-              onClick={() => setActiveTab("all")}
-            >
-              All Groups
-            </button>
+        <div className="flex justify-between items-center border-b border-gray-200 bg-white/95 backdrop-blur-lg px-6 sticky top-0 z-20 py-3 shadow-sm">
+          <div className="flex items-center gap-5">
+            {/* Group Selection */}
+            <div className="flex items-center gap-2.5">
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                Group
+              </span>
+              <div className="relative" ref={groupDropdownRef}>
+                <button
+                  className="flex items-center justify-between px-2 py-1 w-36 
+                  rounded-md bg-gray-100 text-sm font-medium 
+                  text-gray-800 hover:bg-gray-200
+                  transition-all duration-200 focus:outline-none"
+                  onClick={() => setIsGroupOpen(!isGroupOpen)}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                    {activeTab === "all" ? "All Groups" : `Group ${activeTab}`}
+                  </div>
+                  <LuChevronsUpDown
+                    className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${
+                      isGroupOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
 
-            {groups.map((group) => (
-              <button
-                key={group.id}
-                className={`px-4 py-3 text-sm font-medium ${
-                  activeTab === group.id.toString()
-                    ? "border-b-2 border-black text-black"
-                    : "text-gray-500 hover:text-gray-800"
-                }`}
-                onClick={() => setActiveTab(group.id.toString())}
-              >
-                {group.name}
-              </button>
-            ))}
-          </div>
-
-          {/* Type Filter */}
-          <div className="ml-auto flex items-center" ref={dropdownRef}>
-            <div className="relative">
-              <button
-                className="flex items-center justify-between px-4 py-2 w-40 rounded-full bg-gray-100 border border-gray-200 text-sm font-medium text-gray-800 shadow-sm hover:bg-gray-50 transition-colors duration-150 focus:outline-none"
-                onClick={() => setIsOpen(!isOpen)}
-                aria-haspopup="listbox"
-                aria-expanded={isOpen}
-              >
-                {options.find((opt) => opt.value === typeFilter)?.label}
-                <ChevronDown
-                  className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${
-                    isOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-
-              {isOpen && (
-                <div className="absolute right-0 mt-2 w-40 rounded-xl bg-white/90 backdrop-blur-sm shadow-lg border border-gray-200 overflow-hidden z-10">
-                  <div className="py-1">
-                    {options.map((option) => (
+                {isGroupOpen && (
+                  <div
+                    className="absolute left-0 mt-2 w-44 rounded-xl bg-white 
+                    shadow-lg border border-gray-100 overflow-hidden z-30"
+                  >
+                    <div className="py-1">
                       <button
-                        key={option.value}
-                        className={`w-full text-left px-4 py-2 text-sm ${
-                          typeFilter === option.value
-                            ? "bg-blue-500 text-white font-medium"
+                        className={`w-full text-left px-4 py-2.5 text-sm
+                        transition-colors duration-150 flex items-center gap-2
+                        ${
+                          activeTab === "all"
+                            ? "bg-blue-50 text-blue-600 font-medium"
                             : "text-gray-700 hover:bg-gray-50"
                         }`}
-                        onClick={() => handleSelect(option.value)}
-                        role="option"
-                        aria-selected={typeFilter === option.value}
+                        onClick={() => {
+                          setActiveTab("all");
+                          setIsGroupOpen(false);
+                        }}
                       >
-                        {option.label}
+                        <span
+                          className={`w-2 h-2 rounded-full ${
+                            activeTab === "all" ? "bg-blue-500" : "bg-gray-300"
+                          }`}
+                        ></span>
+                        All Groups
                       </button>
-                    ))}
+                      {groups.map((group) => (
+                        <button
+                          key={group.id}
+                          className={`w-full text-left px-4 py-2.5 text-sm
+                          transition-colors duration-150 flex items-center gap-2
+                          ${
+                            activeTab === group.id.toString()
+                              ? "bg-blue-50 text-blue-600 font-medium"
+                              : "text-gray-700 hover:bg-gray-50"
+                          }`}
+                          onClick={() => {
+                            setActiveTab(group.id.toString());
+                            setIsGroupOpen(false);
+                          }}
+                        >
+                          <span
+                            className={`w-2 h-2 rounded-full ${
+                              activeTab === group.id.toString()
+                                ? "bg-blue-500"
+                                : "bg-gray-300"
+                            }`}
+                          ></span>
+                          {group.name}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+            </div>
+
+            {/* Type Filter */}
+            <div className="flex items-center gap-2.5">
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                Type
+              </span>
+              <div className="relative" ref={typeDropdownRef}>
+                <button
+                  className="flex items-center justify-between px-2 py-1 w-36 
+                  rounded-md bg-gray-100 text-sm font-medium 
+                  text-gray-800 hover:bg-gray-200
+                  transition-all duration-200 focus:outline-none"
+                  onClick={() => setIsTypeOpen(!isTypeOpen)}
+                  aria-haspopup="listbox"
+                  aria-expanded={isTypeOpen}
+                >
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`w-2 h-2 rounded-full ${
+                        typeFilter === "Lecture"
+                          ? "bg-blue-500"
+                          : typeFilter === "Tutorial"
+                          ? "bg-purple-500"
+                          : typeFilter === "Workshop"
+                          ? "bg-orange-500"
+                          : "bg-gray-400"
+                      }`}
+                    />
+                    {options.find((opt) => opt.value === typeFilter)?.label}
+                  </div>
+                  <LuChevronsUpDown
+                    className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${
+                      isTypeOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {isTypeOpen && (
+                  <div
+                    className="absolute right-0 mt-2 w-44 rounded-xl bg-white 
+                    shadow-lg border border-gray-100 overflow-hidden z-30"
+                  >
+                    <div className="py-1">
+                      {options.map((option) => (
+                        <button
+                          key={option.value}
+                          className={`w-full text-left px-4 py-2.5 text-sm
+                          flex items-center gap-2 transition-colors duration-150
+                          ${
+                            typeFilter === option.value
+                              ? "bg-blue-50 text-blue-600 font-medium"
+                              : "text-gray-700 hover:bg-gray-50"
+                          }`}
+                          onClick={() => handleSelect(option.value)}
+                          role="option"
+                          aria-selected={typeFilter === option.value}
+                        >
+                          <span
+                            className={`w-2 h-2 rounded-full ${
+                              option.value === "Lecture"
+                                ? "bg-blue-500"
+                                : option.value === "Tutorial"
+                                ? "bg-purple-500"
+                                : option.value === "Workshop"
+                                ? "bg-orange-500"
+                                : "bg-gray-400"
+                            }`}
+                          />
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
           {/* View Toggle */}
-          <div className="flex items-center mr-4 gap-2">
-            <h1 className="font-medium text-gray-500 text-sm">View:</h1>
-            <div>
-              {" "}
+          <div className="flex items-center gap-2.5">
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              View
+            </span>
+            <div className="flex bg-gray-100 p-1 rounded-full">
               <button
-                className={`p-2 rounded-full ${
+                className={`p-2 rounded-full flex items-center justify-center transition-all duration-200 ${
                   viewMode === "table"
-                    ? "bg-gray-200 text-gray-800"
-                    : "bg-gray-50 text-gray-500 hover:bg-gray-100"
+                    ? "bg-white text-blue-600 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
                 }`}
                 onClick={() => setViewMode("table")}
+                title="Table View"
               >
                 <IoList className="text-lg" />
               </button>
               <button
-                className={`p-2 rounded-full ${
+                className={`p-2 rounded-full flex items-center justify-center transition-all duration-200 ${
                   viewMode === "card"
-                    ? "bg-gray-200 text-gray-800"
-                    : "bg-gray-50 text-gray-500 hover:bg-gray-100"
+                    ? "bg-white text-blue-600 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
                 }`}
                 onClick={() => setViewMode("card")}
+                title="Card View"
               >
                 <IoGrid className="text-lg" />
               </button>
