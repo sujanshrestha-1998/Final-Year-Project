@@ -9,6 +9,7 @@ import { FaChalkboardTeacher } from "react-icons/fa";
 import { FaUsersLine } from "react-icons/fa6";
 import { RiComputerFill } from "react-icons/ri";
 import axios from "axios";
+import ReserveClassroom from "./ReserveClassroom"; // Add this import
 
 const Classroom = () => {
   const [classrooms, setClassrooms] = useState([]);
@@ -22,6 +23,9 @@ const Classroom = () => {
   const [isGroupOpen, setIsGroupOpen] = useState(false);
   const [isTypeOpen, setIsTypeOpen] = useState(false);
   const [showOnlyAvailable, setShowOnlyAvailable] = useState(false);
+  // Add these two state variables
+  const [isReservationOpen, setIsReservationOpen] = useState(false);
+  const [selectedClassroom, setSelectedClassroom] = useState(null);
 
   // Add separate refs for each dropdown
   const groupDropdownRef = useRef(null);
@@ -402,6 +406,12 @@ const Classroom = () => {
       </div>
     );
 
+  // Add this function to handle opening the reservation panel
+  const handleOpenReservation = (classroom) => {
+    setSelectedClassroom(classroom);
+    setIsReservationOpen(true);
+  };
+
   return (
     <div className="h-screen w-[82vw] overflow-auto pl-6">
       <div className="w-full mx-auto">
@@ -433,7 +443,10 @@ const Classroom = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="px-3 py-2 flex gap-1 items-center bg-blue-500 text-white text-sm font-semibold rounded-md shadow-md transition-transform duration-200 hover:scale-105 hover:brightness-105">
+            <button
+              className="px-3 py-2 flex gap-1 items-center bg-blue-500 text-white text-sm font-semibold rounded-md shadow-md transition-transform duration-200 hover:scale-105 hover:brightness-105"
+              onClick={() => handleOpenReservation(getFilteredClassrooms()[0])}
+            >
               <MdBookmarkAdd />
               Reserve Classroom
             </button>
@@ -977,8 +990,16 @@ const Classroom = () => {
           )}
         </div>
       </div>
+      <ReserveClassroom
+        isOpen={isReservationOpen}
+        onClose={() => setIsReservationOpen(false)}
+        classroom={selectedClassroom}
+      />
     </div>
   );
 };
 
 export default Classroom;
+{
+  /* Add the ReserveClassroom component here */
+}
