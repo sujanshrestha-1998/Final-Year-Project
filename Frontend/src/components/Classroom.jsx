@@ -271,10 +271,54 @@ const Classroom = () => {
           group: occupyingSchedule.group_name,
           startTime: occupyingSchedule.start_time,
           endTime: occupyingSchedule.end_time,
+          scheduleId: occupyingSchedule.id, // Add schedule ID for tracking
         }
       : {
           occupied: false,
         };
+  };
+
+  // New function to calculate cell span for occupied slots
+  const calculateCellSpan = (classroom, timeSlots) => {
+    const spans = {};
+    const processed = new Set();
+
+    timeSlots.forEach((slot, index) => {
+      if (processed.has(index)) return;
+
+      const status = getClassroomStatus(classroom.id, slot);
+
+      if (status.occupied) {
+        // Find how many consecutive slots this schedule occupies
+        let spanCount = 1;
+        let nextIndex = index + 1;
+
+        while (nextIndex < timeSlots.length) {
+          const nextStatus = getClassroomStatus(
+            classroom.id,
+            timeSlots[nextIndex]
+          );
+
+          if (
+            nextStatus.occupied &&
+            nextStatus.scheduleId === status.scheduleId
+          ) {
+            spanCount++;
+            processed.add(nextIndex);
+            nextIndex++;
+          } else {
+            break;
+          }
+        }
+
+        spans[index] = {
+          span: spanCount,
+          status: status,
+        };
+      }
+    });
+
+    return spans;
   };
 
   // Get all classroom schedules for card view
@@ -646,59 +690,91 @@ const Classroom = () => {
                   </thead>
                   <tbody className="divide-y divide-gray-500">
                     {/* Use filtered classrooms instead of all classrooms */}
-                    {getFilteredClassrooms().map((classroom) => (
-                      <tr key={classroom.id}>
-                        <td className="py-3 px-2 h-20 sticky left-0 bg-white z-10">
-                          <div className="font-medium text-gray-800">
-                            {classroom.name}
-                          </div>
-                          <div className="py-2 border-b border-gray-100">
-                            <p className="flex items-center text-xs text-gray-500 mt-1">
-                              {classroom.type === "Lecture" ? (
-                                <FaChalkboardTeacher className="text-blue-500 mr-1" />
-                              ) : classroom.type === "Tutorial" ? (
-                                <FaUsersLine className="text-green-500 mr-1" />
-                              ) : classroom.type === "Workshop" ? (
-                                <RiComputerFill className="text-orange-500 mr-1" />
-                              ) : (
-                                <span className="w-2 h-2 rounded-full mr-1 bg-gray-500"></span>
-                              )}
-                              {classroom.type}
-                            </p>
-                          </div>
-                        </td>
-                        {timeSlots.map((slot) => {
-                          const status = getClassroomStatus(classroom.id, slot);
-                          return (
-                            <td
-                              key={`${classroom.id}-${slot.id}`}
-                              className={`p-2 h-20 w-32 ${
-                                status.occupied ? "bg-red-200" : "bg-green-50"
-                              }`}
-                            >
-                              <div className="h-full flex flex-col justify-center rounded-lg p-2">
-                                {status.occupied ? (
-                                  <div className="text-sm">
-                                    <div className="text-blue-500 font-semibold mt-1">
-                                      {status.group}
-                                    </div>
-                                    <div className="text-black mt-1">
-                                      {formatTime(status.startTime)} -{" "}
-                                      {formatTime(status.endTime)}
-                                    </div>
-                                    <div className="text-gray-600 truncate mt-1">
-                                      {status.teacher}
+                    {getFilteredClassrooms().map((classroom) => {
+                      // Calculate cell spans for this classroom
+                      const cellSpans = calculateCellSpan(classroom, timeSlots);
+
+                      return (
+                        <tr key={classroom.id}>
+                          <td className="py-3 px-2 h-20 sticky left-0 bg-white z-10">
+                            <div className="font-medium text-gray-800">
+                              {classroom.name}
+                            </div>
+                            <div className="py-2 border-b border-gray-100">
+                              <p className="flex items-center text-xs text-gray-500 mt-1">
+                                {classroom.type === "Lecture" ? (
+                                  <FaChalkboardTeacher className="text-blue-500 mr-1" />
+                                ) : classroom.type === "Tutorial" ? (
+                                  <FaUsersLine className="text-green-500 mr-1" />
+                                ) : classroom.type === "Workshop" ? (
+                                  <RiComputerFill className="text-orange-500 mr-1" />
+                                ) : (
+                                  <span className="w-2 h-2 rounded-full mr-1 bg-gray-500"></span>
+                                )}
+                                {classroom.type}
+                              </p>
+                            </div>
+                          </td>
+
+                          {timeSlots.map((slot, slotIndex) => {
+                            // Skip rendering if this cell is part of a span
+                            if (
+                              Object.keys(cellSpans).some((startIdx) => {
+                                const span = cellSpans[startIdx];
+                                const endIdx =
+                                  parseInt(startIdx) + span.span - 1;
+                                return (
+                                  slotIndex > parseInt(startIdx) &&
+                                  slotIndex <= endIdx
+                                );
+                              })
+                            ) {
+                              return null;
+                            }
+
+                            // If this is the start of a span
+                            if (cellSpans[slotIndex]) {
+                              const { span, status } = cellSpans[slotIndex];
+
+                              return (
+                                <td
+                                  key={`${classroom.id}-${slot.id}`}
+                                  className="p-2 h-20 bg-red-200"
+                                  colSpan={span}
+                                >
+                                  <div className="h-full flex flex-col justify-center rounded-lg p-2">
+                                    <div className="text-sm">
+                                      <div className="text-blue-500 font-semibold mt-1">
+                                        {status.group}
+                                      </div>
+                                      <div className="text-black mt-1">
+                                        {formatTime(status.startTime)} -{" "}
+                                        {formatTime(status.endTime)}
+                                      </div>
+                                      <div className="text-gray-600 truncate mt-1">
+                                        {status.teacher}
+                                      </div>
                                     </div>
                                   </div>
-                                ) : (
+                                </td>
+                              );
+                            }
+
+                            // Regular unoccupied cell
+                            return (
+                              <td
+                                key={`${classroom.id}-${slot.id}`}
+                                className="p-2 h-20 w-32 bg-green-50"
+                              >
+                                <div className="h-full flex flex-col justify-center rounded-lg p-2">
                                   <div className="text-xs text-green-500 font-medium text-center"></div>
-                                )}
-                              </div>
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))}
+                                </div>
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
