@@ -301,7 +301,12 @@ const Classroom = () => {
 
           if (
             nextStatus.occupied &&
-            nextStatus.scheduleId === status.scheduleId
+            nextStatus.scheduleId === status.scheduleId &&
+            nextStatus.course === status.course &&
+            nextStatus.teacher === status.teacher &&
+            nextStatus.group === status.group &&
+            nextStatus.startTime === status.startTime &&
+            nextStatus.endTime === status.endTime
           ) {
             spanCount++;
             processed.add(nextIndex);
