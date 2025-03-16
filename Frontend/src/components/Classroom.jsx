@@ -38,6 +38,11 @@ const Classroom = () => {
     "Saturday",
   ];
   const currentDay = daysOfWeek[currentDayNumber];
+  const [selectedDay, setSelectedDay] = useState(currentDay);
+  const [isDayOpen, setIsDayOpen] = useState(false);
+
+  // Add ref for day dropdown
+  const dayDropdownRef = useRef(null);
 
   // Function to fetch schedules for a specific group
   const fetchGroupSchedule = async (groupId) => {
@@ -118,7 +123,7 @@ const Classroom = () => {
     },
   ];
 
-  // Updated click outside handler for both dropdowns
+  // Updated click outside handler for all dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -132,6 +137,12 @@ const Classroom = () => {
         !typeDropdownRef.current.contains(event.target)
       ) {
         setIsTypeOpen(false);
+      }
+      if (
+        dayDropdownRef.current &&
+        !dayDropdownRef.current.contains(event.target)
+      ) {
+        setIsDayOpen(false);
       }
     };
 
@@ -161,11 +172,11 @@ const Classroom = () => {
     { id: 10, label: "16:00 - 17:00", start: "16:00", end: "17:00" },
   ];
 
-  // Filter schedules based on active tab and current day
+  // Filter schedules based on active tab and selected day
   const getFilteredSchedules = () => {
     // First filter by day
     let daySchedules = allSchedules.filter(
-      (schedule) => schedule.day_of_week === currentDay
+      (schedule) => schedule.day_of_week === selectedDay
     );
 
     // Then filter by group if a specific group is selected
@@ -322,10 +333,10 @@ const Classroom = () => {
                 </h1>
                 <IoMdInformationCircleOutline className="text-2xl" />
               </div>
-              <div className="flex gap-2 items-center text-sm text-gray-800">
+              {/* <div className="flex gap-2 items-center text-sm text-gray-800">
                 <BsCalendar2EventFill className="text-blue-500" />
                 {formattedDate}
-              </div>
+              </div> */}
             </div>
             <div className="relative w-96">
               <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
@@ -350,6 +361,78 @@ const Classroom = () => {
         {/* Controls - Group Tabs and View Toggle */}
         <div className="flex justify-between items-center border-b border-gray-200 bg-white/95 backdrop-blur-lg px-6 sticky top-0 z-20 py-3 shadow-sm">
           <div className="flex items-center gap-5">
+            {/* Day Selection */}
+            <div className="flex items-center gap-2.5">
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                Day
+              </span>
+              <div className="relative" ref={dayDropdownRef}>
+                <button
+                  className="flex items-center justify-between px-2 py-1 w-36 
+                  rounded-md bg-gray-100 text-sm font-medium 
+                  text-gray-800 hover:bg-gray-200
+                  transition-all duration-200 focus:outline-none"
+                  onClick={() => setIsDayOpen(!isDayOpen)}
+                >
+                  <div className="flex items-center gap-2">
+                    <BsCalendar2EventFill
+                      className={`text-blue-500 ${
+                        selectedDay === currentDay
+                          ? "text-blue-600"
+                          : "text-gray-500"
+                      }`}
+                    />
+                    {selectedDay}
+                  </div>
+                  <LuChevronsUpDown
+                    className={`h-4 w-4 text-gray-500 ${
+                      isDayOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {isDayOpen && (
+                  <div
+                    className="absolute left-0 mt-2 w-36 rounded-xl bg-white 
+                    shadow-lg border border-gray-100 overflow-hidden z-30"
+                  >
+                    <div className="py-1">
+                      {daysOfWeek.map((day) => (
+                        <button
+                          key={day}
+                          className={`w-full text-left px-4 py-2.5 text-sm
+                          transition-colors duration-150 flex items-center gap-2
+                          ${
+                            selectedDay === day
+                              ? "bg-blue-50 text-blue-600 font-medium"
+                              : "text-gray-700 hover:bg-gray-50"
+                          }`}
+                          onClick={() => {
+                            setSelectedDay(day);
+                            setIsDayOpen(false);
+                          }}
+                        >
+                          <BsCalendar2EventFill
+                            className={`${
+                              day === currentDay
+                                ? "text-blue-500"
+                                : "text-gray-400"
+                            }`}
+                          />
+                          {day}
+                          {day === currentDay && (
+                            <span className="ml-auto text-xs text-blue-500">
+                              (Today)
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Group Selection */}
             <div className="flex items-center gap-2.5">
               <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
@@ -528,7 +611,9 @@ const Classroom = () => {
             <h2 className="text-lg font-medium text-gray-800">
               {activeTab === "all" ? "All Groups" : `Group ${activeTab}`}
               {typeFilter !== "all" ? ` - ${typeFilter} Rooms` : ""}
-              {" - Today's Schedule"}
+              {` - ${
+                selectedDay === currentDay ? "Today's" : selectedDay + "'s"
+              } Schedule`}
             </h2>
 
             <div className="flex items-center text-sm text-gray-500">

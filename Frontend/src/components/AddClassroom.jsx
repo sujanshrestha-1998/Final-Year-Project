@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { IoMdInformationCircleOutline } from "react-icons/io";
-import {
-  MdAdd,
-  MdDelete,
-  MdDesktopMac,
-  MdPeople,
-  MdBuild,
-} from "react-icons/md";
+import { MdAdd, MdDelete } from "react-icons/md";
+import { FaChalkboardTeacher } from "react-icons/fa";
+import { FaUsersLine } from "react-icons/fa6";
+import { RiComputerFill } from "react-icons/ri";
 import { toast } from "react-toastify";
 import DeleteModal from "./DeleteModal";
 
@@ -27,6 +24,7 @@ const AddClassroom = () => {
     Tutorial: 0,
     Workshop: 0,
   });
+  const [activeFilter, setActiveFilter] = useState("All");
 
   // Fetch classrooms
   useEffect(() => {
@@ -141,11 +139,11 @@ const AddClassroom = () => {
     }
   };
 
-  // Type icons mapping
+  // Type icons mapping with React icons
   const typeIcons = {
-    Lecture: <img src="/src/assets/Lecture.png" alt="" width={30} />,
-    Tutorial: <img src="/src/assets/Tutorial.png" alt="" width={30} />,
-    Workshop: <img src="/src/assets/Workshop.png" alt="" width={30} />,
+    Lecture: <FaChalkboardTeacher className="text-2xl" />,
+    Tutorial: <FaUsersLine className="text-2xl" />,
+    Workshop: <RiComputerFill className="text-2xl" />,
   };
 
   // Type colors mapping
@@ -160,34 +158,42 @@ const AddClassroom = () => {
   };
 
   // Filter function for classrooms list
-  const getFilteredClassrooms = (type = null) => {
-    if (!type) return classrooms;
-    return classrooms.filter((classroom) => classroom.type === type);
+  const getFilteredClassrooms = () => {
+    if (activeFilter === "All") return classrooms;
+    return classrooms.filter((classroom) => classroom.type === activeFilter);
   };
 
   return (
-    <div className="p-6 h-full bg-gray-100 overflow-auto">
+    <div className="p-6 h-full bg-gray-50 overflow-auto">
       {/* Header with summary cards */}
       <div className="mb-6">
         <div className="flex items-center gap-2 p-5">
-          <h1 className="font-medium text-2xl">CLASSROOM MANAGEMENT</h1>
-          <IoMdInformationCircleOutline className="text-2xl" />
+          <h1 className="font-semibold text-2xl text-gray-800">
+            CLASSROOM MANAGEMENT
+          </h1>
+          <IoMdInformationCircleOutline className="text-2xl text-gray-500" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           {Object.entries(classroomCounts).map(([type, count]) => (
             <div
               key={type}
-              className="bg-white rounded-lg shadow p-4 flex items-center justify-between"
+              className="bg-white rounded-xl shadow-sm p-4 flex items-center justify-between hover:shadow-md transition-shadow duration-300"
             >
               <div className="flex items-center">
                 <div
-                  className={`p-3 rounded-full mr-3 border-2 border-gray-200`}
+                  className={`p-3 rounded-full mr-3 ${
+                    type === "Lecture"
+                      ? "bg-blue-100 text-blue-500"
+                      : type === "Tutorial"
+                      ? "bg-purple-100 text-purple-500"
+                      : "bg-orange-100 text-orange-500"
+                  }`}
                 >
                   {typeIcons[type]}
                 </div>
                 <div>
-                  <h3 className="font-medium">{type}s</h3>
+                  <h3 className="font-medium text-gray-800">{type}s</h3>
                   <p className="text-sm text-gray-500">Total: {count}</p>
                 </div>
               </div>
@@ -199,7 +205,7 @@ const AddClassroom = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Add Classroom Form */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow duration-300">
           <h2 className="text-lg font-bold mb-4 text-gray-800 border-b pb-2">
             Add New Classroom
           </h2>
@@ -214,7 +220,7 @@ const AddClassroom = () => {
                 onChange={(e) =>
                   setNewClassroom({ ...newClassroom, name: e.target.value })
                 }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                 placeholder="Enter classroom name"
                 required
               />
@@ -229,17 +235,15 @@ const AddClassroom = () => {
                   <button
                     key={type}
                     type="button"
-                    className={`flex-1 flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${
+                    className={`flex-1 flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all duration-200 ${
                       newClassroom.type === type
-                        ? `${typeColors[type]} border-transparent`
+                        ? `${typeColors[type]} border-transparent shadow-md`
                         : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
                     }`}
                     onClick={() => handleTypeSelect(type)}
                   >
                     {typeIcons[type]}
-                    <span className="text-xs mt-2 font-medium">
-                      {type.replace(" Room", "")}
-                    </span>
+                    <span className="text-xs mt-2 font-medium">{type}</span>
                   </button>
                 ))}
               </div>
@@ -248,7 +252,7 @@ const AddClassroom = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 ${
+              className={`w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow ${
                 isSubmitting ? "opacity-70 cursor-not-allowed" : ""
               }`}
             >
@@ -262,22 +266,63 @@ const AddClassroom = () => {
               Quick Info
             </h3>
             <ul className="text-xs text-blue-700 space-y-1">
-              <li>• Lecture: For large group sessions</li>
-              <li>• Tutorial Rooms: For smaller interactive groups</li>
-              <li>• Workshops: For hands-on practical activities</li>
+              <li className="flex items-center gap-1">
+                <FaChalkboardTeacher className="text-blue-500" /> Lecture: For
+                large group sessions
+              </li>
+              <li className="flex items-center gap-1">
+                <FaUsersLine className="text-purple-500" /> Tutorial: For
+                smaller interactive groups
+              </li>
+              <li className="flex items-center gap-1">
+                <RiComputerFill className="text-orange-500" /> Workshop: For
+                hands-on practical activities
+              </li>
             </ul>
           </div>
         </div>
 
         {/* Classrooms List */}
-        <div className="bg-white rounded-lg shadow p-6 lg:col-span-2">
+        <div className="bg-white rounded-xl shadow-sm p-6 lg:col-span-2 hover:shadow-md transition-shadow duration-300">
           <div className="flex justify-between items-center mb-4 border-b pb-2">
             <h2 className="text-lg font-bold text-gray-800">
               Existing Classrooms
             </h2>
             <div className="text-sm text-gray-500">
-              Total: {classrooms.length} classrooms
+              Total: {getFilteredClassrooms().length} classrooms
             </div>
+          </div>
+
+          {/* Filter tabs */}
+          <div className="flex space-x-2 mb-4 overflow-x-auto pb-2">
+            <button
+              onClick={() => setActiveFilter("All")}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                activeFilter === "All"
+                  ? "bg-gray-800 text-white shadow-md"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              All
+            </button>
+            {Object.entries(typeIcons).map(([type, icon]) => (
+              <button
+                key={type}
+                onClick={() => setActiveFilter(type)}
+                className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-1.5 transition-all duration-200 ${
+                  activeFilter === type
+                    ? type === "Lecture"
+                      ? "bg-blue-500 text-white shadow-md"
+                      : type === "Tutorial"
+                      ? "bg-purple-500 text-white shadow-md"
+                      : "bg-orange-500 text-white shadow-md"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                {React.cloneElement(icon, { className: "text-sm" })}
+                {type}s
+              </button>
+            ))}
           </div>
 
           {isLoading ? (
@@ -289,16 +334,18 @@ const AddClassroom = () => {
               <p className="mt-2 text-gray-500">Loading classrooms...</p>
             </div>
           ) : (
-            <div className="overflow-hidden">
-              {classrooms.length === 0 ? (
-                <div className="text-center py-8 bg-gray-50 rounded-lg">
+            <div className="overflow-hidden -mx-6 -mb-6">
+              {getFilteredClassrooms().length === 0 ? (
+                <div className="text-center py-8 bg-gray-50 rounded-lg mx-6 mb-6">
                   <p className="text-gray-500">No classrooms available</p>
                   <p className="text-sm text-gray-400 mt-1">
-                    Add your first classroom using the form
+                    {activeFilter === "All"
+                      ? "Add your first classroom using the form"
+                      : `No ${activeFilter} classrooms found`}
                   </p>
                 </div>
               ) : (
-                <div className="overflow-x-auto rounded-lg border border-gray-200">
+                <div className="overflow-x-auto border-t rounded-lg border-gray-200">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
@@ -323,8 +370,11 @@ const AddClassroom = () => {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {classrooms.map((classroom) => (
-                        <tr key={classroom.id} className="hover:bg-gray-50">
+                      {getFilteredClassrooms().map((classroom) => (
+                        <tr
+                          key={classroom.id}
+                          className="hover:bg-gray-50 transition-colors duration-150"
+                        >
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="font-medium text-gray-900">
                               {classroom.name}
@@ -337,16 +387,17 @@ const AddClassroom = () => {
                                 "bg-gray-100 text-gray-800"
                               }`}
                             >
-                              {typeIcons[classroom.type]}
-                              <span className="ml-1">
-                                {classroom.type.replace(" Room", "")}
-                              </span>
+                              {React.cloneElement(typeIcons[classroom.type], {
+                                className: "text-sm mr-1",
+                              })}
+                              <span className="ml-1">{classroom.type}</span>
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right">
                             <button
-                              className="text-red-600 hover:text-red-900 p-1 rounded-full hover:bg-red-50"
+                              className="text-red-600 hover:text-red-900 p-2 rounded-full hover:bg-red-50 transition-colors duration-200"
                               onClick={() => openDeleteModal(classroom)}
+                              aria-label="Delete classroom"
                             >
                               <MdDelete className="text-xl" />
                             </button>
@@ -359,16 +410,28 @@ const AddClassroom = () => {
               )}
             </div>
           )}
-
-          {!isLoading && classrooms.length > 0 && (
-            <div className="mt-4 grid grid-cols-3 gap-3 text-center text-sm">
+          {/* 
+          {!isLoading && getFilteredClassrooms().length > 0 && (
+            <div className="mt-4 flex justify-center gap-4 text-center text-sm">
               {Object.entries(classroomCounts).map(([type, count]) => (
-                <div key={type} className="bg-gray-50 py-2 px-3 rounded-lg">
+                <div
+                  key={type}
+                  className={`py-2 px-4 rounded-full flex items-center gap-1.5 ${
+                    type === "Lecture"
+                      ? "bg-blue-50 text-blue-700"
+                      : type === "Tutorial"
+                      ? "bg-purple-50 text-purple-700"
+                      : "bg-orange-50 text-orange-700"
+                  }`}
+                >
+                  {React.cloneElement(typeIcons[type], {
+                    className: "text-sm",
+                  })}
                   <span className="font-medium">{type}s:</span> {count}
                 </div>
               ))}
             </div>
-          )}
+          )} */}
         </div>
       </div>
 
