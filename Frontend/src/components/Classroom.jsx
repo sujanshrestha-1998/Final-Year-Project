@@ -21,6 +21,7 @@ const Classroom = () => {
   const [typeFilter, setTypeFilter] = useState("all");
   const [isGroupOpen, setIsGroupOpen] = useState(false);
   const [isTypeOpen, setIsTypeOpen] = useState(false);
+  const [showOnlyAvailable, setShowOnlyAvailable] = useState(false);
 
   // Add separate refs for each dropdown
   const groupDropdownRef = useRef(null);
@@ -326,22 +327,54 @@ const Classroom = () => {
     return spans;
   };
 
-  // Get all classroom schedules for card view
+  // Get all classroom schedules for card view with availability filter
   const getAllClassroomSchedules = () => {
     const filteredSchedules = getFilteredSchedules();
     // Use filtered classrooms based on type
     const filteredClassrooms = getFilteredClassrooms();
+
+    // Get current time for availability check
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentTimeInMinutes = currentHour * 60 + currentMinute;
 
     // Group schedules by classroom
     const schedulesByClassroom = filteredClassrooms.map((classroom) => {
       const classroomSchedules = filteredSchedules.filter(
         (schedule) => parseInt(schedule.classroom_id) === classroom.id
       );
+
+      // Check if classroom is currently occupied
+      const isCurrentlyOccupied = classroomSchedules.some((schedule) => {
+        const [startHour, startMinute] = schedule.start_time
+          .split(":")
+          .map(Number);
+        const [endHour, endMinute] = schedule.end_time.split(":").map(Number);
+
+        const scheduleStartInMinutes = startHour * 60 + startMinute;
+        const scheduleEndInMinutes = endHour * 60 + endMinute;
+
+        return (
+          currentTimeInMinutes >= scheduleStartInMinutes &&
+          currentTimeInMinutes < scheduleEndInMinutes
+        );
+      });
+
       return {
         ...classroom,
         schedules: classroomSchedules,
+        isCurrentlyOccupied,
       };
     });
+
+    // Filter by availability if the option is selected
+    if (showOnlyAvailable && viewMode === "card") {
+      return schedulesByClassroom.filter(
+        (classroom) => !classroom.isCurrentlyOccupied
+      );
+    }
+
     return schedulesByClassroom;
   };
 
@@ -622,34 +655,55 @@ const Classroom = () => {
             </div>
           </div>
 
-          {/* View Toggle */}
-          <div className="flex items-center gap-2.5">
-            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-              View
-            </span>
-            <div className="flex bg-gray-100 p-1 rounded-full">
-              <button
-                className={`p-2 rounded-full flex items-center justify-center transition-all duration-200 ${
-                  viewMode === "table"
-                    ? "bg-white text-blue-600 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-                onClick={() => setViewMode("table")}
-                title="Table View"
-              >
-                <IoList className="text-lg" />
-              </button>
-              <button
-                className={`p-2 rounded-full flex items-center justify-center transition-all duration-200 ${
-                  viewMode === "card"
-                    ? "bg-white text-blue-600 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-                onClick={() => setViewMode("card")}
-                title="Card View"
-              >
-                <IoGrid className="text-lg" />
-              </button>
+          {/* View Toggle and Availability Filter */}
+          <div className="flex items-center gap-4">
+            {/* Availability Filter - Only show in card view */}
+            {viewMode === "card" && (
+              <div className="flex items-center gap-2">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={showOnlyAvailable}
+                    onChange={() => setShowOnlyAvailable(!showOnlyAvailable)}
+                  />
+                  <div className="relative w-10 h-5 bg-gray-200 rounded-full peer peer-checked:bg-green-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
+                  <span className="ml-2 text-xs font-medium text-gray-700">
+                    Available Only
+                  </span>
+                </label>
+              </div>
+            )}
+
+            {/* View Toggle */}
+            <div className="flex items-center gap-2.5">
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                View
+              </span>
+              <div className="flex bg-gray-100 p-1 rounded-full">
+                <button
+                  className={`p-2 rounded-full flex items-center justify-center transition-all duration-200 ${
+                    viewMode === "table"
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                  onClick={() => setViewMode("table")}
+                  title="Table View"
+                >
+                  <IoList className="text-lg" />
+                </button>
+                <button
+                  className={`p-2 rounded-full flex items-center justify-center transition-all duration-200 ${
+                    viewMode === "card"
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                  onClick={() => setViewMode("card")}
+                  title="Card View"
+                >
+                  <IoGrid className="text-lg" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -744,7 +798,7 @@ const Classroom = () => {
                               return (
                                 <td
                                   key={`${classroom.id}-${slot.id}`}
-                                  className="p-2 h-20 bg-red-200"
+                                  className="p-2 h-20 border-x-2 border-gray-200 bg-red-200"
                                   colSpan={span}
                                 >
                                   <div className="h-full flex flex-col justify-center rounded-lg p-2">
@@ -788,96 +842,137 @@ const Classroom = () => {
 
           {/* Card View - Apple UI Theme */}
           {viewMode === "card" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
-              {getAllClassroomSchedules().map((classroom) => (
-                <div
-                  key={classroom.id}
-                  className="bg-white rounded-xl shadow-md border border-gray-100 w-full h-64 overflow-hidden transition-shadow duration-300 hover:shadow-lg"
-                >
-                  <div className="px-5 py-4 border-b border-gray-100">
-                    <h3 className="font-semibold text-gray-900">
-                      {classroom.name}
-                    </h3>
-                    <p className="flex items-center text-xs text-gray-500 mt-1">
-                      {classroom.type === "Lecture" ? (
-                        <FaChalkboardTeacher className="text-blue-500 mr-1" />
-                      ) : classroom.type === "Tutorial" ? (
-                        <FaUsersLine className="text-green-500 mr-1" />
-                      ) : classroom.type === "Workshop" ? (
-                        <RiComputerFill className="text-orange-500 mr-1" />
-                      ) : (
-                        <span className="w-2 h-2 rounded-full mr-1 bg-gray-500"></span>
-                      )}
-                      {classroom.type}
-                    </p>
-                  </div>
-                  <div className="p-5 h-48 overflow-y-auto">
-                    {classroom.schedules.length > 0 ? (
-                      <div className="space-y-3">
-                        {classroom.schedules.map((schedule, idx) => (
-                          <div
-                            key={idx}
-                            className="p-3 rounded-lg bg-blue-50 border-0 transition-all duration-200 hover:bg-blue-100"
-                          >
-                            <div className="flex justify-between items-start mb-1">
-                              <span className="font-medium text-gray-800 truncate max-w-xs">
-                                {schedule.course_name}
-                              </span>
-                              <span className="text-xs px-2.5 py-1 bg-white rounded-full text-blue-600 whitespace-nowrap ml-1 shadow-sm">
-                                {schedule.group_name}
-                              </span>
-                            </div>
-                            <div className="text-xs text-gray-500 mb-1.5 truncate">
-                              {schedule.teacher_name}
-                            </div>
-                            <div className="text-sm font-medium text-gray-700 flex items-center">
-                              <svg
-                                className="w-3.5 h-3.5 mr-1.5 text-gray-500"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                />
-                              </svg>
-                              {formatTime(schedule.start_time)} -{" "}
-                              {formatTime(schedule.end_time)}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="h-full flex flex-col justify-center items-center">
-                        <svg
-                          className="w-10 h-10 text-gray-300 mb-2"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          xmlns="http://www.w3.org/2000/svg"
+            <div className="p-6">
+              {getAllClassroomSchedules().length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {getAllClassroomSchedules().map((classroom) => (
+                    <div
+                      key={classroom.id}
+                      className="bg-white rounded-xl shadow-md border border-gray-100 w-full h-64 overflow-hidden transition-shadow duration-300 hover:shadow-lg"
+                    >
+                      <div className="px-5 py-4 border-b border-gray-100 flex justify-between items-center">
+                        <div>
+                          <h3 className="font-semibold text-gray-900">
+                            {classroom.name}
+                          </h3>
+                          <p className="flex items-center text-xs text-gray-500 mt-1">
+                            {classroom.type === "Lecture" ? (
+                              <FaChalkboardTeacher className="text-blue-500 mr-1" />
+                            ) : classroom.type === "Tutorial" ? (
+                              <FaUsersLine className="text-green-500 mr-1" />
+                            ) : classroom.type === "Workshop" ? (
+                              <RiComputerFill className="text-orange-500 mr-1" />
+                            ) : (
+                              <span className="w-2 h-2 rounded-full mr-1 bg-gray-500"></span>
+                            )}
+                            {classroom.type}
+                          </p>
+                        </div>
+                        <div
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            classroom.isCurrentlyOccupied
+                              ? "bg-red-100 text-red-600"
+                              : "bg-green-100 text-green-600"
+                          }`}
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={1.5}
-                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                          />
-                        </svg>
-                        <p className="text-sm text-gray-500 font-medium">
-                          No classes scheduled
-                        </p>
-                        <p className="text-xs text-green-600 mt-1.5 bg-green-50 px-3 py-1 rounded-full">
-                          Available all day
-                        </p>
+                          {classroom.isCurrentlyOccupied
+                            ? "Occupied"
+                            : "Available"}
+                        </div>
                       </div>
-                    )}
-                  </div>
+                      <div className="p-5 h-48 overflow-y-auto">
+                        {classroom.schedules.length > 0 ? (
+                          <div className="space-y-3">
+                            {classroom.schedules.map((schedule, idx) => (
+                              <div
+                                key={idx}
+                                className="p-3 rounded-lg bg-blue-50 border-0 transition-all duration-200 hover:bg-blue-100"
+                              >
+                                <div className="flex justify-between items-start mb-1">
+                                  <span className="font-medium text-gray-800 truncate max-w-xs">
+                                    {schedule.course_name}
+                                  </span>
+                                  <span className="text-xs px-2.5 py-1 bg-white rounded-full text-blue-600 whitespace-nowrap ml-1 shadow-sm">
+                                    {schedule.group_name}
+                                  </span>
+                                </div>
+                                <div className="text-xs text-gray-500 mb-1.5 truncate">
+                                  {schedule.teacher_name}
+                                </div>
+                                <div className="text-sm font-medium text-gray-700 flex items-center">
+                                  <svg
+                                    className="w-3.5 h-3.5 mr-1.5 text-gray-500"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                    />
+                                  </svg>
+                                  {formatTime(schedule.start_time)} -{" "}
+                                  {formatTime(schedule.end_time)}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="h-full flex flex-col justify-center items-center">
+                            <svg
+                              className="w-16 h-16 text-gray-300 mb-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={1.5}
+                                d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1M19 20a2 2 0 002-2V8a2 2 0 00-2-2h-5M8 19h8"
+                              />
+                            </svg>
+                            <p className="text-sm text-gray-700 font-medium">
+                              Available All Day
+                            </p>
+                            <p className="text-xs text-green-600 mt-1.5 bg-green-50 px-3 py-1 rounded-full">
+                              No classes scheduled
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              ) : (
+                <div className="flex flex-col items-center justify-center py-16 bg-white rounded-xl shadow-sm">
+                  <svg
+                    className="w-16 h-16 text-gray-300 mb-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1M19 20a2 2 0 002-2V8a2 2 0 00-2-2h-5M8 19h8"
+                    />
+                  </svg>
+                  <h3 className="text-lg font-medium text-gray-700 mb-2">
+                    No Classrooms Found
+                  </h3>
+                  <p className="text-sm text-gray-500 max-w-md text-center">
+                    No classrooms match your current filters. Try adjusting your
+                    selection.
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>
