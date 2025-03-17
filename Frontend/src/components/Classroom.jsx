@@ -233,41 +233,40 @@ const Classroom = () => {
   const currentDate = new Date();
   const formattedDate = formatDate(currentDate);
 
-  // Function to check if a classroom is occupied at a certain time
+  // Function to check if a classroom is occupied at a certain time - OPTIMIZED
   const getClassroomStatus = (classroomId, timeSlot) => {
     const filteredSchedules = getFilteredSchedules();
 
+    // Convert time slots to minutes for easier comparison
     const [startHour, startMinute] = timeSlot.start.split(":").map(Number);
     const [endHour, endMinute] = timeSlot.end.split(":").map(Number);
-
-    // Convert to minutes for easier comparison
     const slotStartMinutes = startHour * 60 + startMinute;
     const slotEndMinutes = endHour * 60 + endMinute;
 
-    // Check if classroom is occupied during this time slot
+    // Find occupying schedule with early return pattern
     const occupyingSchedule = filteredSchedules.find((schedule) => {
-      // Check if it's for this classroom
+      // Skip if not for this classroom
       if (parseInt(schedule.classroom_id) !== parseInt(classroomId))
         return false;
 
-      // Parse schedule times
+      // Parse schedule times once
       const [scheduleStartHour, scheduleStartMinute] = schedule.start_time
         .split(":")
         .map(Number);
       const [scheduleEndHour, scheduleEndMinute] = schedule.end_time
         .split(":")
         .map(Number);
-
       const scheduleStartMinutes = scheduleStartHour * 60 + scheduleStartMinute;
       const scheduleEndMinutes = scheduleEndHour * 60 + scheduleEndMinute;
 
-      // Check for overlap
+      // Check for overlap using simplified logic
       return (
         slotStartMinutes < scheduleEndMinutes &&
         slotEndMinutes > scheduleStartMinutes
       );
     });
 
+    // Return result using object shorthand notation
     return occupyingSchedule
       ? {
           occupied: true,
@@ -276,80 +275,81 @@ const Classroom = () => {
           group: occupyingSchedule.group_name,
           startTime: occupyingSchedule.start_time,
           endTime: occupyingSchedule.end_time,
-          scheduleId: occupyingSchedule.id, // Add schedule ID for tracking
+          scheduleId: occupyingSchedule.id,
         }
-      : {
-          occupied: false,
-        };
+      : { occupied: false };
   };
 
-  // New function to calculate cell span for occupied slots
+  // New function to calculate cell span for occupied slots - OPTIMIZED
   const calculateCellSpan = (classroom, timeSlots) => {
     const spans = {};
     const processed = new Set();
 
-    timeSlots.forEach((slot, index) => {
-      if (processed.has(index)) return;
+    // Use for loop instead of forEach for better performance with early returns
+    for (let index = 0; index < timeSlots.length; index++) {
+      if (processed.has(index)) continue;
 
+      const slot = timeSlots[index];
       const status = getClassroomStatus(classroom.id, slot);
 
-      if (status.occupied) {
-        // Find how many consecutive slots this schedule occupies
-        let spanCount = 1;
-        let nextIndex = index + 1;
+      if (!status.occupied) continue;
 
-        while (nextIndex < timeSlots.length) {
-          const nextStatus = getClassroomStatus(
-            classroom.id,
-            timeSlots[nextIndex]
-          );
+      // Find consecutive slots with the same schedule
+      let spanCount = 1;
+      let nextIndex = index + 1;
 
-          if (
-            nextStatus.occupied &&
-            nextStatus.scheduleId === status.scheduleId &&
-            nextStatus.course === status.course &&
-            nextStatus.teacher === status.teacher &&
-            nextStatus.group === status.group &&
-            nextStatus.startTime === status.startTime &&
-            nextStatus.endTime === status.endTime
-          ) {
-            spanCount++;
-            processed.add(nextIndex);
-            nextIndex++;
-          } else {
-            break;
-          }
+      // Create a comparison key for matching schedules
+      const scheduleKey = `${status.scheduleId}-${status.startTime}-${status.endTime}`;
+
+      while (nextIndex < timeSlots.length) {
+        const nextStatus = getClassroomStatus(
+          classroom.id,
+          timeSlots[nextIndex]
+        );
+
+        // Check if next slot has the same schedule using the key
+        const nextKey = nextStatus.occupied
+          ? `${nextStatus.scheduleId}-${nextStatus.startTime}-${nextStatus.endTime}`
+          : "";
+
+        if (nextStatus.occupied && nextKey === scheduleKey) {
+          spanCount++;
+          processed.add(nextIndex);
+          nextIndex++;
+        } else {
+          break;
         }
-
-        spans[index] = {
-          span: spanCount,
-          status: status,
-        };
       }
-    });
+
+      spans[index] = { span: spanCount, status };
+    }
 
     return spans;
   };
 
-  // Get all classroom schedules for card view with availability filter
+  // Get all classroom schedules for card view with availability filter - OPTIMIZED
   const getAllClassroomSchedules = () => {
     const filteredSchedules = getFilteredSchedules();
-    // Use filtered classrooms based on type
     const filteredClassrooms = getFilteredClassrooms();
 
-    // Get current time for availability check
+    // Get current time once
     const now = new Date();
-    const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
-    const currentTimeInMinutes = currentHour * 60 + currentMinute;
+    const currentTimeInMinutes = now.getHours() * 60 + now.getMinutes();
 
-    // Group schedules by classroom
-    const schedulesByClassroom = filteredClassrooms.map((classroom) => {
-      const classroomSchedules = filteredSchedules.filter(
-        (schedule) => parseInt(schedule.classroom_id) === classroom.id
-      );
+    // Create a map for faster schedule lookup
+    const schedulesByClassroomId = filteredSchedules.reduce((acc, schedule) => {
+      const id = parseInt(schedule.classroom_id);
+      if (!acc[id]) acc[id] = [];
+      acc[id].push(schedule);
+      return acc;
+    }, {});
 
-      // Check if classroom is currently occupied
+    // Process classrooms with the schedule map
+    const classroomsWithSchedules = filteredClassrooms.map((classroom) => {
+      const classroomId = classroom.id;
+      const classroomSchedules = schedulesByClassroomId[classroomId] || [];
+
+      // Check if currently occupied using some() for early return
       const isCurrentlyOccupied = classroomSchedules.some((schedule) => {
         const [startHour, startMinute] = schedule.start_time
           .split(":")
@@ -372,14 +372,12 @@ const Classroom = () => {
       };
     });
 
-    // Filter by availability if the option is selected
-    if (showOnlyAvailable && viewMode === "card") {
-      return schedulesByClassroom.filter(
-        (classroom) => !classroom.isCurrentlyOccupied
-      );
-    }
-
-    return schedulesByClassroom;
+    // Apply availability filter if needed
+    return showOnlyAvailable && viewMode === "card"
+      ? classroomsWithSchedules.filter(
+          (classroom) => !classroom.isCurrentlyOccupied
+        )
+      : classroomsWithSchedules;
   };
 
   const formatTime = (time) => {
@@ -387,7 +385,6 @@ const Classroom = () => {
     const date = new Date();
     date.setHours(hours, minutes);
 
-    // Format the time to 12-hour format with AM/PM
     const options = {
       hour: "2-digit",
       minute: "2-digit",
@@ -405,8 +402,6 @@ const Classroom = () => {
         </div>
       </div>
     );
-
-  // Add this function to handle opening the reservation panel
   const handleOpenReservation = (classroom) => {
     setSelectedClassroom(classroom);
     setIsReservationOpen(true);
@@ -425,10 +420,6 @@ const Classroom = () => {
                 </h1>
                 <IoMdInformationCircleOutline className="text-2xl" />
               </div>
-              {/* <div className="flex gap-2 items-center text-sm text-gray-800">
-                <BsCalendar2EventFill className="text-blue-500" />
-                {formattedDate}
-              </div> */}
             </div>
             <div className="relative w-96">
               <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
@@ -789,7 +780,6 @@ const Classroom = () => {
                           </td>
 
                           {timeSlots.map((slot, slotIndex) => {
-                            // Skip rendering if this cell is part of a span
                             if (
                               Object.keys(cellSpans).some((startIdx) => {
                                 const span = cellSpans[startIdx];
@@ -804,7 +794,6 @@ const Classroom = () => {
                               return null;
                             }
 
-                            // If this is the start of a span
                             if (cellSpans[slotIndex]) {
                               const { span, status } = cellSpans[slotIndex];
 
@@ -1000,6 +989,3 @@ const Classroom = () => {
 };
 
 export default Classroom;
-{
-  /* Add the ReserveClassroom component here */
-}

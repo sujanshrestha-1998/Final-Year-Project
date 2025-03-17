@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { IoClose, IoSearch } from "react-icons/io5";
+import { IoChevronBack, IoSearch } from "react-icons/io5";
 import { BsCalendar2EventFill } from "react-icons/bs";
 import { LuChevronsUpDown } from "react-icons/lu";
 import { FaChalkboardTeacher } from "react-icons/fa";
@@ -24,6 +24,8 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [typeFilter, setTypeFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(false);
+  const [allSchedules, setAllSchedules] = useState([]);
+  const [classroomAvailability, setClassroomAvailability] = useState({});
 
   // Ref for dropdown
   const dropdownRef = useRef(null);
@@ -60,24 +62,107 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
     };
   }, []);
 
+  // Function to calculate availability for all classrooms
+  const calculateClassroomAvailability = (classrooms, schedules) => {
+    const availability = {};
+
+    // Get current time
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentTimeInMinutes = currentHour * 60 + currentMinute;
+
+    // Get current day of week
+    const daysOfWeek = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    const currentDay = daysOfWeek[now.getDay()];
+
+    // Calculate availability for each classroom
+    classrooms.forEach((classroom) => {
+      // Check if there are any schedules for this classroom at the current time
+      const isOccupied = schedules.some((schedule) => {
+        // Check if it's for this classroom and today
+        if (
+          parseInt(schedule.classroom_id) !== classroom.id ||
+          schedule.day_of_week !== currentDay
+        ) {
+          return false;
+        }
+
+        // Parse schedule times
+        const [startHour, startMinute] = schedule.start_time
+          .split(":")
+          .map(Number);
+        const [endHour, endMinute] = schedule.end_time.split(":").map(Number);
+
+        const scheduleStartMinutes = startHour * 60 + startMinute;
+        const scheduleEndMinutes = endHour * 60 + endMinute;
+
+        // Check if current time falls within the schedule
+        const isWithinSchedule =
+          currentTimeInMinutes >= scheduleStartMinutes &&
+          currentTimeInMinutes < scheduleEndMinutes;
+
+        return isWithinSchedule;
+      });
+
+      // Store availability for this classroom
+      availability[classroom.id] = {
+        isAvailable: !isOccupied,
+        status: isOccupied ? "Occupied" : "Available",
+      };
+    });
+
+    setClassroomAvailability(availability);
+  };
+
+  // Function to get classroom availability
+  const getClassroomAvailability = (classroom) => {
+    // Return stored availability or default to available if not found
+    const availability = classroomAvailability[classroom.id] || {
+      isAvailable: true,
+      status: "Available",
+    };
+    return availability;
+  };
+
   // Fetch classrooms from API
   const fetchClassrooms = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(
+      // Fetch classrooms
+      const classroomsResponse = await axios.get(
         "http://localhost:3000/api/get_classrooms"
       );
-      setClassrooms(response.data.data || []);
+      const fetchedClassrooms = classroomsResponse.data.data || [];
+      setClassrooms(fetchedClassrooms);
+
+      // Fetch schedules
+      try {
+        const schedulesResponse = await axios.get(
+          "http://localhost:3000/api/get_all_schedules"
+        );
+        const fetchedSchedules = schedulesResponse.data.schedules || [];
+        setAllSchedules(fetchedSchedules);
+
+        // Calculate availability for each classroom
+        calculateClassroomAvailability(fetchedClassrooms, fetchedSchedules);
+      } catch (scheduleError) {
+        console.error("Error fetching schedules:", scheduleError);
+        setAllSchedules([]);
+        calculateClassroomAvailability(fetchedClassrooms, []);
+      }
     } catch (error) {
       console.error("Error fetching classrooms:", error);
-      // Use dummy data if API call fails
-      setClassrooms([
-        { id: 1, name: "Room 101", type: "Lecture", capacity: 100 },
-        { id: 2, name: "Room 102", type: "Tutorial", capacity: 30 },
-        { id: 3, name: "Room 103", type: "Workshop", capacity: 50 },
-        { id: 4, name: "Room 104", type: "Lecture", capacity: 80 },
-        { id: 5, name: "Room 105", type: "Tutorial", capacity: 25 },
-      ]);
+      setClassrooms([]);
+      setAllSchedules([]);
     } finally {
       setIsLoading(false);
     }
@@ -107,19 +192,158 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle reservation submission
-    console.log({
-      classroom: selectedClassroom,
-      date: selectedDate,
-      startTime,
-      endTime,
-      purpose,
-      attendees,
+
+    // Validate form data
+    if (
+      !selectedClassroom ||
+      !selectedDate ||
+      !startTime ||
+      !endTime ||
+      !purpose ||
+      !attendees
+    ) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
+    // Check if the classroom is available for the selected time
+    if (!checkAvailabilityForSelectedTime()) {
+      alert("This classroom is not available for the selected time slot");
+      return;
+    }
+
+    // Format date for API
+    const formattedDate = selectedDate.toISOString().split("T")[0];
+
+    try {
+      // Get user email from localStorage instead of user object
+      const userEmail = localStorage.getItem("userEmail");
+      const isAuthenticated =
+        localStorage.getItem("isAuthenticated") === "true";
+
+      console.log("Auth status:", isAuthenticated, "Email:", userEmail);
+
+      if (!isAuthenticated || !userEmail) {
+        alert(
+          "You must be logged in to reserve a classroom. Please log in and try again."
+        );
+        return;
+      }
+
+      // First, fetch the user ID using the email
+      const userResponse = await axios.get(
+        `http://localhost:3000/api/get_user_by_email?email=${encodeURIComponent(
+          userEmail
+        )}`
+      );
+
+      if (
+        !userResponse.data.success ||
+        !userResponse.data.user ||
+        !userResponse.data.user.id
+      ) {
+        alert("Could not retrieve your user information. Please log in again.");
+        return;
+      }
+
+      const userId = userResponse.data.user.id;
+      console.log("Retrieved user ID:", userId);
+
+      // Prepare reservation data
+      const reservationData = {
+        classroom_id: selectedClassroom.id,
+        user_id: userId,
+        purpose: purpose,
+        reservation_date: formattedDate,
+        start_time: startTime,
+        end_time: endTime,
+        attendees: parseInt(attendees),
+      };
+
+      console.log("Sending reservation data:", reservationData);
+
+      // Submit reservation to API
+      const response = await axios.post(
+        "http://localhost:3000/api/reserve_classroom",
+        reservationData
+      );
+
+      if (response.data.success) {
+        alert(
+          "Classroom reservation submitted successfully! Awaiting approval."
+        );
+        // Close the panel after successful submission
+        handleClose();
+      } else {
+        alert(
+          "Failed to reserve classroom: " +
+            (response.data.message || "Unknown error")
+        );
+      }
+    } catch (error) {
+      console.error("Error submitting reservation:", error);
+      alert(
+        "An error occurred while submitting your reservation. Please try again."
+      );
+    }
+  };
+
+  // Add this function to check if a classroom is available for the selected date and time
+  const checkAvailabilityForSelectedTime = () => {
+    if (!selectedClassroom || !selectedDate || !startTime || !endTime) {
+      return true; // If any required field is missing, assume available
+    }
+
+    // Get day of week for selected date
+    const daysOfWeek = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    const selectedDayOfWeek = daysOfWeek[selectedDate.getDay()];
+
+    // Parse selected times
+    const [startHour, startMinute] = startTime.split(":").map(Number);
+    const [endHour, endMinute] = endTime.split(":").map(Number);
+
+    const selectedStartMinutes = startHour * 60 + startMinute;
+    const selectedEndMinutes = endHour * 60 + endMinute;
+
+    // Check if there are any schedules that conflict with the selected time
+    const hasConflict = allSchedules.some((schedule) => {
+      // Check if it's for this classroom and the selected day
+      if (
+        parseInt(schedule.classroom_id) !== selectedClassroom.id ||
+        schedule.day_of_week !== selectedDayOfWeek
+      ) {
+        return false;
+      }
+
+      // Parse schedule times
+      const [schStartHour, schStartMinute] = schedule.start_time
+        .split(":")
+        .map(Number);
+      const [schEndHour, schEndMinute] = schedule.end_time
+        .split(":")
+        .map(Number);
+
+      const scheduleStartMinutes = schStartHour * 60 + schStartMinute;
+      const scheduleEndMinutes = schEndHour * 60 + schEndMinute;
+
+      // Check for overlap
+      return (
+        selectedStartMinutes < scheduleEndMinutes &&
+        selectedEndMinutes > scheduleStartMinutes
+      );
     });
-    // Close the panel after submission
-    onClose();
+
+    return !hasConflict;
   };
 
   const formatDate = (date) => {
@@ -160,6 +384,7 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
 
   if (!isOpen) return null;
 
+  // Rest of the component remains unchanged
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
       {/* Backdrop with blur effect */}
@@ -178,16 +403,16 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
       >
         <div className="h-full flex flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-800">
-              Reserve Classroom
-            </h2>
+          <div className="flex items-center px-6 py-4 border-b border-gray-200">
             <button
               onClick={handleClose}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+              className="p-2 flex gap-1 text-blue-500 items-center text-sm font-medium"
             >
-              <IoClose className="text-gray-500 text-xl" />
+              <IoChevronBack /> Cancel
             </button>
+            <h2 className="text-xl ml-10 font-semibold text-gray-800">
+              Reserve Classroom
+            </h2>
           </div>
 
           {/* Content */}
@@ -349,8 +574,15 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
                                   </div>
                                 </div>
                               </div>
-                              <div className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full">
-                                Capacity: {room.capacity || "Unknown"}
+                              {/* Display availability status */}
+                              <div
+                                className={`text-xs px-2 py-1 rounded-full ${
+                                  getClassroomAvailability(room).isAvailable
+                                    ? "bg-green-100 text-green-600"
+                                    : "bg-red-100 text-red-600"
+                                }`}
+                              >
+                                {getClassroomAvailability(room).status}
                               </div>
                             </div>
                           ))}
@@ -388,9 +620,32 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
                       <p className="text-sm text-gray-500">
                         {selectedClassroom.type} Room
                       </p>
-                      <div className="mt-2 text-xs font-medium text-blue-600 bg-blue-100 px-3 py-1 rounded-full inline-block">
-                        Capacity: {selectedClassroom.capacity || "Unknown"}
+                      {/* Display current availability status */}
+                      <div
+                        className={`mt-2 text-xs font-medium px-3 py-1 rounded-full inline-block ${
+                          getClassroomAvailability(selectedClassroom)
+                            .isAvailable
+                            ? "bg-green-100 text-green-600"
+                            : "bg-red-100 text-red-600"
+                        }`}
+                      >
+                        {getClassroomAvailability(selectedClassroom).status}
                       </div>
+
+                      {/* Add availability for selected time slot if all fields are filled */}
+                      {selectedDate && startTime && endTime && (
+                        <div
+                          className={`mt-2 ml-2 text-xs font-medium px-3 py-1 rounded-full inline-block ${
+                            checkAvailabilityForSelectedTime()
+                              ? "bg-green-100 text-green-600"
+                              : "bg-red-100 text-red-600"
+                          }`}
+                        >
+                          {checkAvailabilityForSelectedTime()
+                            ? "Available for selected time"
+                            : "Unavailable for selected time"}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
