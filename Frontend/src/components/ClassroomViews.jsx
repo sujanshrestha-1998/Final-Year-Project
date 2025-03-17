@@ -67,7 +67,7 @@ export const TableView = ({
                         const span = cellSpans[startIdx];
                         // Add null check for span
                         if (!span) return false;
-                        
+
                         const endIdx = parseInt(startIdx) + span.span - 1;
                         return (
                           slotIndex > parseInt(startIdx) && slotIndex <= endIdx
@@ -80,7 +80,7 @@ export const TableView = ({
                     // Occupied cell with span
                     if (cellSpans[slotIndex]) {
                       const { span, status } = cellSpans[slotIndex];
-                      
+
                       // Add null check for status
                       if (!status) {
                         return (
@@ -90,7 +90,9 @@ export const TableView = ({
                             colSpan={span || 1}
                           >
                             <div className="h-full flex flex-col justify-center rounded-lg p-2">
-                              <div className="text-xs text-green-500 font-medium text-center">Error: Invalid status</div>
+                              <div className="text-xs text-green-500 font-medium text-center">
+                                Error: Invalid status
+                              </div>
                             </div>
                           </td>
                         );
@@ -118,7 +120,9 @@ export const TableView = ({
                                 {formatTime(status.endTime)}
                               </div>
                               <div className="text-gray-600 truncate mt-1">
-                                {status.isApproved ? "Reserved" : (status.teacher || "Unknown Teacher")}
+                                {status.isApproved
+                                  ? "Reserved"
+                                  : status.teacher || "Unknown Teacher"}
                               </div>
                             </div>
                           </div>

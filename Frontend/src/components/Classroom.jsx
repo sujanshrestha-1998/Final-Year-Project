@@ -105,23 +105,24 @@ const Classroom = () => {
 
         // Fetch approved reservations and add them to schedules
         const approvedReservations = await fetchApprovedReservations();
-        console.log("Number of approved reservations:", approvedReservations.length); // Add this log
+        console.log(
+          "Number of approved reservations:",
+          approvedReservations.length
+        ); // Add this log
 
         // Format reservations to match schedule structure
+        // Update the formattedReservations mapping function:
+        
         const formattedReservations = approvedReservations.map(
           (reservation) => {
             // Convert reservation date to day of week
             const reservationDate = new Date(reservation.reservation_date);
-            const dayOfWeek = reservationDate.toLocaleDateString("en-US", { weekday: "long" });
-            
-            console.log("Processing reservation:", {
-              id: reservation.id,
-              day: dayOfWeek,
-              start: reservation.start_time,
-              end: reservation.end_time,
-              status: reservation.status
-            }); // Add this log
-            
+            const dayOfWeek = reservationDate.toLocaleDateString("en-US", {
+              weekday: "long",
+            });
+        
+            console.log("Processing reservation with username:", reservation.user_name);
+        
             return {
               id: reservation.id,
               classroom_id: reservation.classroom_id,
@@ -129,18 +130,20 @@ const Classroom = () => {
               start_time: reservation.start_time.substring(0, 5), // Format to HH:MM
               end_time: reservation.end_time.substring(0, 5), // Format to HH:MM
               user_id: reservation.user_id,
+              user_name: reservation.user_name, // Make sure this is set correctly
               purpose: reservation.purpose,
               attendees: reservation.attendees,
               status: reservation.status,
-              // Add these fields to match schedule structure
-              user_name: `User ${reservation.user_id}`, // You might want to fetch actual usernames
               group_id: "all", // Reservations apply to all groups
             };
           }
         );
 
         // Combine regular schedules with approved reservations
-        const combinedSchedules = [...allGroupSchedules, ...formattedReservations];
+        const combinedSchedules = [
+          ...allGroupSchedules,
+          ...formattedReservations,
+        ];
         console.log("Combined schedules:", combinedSchedules.length); // Add this log
         setAllSchedules(combinedSchedules);
         setLoading(false);
@@ -235,15 +238,17 @@ const Classroom = () => {
   const getFilteredSchedules = () => {
     console.log("All schedules:", allSchedules.length); // Add this log
     console.log("Selected day:", selectedDay); // Add this log
-    
+
     // First filter by day
     let daySchedules = allSchedules.filter(
       (schedule) => schedule.day_of_week === selectedDay
     );
-    
+
     console.log("Schedules for selected day:", daySchedules.length); // Add this log
-    console.log("Approved reservations for day:", 
-      daySchedules.filter(s => s.status === "approved").length); // Add this log
+    console.log(
+      "Approved reservations for day:",
+      daySchedules.filter((s) => s.status === "approved").length
+    ); // Add this log
 
     // Then filter by group if a specific group is selected
     if (activeTab !== "all") {
@@ -333,14 +338,15 @@ const Classroom = () => {
       );
     });
 
+    // Inside the getClassroomStatus function, update the return statement for approved reservations:
+
     // If there's an approved reservation, return it
     if (approvedReservation) {
       return {
         occupied: true,
         isApproved: true,
-        username:
-          approvedReservation.user_name ||
-          `User ${approvedReservation.user_id}`,
+        // Use the user_name directly instead of constructing it from user_id
+        username: approvedReservation.user_name,
         startTime: approvedReservation.start_time.substring(0, 5),
         endTime: approvedReservation.end_time.substring(0, 5),
         scheduleId: approvedReservation.id,
