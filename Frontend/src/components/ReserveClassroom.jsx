@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { IoClose } from "react-icons/io5";
+import React, { useState, useEffect, useRef } from "react";
+import { IoClose, IoSearch } from "react-icons/io5";
 import { BsCalendar2EventFill } from "react-icons/bs";
 import { LuChevronsUpDown } from "react-icons/lu";
 import { FaChalkboardTeacher } from "react-icons/fa";
@@ -7,6 +7,7 @@ import { FaUsersLine } from "react-icons/fa6";
 import { RiComputerFill } from "react-icons/ri";
 import { MdOutlineDescription, MdPeople } from "react-icons/md";
 import { BiTime } from "react-icons/bi";
+import axios from "axios";
 
 const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -16,14 +17,71 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
   const [attendees, setAttendees] = useState("");
   const [animateIn, setAnimateIn] = useState(false);
 
+  // New state variables for classroom selection
+  const [classrooms, setClassrooms] = useState([]);
+  const [selectedClassroom, setSelectedClassroom] = useState(classroom);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Ref for dropdown
+  const dropdownRef = useRef(null);
+
   // Animation effect when panel opens
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => setAnimateIn(true), 50);
+      // Fetch classrooms when panel opens
+      fetchClassrooms();
     } else {
       setAnimateIn(false);
     }
   }, [isOpen]);
+
+  // Set selected classroom when prop changes
+  useEffect(() => {
+    if (classroom) {
+      setSelectedClassroom(classroom);
+    }
+  }, [classroom]);
+
+  // Handle click outside dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Fetch classrooms from API
+  const fetchClassrooms = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get(
+        "http://localhost:3000/api/get_classrooms"
+      );
+      setClassrooms(response.data.data || []);
+    } catch (error) {
+      console.error("Error fetching classrooms:", error);
+      // Use dummy data if API call fails
+      setClassrooms([
+        { id: 1, name: "Room 101", type: "Lecture", capacity: 100 },
+        { id: 2, name: "Room 102", type: "Tutorial", capacity: 30 },
+        { id: 3, name: "Room 103", type: "Workshop", capacity: 50 },
+        { id: 4, name: "Room 104", type: "Lecture", capacity: 80 },
+        { id: 5, name: "Room 105", type: "Tutorial", capacity: 25 },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Generate time slots from 7 AM to 5 PM
   const generateTimeOptions = () => {
@@ -38,11 +96,22 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
 
   const timeOptions = generateTimeOptions();
 
+  // Filter classrooms based on search query and type filter
+  const getFilteredClassrooms = () => {
+    return classrooms.filter((room) => {
+      const matchesSearch = room.name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+      const matchesType = typeFilter === "all" || room.type === typeFilter;
+      return matchesSearch && matchesType;
+    });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     // Handle reservation submission
     console.log({
-      classroom,
+      classroom: selectedClassroom,
       date: selectedDate,
       startTime,
       endTime,
@@ -76,6 +145,17 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
   const handleClose = () => {
     setAnimateIn(false);
     setTimeout(() => onClose(), 300);
+  };
+
+  // Handle classroom selection
+  const handleSelectClassroom = (room) => {
+    setSelectedClassroom(room);
+    setIsDropdownOpen(false);
+  };
+
+  // Handle type filter selection
+  const handleTypeFilter = (type) => {
+    setTypeFilter(type);
   };
 
   if (!isOpen) return null;
@@ -113,17 +193,189 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-6">
             <form onSubmit={handleSubmit}>
-              {/* Selected Classroom */}
-              {classroom && (
+              {/* Classroom Selection */}
+              <div className="mb-6">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                  <FaChalkboardTeacher className="text-blue-500" />
+                  Select Classroom
+                </label>
+
+                {/* Search and dropdown */}
+                <div className="relative" ref={dropdownRef}>
+                  <div
+                    className="flex items-center border border-gray-300 rounded-xl p-3.5 bg-white hover:border-blue-400 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all duration-200 cursor-pointer"
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  >
+                    {selectedClassroom ? (
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-2">
+                          {selectedClassroom.type === "Lecture" ? (
+                            <FaChalkboardTeacher className="text-blue-500" />
+                          ) : selectedClassroom.type === "Tutorial" ? (
+                            <FaUsersLine className="text-green-500" />
+                          ) : (
+                            <RiComputerFill className="text-orange-500" />
+                          )}
+                          <span className="text-gray-800">
+                            {selectedClassroom.name}
+                          </span>
+                        </div>
+                        <LuChevronsUpDown className="text-gray-400" />
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between w-full">
+                        <span className="text-gray-500">
+                          Select a classroom
+                        </span>
+                        <LuChevronsUpDown className="text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Dropdown menu */}
+                  {isDropdownOpen && (
+                    <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-80 overflow-y-auto">
+                      {/* Search input */}
+                      <div className="p-2 border-b border-gray-100">
+                        <div className="relative">
+                          <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+                          <input
+                            type="text"
+                            placeholder="Search classrooms..."
+                            className="w-full pl-9 pr-4 py-2 bg-gray-50 rounded-lg text-sm border-none focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Type filters */}
+                      <div className="flex p-2 gap-1 border-b border-gray-100">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleTypeFilter("all");
+                          }}
+                          className={`px-2 py-1 text-xs rounded-md flex items-center gap-1 ${
+                            typeFilter === "all"
+                              ? "bg-gray-800 text-white"
+                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                          }`}
+                        >
+                          All
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleTypeFilter("Lecture");
+                          }}
+                          className={`px-2 py-1 text-xs rounded-md flex items-center gap-1 ${
+                            typeFilter === "Lecture"
+                              ? "bg-blue-500 text-white"
+                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                          }`}
+                        >
+                          <FaChalkboardTeacher className="text-xs" />
+                          Lecture
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleTypeFilter("Tutorial");
+                          }}
+                          className={`px-2 py-1 text-xs rounded-md flex items-center gap-1 ${
+                            typeFilter === "Tutorial"
+                              ? "bg-green-500 text-white"
+                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                          }`}
+                        >
+                          <FaUsersLine className="text-xs" />
+                          Tutorial
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleTypeFilter("Workshop");
+                          }}
+                          className={`px-2 py-1 text-xs rounded-md flex items-center gap-1 ${
+                            typeFilter === "Workshop"
+                              ? "bg-orange-500 text-white"
+                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                          }`}
+                        >
+                          <RiComputerFill className="text-xs" />
+                          Workshop
+                        </button>
+                      </div>
+
+                      {/* Classroom list */}
+                      {isLoading ? (
+                        <div className="p-4 text-center">
+                          <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-blue-500 border-r-transparent"></div>
+                          <p className="mt-2 text-sm text-gray-500">
+                            Loading classrooms...
+                          </p>
+                        </div>
+                      ) : getFilteredClassrooms().length > 0 ? (
+                        <div className="py-1">
+                          {getFilteredClassrooms().map((room) => (
+                            <div
+                              key={room.id}
+                              className="px-4 py-2 hover:bg-gray-50 cursor-pointer flex items-center justify-between"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSelectClassroom(room);
+                              }}
+                            >
+                              <div className="flex items-center gap-2">
+                                {room.type === "Lecture" ? (
+                                  <FaChalkboardTeacher className="text-blue-500" />
+                                ) : room.type === "Tutorial" ? (
+                                  <FaUsersLine className="text-green-500" />
+                                ) : (
+                                  <RiComputerFill className="text-orange-500" />
+                                )}
+                                <div>
+                                  <div className="font-medium text-gray-800">
+                                    {room.name}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    {room.type} Room
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full">
+                                Capacity: {room.capacity || "Unknown"}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="p-4 text-center text-gray-500">
+                          No classrooms found
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Selected Classroom Display */}
+              {selectedClassroom && (
                 <div className="mb-6 p-5 bg-blue-50 rounded-xl border border-blue-100">
                   <h3 className="font-medium text-gray-800 mb-3">
                     Selected Classroom
                   </h3>
                   <div className="flex items-start gap-4">
                     <div className="p-4 bg-white rounded-xl shadow-sm">
-                      {classroom.type === "Lecture" ? (
+                      {selectedClassroom.type === "Lecture" ? (
                         <FaChalkboardTeacher className="text-blue-500 text-2xl" />
-                      ) : classroom.type === "Tutorial" ? (
+                      ) : selectedClassroom.type === "Tutorial" ? (
                         <FaUsersLine className="text-green-500 text-2xl" />
                       ) : (
                         <RiComputerFill className="text-orange-500 text-2xl" />
@@ -131,13 +383,13 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
                     </div>
                     <div>
                       <p className="font-semibold text-gray-900 text-lg">
-                        {classroom.name}
+                        {selectedClassroom.name}
                       </p>
                       <p className="text-sm text-gray-500">
-                        {classroom.type} Room
+                        {selectedClassroom.type} Room
                       </p>
                       <div className="mt-2 text-xs font-medium text-blue-600 bg-blue-100 px-3 py-1 rounded-full inline-block">
-                        Capacity: {classroom.capacity || "Unknown"}
+                        Capacity: {selectedClassroom.capacity || "Unknown"}
                       </div>
                     </div>
                   </div>
