@@ -303,4 +303,284 @@ router.delete("/delete_classroom/:id", (req, res) => {
   });
 });
 
+router.get("/get_all_schedules", (req, res) => {
+  const query = `
+    SELECT
+    schedules.id,
+    schedules.group_id,
+    schedules.classroom_id,
+    schedules.course_id,
+    schedules.teacher_id,
+    schedules.day_of_week,
+    schedules.start_time,
+    schedules.end_time,
+    \`group\`.name AS group_name,
+    classrooms.name AS classroom_name,
+    courses.name AS course_name,
+    CONCAT(teachers.first_name, ' ', teachers.last_name) AS teacher_name
+    FROM schedules
+    JOIN \`group\` ON schedules.group_id = \`group\`.id
+    LEFT JOIN classrooms ON schedules.classroom_id = classrooms.id
+    LEFT JOIN courses ON schedules.course_id = courses.id
+    LEFT JOIN teachers ON schedules.teacher_id = teachers.teacher_id
+  `;
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error("Database error:", err.message);
+      return res.status(500).json({ message: "Database error" });
+    }
+
+    return res.status(200).json({
+      message: "All schedules fetched successfully",
+      schedules: results,
+    });
+  });
+});
+
+// API endpoint for classroom reservation
+router.post("/reserve_classroom", (req, res) => {
+  const {
+    classroom_id,
+    user_id,
+    purpose,
+    reservation_date,
+    start_time,
+    end_time,
+    attendees,
+  } = req.body;
+
+  // Validate required fields
+  if (
+    !classroom_id ||
+    !user_id ||
+    !purpose ||
+    !reservation_date ||
+    !start_time ||
+    !end_time
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: "Missing required fields",
+    });
+  }
+
+  // Convert date string to Date object for validation
+  const reservationDateObj = new Date(reservation_date);
+  const currentDate = new Date();
+
+  // Set hours, minutes, seconds, and milliseconds to 0 for date comparison
+  currentDate.setHours(0, 0, 0, 0);
+
+  // Check if reservation date is in the past
+  if (reservationDateObj < currentDate) {
+    return res.status(400).json({
+      success: false,
+      message: "Cannot make reservations for past dates",
+    });
+  }
+
+  // Get day of week for the reservation date
+  const daysOfWeek = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+  const dayOfWeek = daysOfWeek[reservationDateObj.getDay()];
+
+  // First, check for overlapping schedules in the regular schedule
+  const scheduleOverlapQuery = `
+    SELECT id
+    FROM schedules
+    WHERE classroom_id = ?
+      AND day_of_week = ?
+      AND ((start_time < ? AND end_time > ?) 
+           OR (start_time < ? AND end_time > ?) 
+           OR (start_time >= ? AND end_time <= ?))
+  `;
+
+  const scheduleOverlapParams = [
+    classroom_id,
+    dayOfWeek,
+    end_time,
+    start_time,
+    end_time,
+    start_time,
+    start_time,
+    end_time,
+  ];
+
+  // Then, check for overlapping reservations
+  const reservationOverlapQuery = `
+    SELECT id
+    FROM classroom_reservations
+    WHERE classroom_id = ?
+      AND reservation_date = ?
+      AND status != 'rejected'
+      AND ((start_time < ? AND end_time > ?) 
+           OR (start_time < ? AND end_time > ?) 
+           OR (start_time >= ? AND end_time <= ?))
+  `;
+
+  const reservationOverlapParams = [
+    classroom_id,
+    reservation_date,
+    end_time,
+    start_time,
+    end_time,
+    start_time,
+    start_time,
+    end_time,
+  ];
+
+  // Check for schedule overlaps first
+  connection.query(
+    scheduleOverlapQuery,
+    scheduleOverlapParams,
+    (scheduleErr, scheduleResults) => {
+      if (scheduleErr) {
+        console.error("Database error:", scheduleErr.message);
+        return res.status(500).json({
+          success: false,
+          message: "Database error",
+        });
+      }
+
+      // If overlapping with regular schedule, return error
+      if (scheduleResults.length > 0) {
+        return res.status(409).json({
+          success: false,
+          message:
+            "Cannot reserve: This classroom has a regular class scheduled during this time period.",
+        });
+      }
+
+      // If no overlap with regular schedule, check for reservation overlaps
+      connection.query(
+        reservationOverlapQuery,
+        reservationOverlapParams,
+        (reservationErr, reservationResults) => {
+          if (reservationErr) {
+            console.error("Database error:", reservationErr.message);
+            return res.status(500).json({
+              success: false,
+              message: "Database error",
+            });
+          }
+
+          // If overlapping with existing reservations, return error
+          if (reservationResults.length > 0) {
+            return res.status(409).json({
+              success: false,
+              message:
+                "Cannot reserve: This classroom is already reserved during this time period.",
+            });
+          }
+
+          // If no overlaps, proceed with the reservation
+          const insertQuery = `
+        INSERT INTO classroom_reservations 
+        (classroom_id, user_id, purpose, reservation_date, start_time, end_time, attendees, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')
+      `;
+
+          const insertParams = [
+            classroom_id,
+            user_id,
+            purpose,
+            reservation_date,
+            start_time,
+            end_time,
+            attendees || null,
+          ];
+
+          connection.query(insertQuery, insertParams, (insertErr, result) => {
+            if (insertErr) {
+              console.error("Database error:", insertErr.message);
+              return res.status(500).json({
+                success: false,
+                message: "Failed to create reservation",
+              });
+            }
+
+            return res.status(201).json({
+              success: true,
+              message: "Classroom reservation submitted successfully",
+              reservation_id: result.insertId,
+            });
+          });
+        }
+      );
+    }
+  );
+});
+
+// Add this new endpoint to get user by email
+router.get("/get_user_by_email", (req, res) => {
+  const { email } = req.query;
+
+  if (!email) {
+    return res.status(400).json({
+      success: false,
+      message: "Email is required",
+    });
+  }
+
+  const query =
+    "SELECT id, username, email, role_id FROM users WHERE email = ?";
+
+  connection.query(query, [email], (err, results) => {
+    if (err) {
+      console.error("Database error:", err.message);
+      return res.status(500).json({
+        success: false,
+        message: "Database error",
+      });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      user: results[0],
+    });
+  });
+});
+
+// Add endpoint to get approved classroom reservations
+router.get("/get_approved_reservations", (req, res) => {
+  const query = `
+    SELECT cr.*, c.name AS classroom_name, u.username AS user_name
+    FROM classroom_reservations cr
+    JOIN classrooms c ON cr.classroom_id = c.id
+    JOIN users u ON cr.user_id = u.id
+    WHERE cr.status = 'approved'
+  `;
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error("Database error:", err.message);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch approved reservations",
+        error: err.message,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      reservations: results,
+    });
+  });
+});
+
 module.exports = router;

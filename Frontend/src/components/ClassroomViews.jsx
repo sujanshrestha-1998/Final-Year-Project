@@ -15,6 +15,7 @@ const ClassroomTypeIcon = ({ type }) => {
 };
 
 // Table View Component
+// Inside the TableView component, we need to ensure we're safely accessing properties
 export const TableView = ({
   filteredClassrooms,
   timeSlots,
@@ -64,6 +65,9 @@ export const TableView = ({
                     if (
                       Object.keys(cellSpans).some((startIdx) => {
                         const span = cellSpans[startIdx];
+                        // Add null check for span
+                        if (!span) return false;
+                        
                         const endIdx = parseInt(startIdx) + span.span - 1;
                         return (
                           slotIndex > parseInt(startIdx) && slotIndex <= endIdx
@@ -76,6 +80,21 @@ export const TableView = ({
                     // Occupied cell with span
                     if (cellSpans[slotIndex]) {
                       const { span, status } = cellSpans[slotIndex];
+                      
+                      // Add null check for status
+                      if (!status) {
+                        return (
+                          <td
+                            key={`${classroom.id}-${slot.id}`}
+                            className="p-2 h-20 border-x-2 border-gray-200 bg-green-50"
+                            colSpan={span || 1}
+                          >
+                            <div className="h-full flex flex-col justify-center rounded-lg p-2">
+                              <div className="text-xs text-green-500 font-medium text-center">Error: Invalid status</div>
+                            </div>
+                          </td>
+                        );
+                      }
 
                       return (
                         <td
@@ -85,15 +104,21 @@ export const TableView = ({
                         >
                           <div className="h-full flex flex-col justify-center rounded-lg p-2">
                             <div className="text-sm">
-                              <div className="text-blue-500 font-semibold mt-1">
-                                {status.group}
-                              </div>
+                              {status.isApproved ? (
+                                <div className="text-blue-500 font-semibold mt-1">
+                                  Occupied by {status.username || "User"}
+                                </div>
+                              ) : (
+                                <div className="text-blue-500 font-semibold mt-1">
+                                  {status.group || "Unknown Group"}
+                                </div>
+                              )}
                               <div className="text-black mt-1">
                                 {formatTime(status.startTime)} -{" "}
                                 {formatTime(status.endTime)}
                               </div>
                               <div className="text-gray-600 truncate mt-1">
-                                {status.teacher}
+                                {status.isApproved ? "Reserved" : (status.teacher || "Unknown Teacher")}
                               </div>
                             </div>
                           </div>
@@ -169,14 +194,20 @@ export const CardView = ({
                       >
                         <div className="flex justify-between items-start mb-1">
                           <span className="font-medium text-gray-800 truncate max-w-xs">
-                            {schedule.course_name}
+                            {schedule.isApproved
+                              ? "Reserved"
+                              : schedule.course_name}
                           </span>
                           <span className="text-xs px-2.5 py-1 bg-white rounded-full text-blue-600 whitespace-nowrap ml-1 shadow-sm">
-                            {schedule.group_name}
+                            {schedule.isApproved
+                              ? "Approved"
+                              : schedule.group_name}
                           </span>
                         </div>
                         <div className="text-xs text-gray-500 mb-1.5 truncate">
-                          {schedule.teacher_name}
+                          {schedule.isApproved
+                            ? `Occupied by ${schedule.username || "User"}`
+                            : schedule.teacher_name}
                         </div>
                         <div className="text-sm font-medium text-gray-700 flex items-center">
                           <svg

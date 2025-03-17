@@ -64,6 +64,20 @@ const Classroom = () => {
     }
   };
 
+  // Add a new function to fetch approved reservations
+  const fetchApprovedReservations = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:3000/api/get_approved_reservations"
+      );
+      console.log("Approved reservations:", response.data); // Add this log
+      return response.data.reservations || [];
+    } catch (err) {
+      console.error("Error fetching approved reservations:", err);
+      return [];
+    }
+  };
+
   useEffect(() => {
     const fetchAllData = async () => {
       try {
@@ -89,7 +103,46 @@ const Classroom = () => {
           allGroupSchedules = [...allGroupSchedules, ...schedulesWithGroup];
         }
 
-        setAllSchedules(allGroupSchedules);
+        // Fetch approved reservations and add them to schedules
+        const approvedReservations = await fetchApprovedReservations();
+        console.log("Number of approved reservations:", approvedReservations.length); // Add this log
+
+        // Format reservations to match schedule structure
+        const formattedReservations = approvedReservations.map(
+          (reservation) => {
+            // Convert reservation date to day of week
+            const reservationDate = new Date(reservation.reservation_date);
+            const dayOfWeek = reservationDate.toLocaleDateString("en-US", { weekday: "long" });
+            
+            console.log("Processing reservation:", {
+              id: reservation.id,
+              day: dayOfWeek,
+              start: reservation.start_time,
+              end: reservation.end_time,
+              status: reservation.status
+            }); // Add this log
+            
+            return {
+              id: reservation.id,
+              classroom_id: reservation.classroom_id,
+              day_of_week: dayOfWeek,
+              start_time: reservation.start_time.substring(0, 5), // Format to HH:MM
+              end_time: reservation.end_time.substring(0, 5), // Format to HH:MM
+              user_id: reservation.user_id,
+              purpose: reservation.purpose,
+              attendees: reservation.attendees,
+              status: reservation.status,
+              // Add these fields to match schedule structure
+              user_name: `User ${reservation.user_id}`, // You might want to fetch actual usernames
+              group_id: "all", // Reservations apply to all groups
+            };
+          }
+        );
+
+        // Combine regular schedules with approved reservations
+        const combinedSchedules = [...allGroupSchedules, ...formattedReservations];
+        console.log("Combined schedules:", combinedSchedules.length); // Add this log
+        setAllSchedules(combinedSchedules);
         setLoading(false);
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -180,10 +233,17 @@ const Classroom = () => {
 
   // Filter schedules based on active tab and selected day
   const getFilteredSchedules = () => {
+    console.log("All schedules:", allSchedules.length); // Add this log
+    console.log("Selected day:", selectedDay); // Add this log
+    
     // First filter by day
     let daySchedules = allSchedules.filter(
       (schedule) => schedule.day_of_week === selectedDay
     );
+    
+    console.log("Schedules for selected day:", daySchedules.length); // Add this log
+    console.log("Approved reservations for day:", 
+      daySchedules.filter(s => s.status === "approved").length); // Add this log
 
     // Then filter by group if a specific group is selected
     if (activeTab !== "all") {
@@ -244,7 +304,51 @@ const Classroom = () => {
     const slotStartMinutes = startHour * 60 + startMinute;
     const slotEndMinutes = endHour * 60 + endMinute;
 
-    // Find occupying schedule with early return pattern
+    // Check for approved reservations first
+    const approvedReservation = filteredSchedules.find((schedule) => {
+      // Skip if not for this classroom or not approved
+      if (
+        parseInt(schedule.classroom_id) !== parseInt(classroomId) ||
+        schedule.status !== "approved"
+      )
+        return false;
+
+      // Parse schedule times once
+      const scheduleStartTime = schedule.start_time.substring(0, 5); // Ensure format is HH:MM
+      const scheduleEndTime = schedule.end_time.substring(0, 5); // Ensure format is HH:MM
+
+      const [scheduleStartHour, scheduleStartMinute] = scheduleStartTime
+        .split(":")
+        .map(Number);
+      const [scheduleEndHour, scheduleEndMinute] = scheduleEndTime
+        .split(":")
+        .map(Number);
+      const scheduleStartMinutes = scheduleStartHour * 60 + scheduleStartMinute;
+      const scheduleEndMinutes = scheduleEndHour * 60 + scheduleEndMinute;
+
+      // Check for overlap using simplified logic
+      return (
+        slotStartMinutes < scheduleEndMinutes &&
+        slotEndMinutes > scheduleStartMinutes
+      );
+    });
+
+    // If there's an approved reservation, return it
+    if (approvedReservation) {
+      return {
+        occupied: true,
+        isApproved: true,
+        username:
+          approvedReservation.user_name ||
+          `User ${approvedReservation.user_id}`,
+        startTime: approvedReservation.start_time.substring(0, 5),
+        endTime: approvedReservation.end_time.substring(0, 5),
+        scheduleId: approvedReservation.id,
+        purpose: approvedReservation.purpose,
+      };
+    }
+
+    // Find regular occupying schedule
     const occupyingSchedule = filteredSchedules.find((schedule) => {
       // Skip if not for this classroom
       if (parseInt(schedule.classroom_id) !== parseInt(classroomId))
@@ -267,7 +371,7 @@ const Classroom = () => {
       );
     });
 
-    // Return result using object shorthand notation
+    // Return regular schedule if it exists
     return occupyingSchedule
       ? {
           occupied: true,
@@ -277,55 +381,9 @@ const Classroom = () => {
           startTime: occupyingSchedule.start_time,
           endTime: occupyingSchedule.end_time,
           scheduleId: occupyingSchedule.id,
+          isApproved: false,
         }
       : { occupied: false };
-  };
-
-  // New function to calculate cell span for occupied slots - OPTIMIZED
-  const calculateCellSpan = (classroom, timeSlots) => {
-    const spans = {};
-    const processed = new Set();
-
-    // Use for loop instead of forEach for better performance with early returns
-    for (let index = 0; index < timeSlots.length; index++) {
-      if (processed.has(index)) continue;
-
-      const slot = timeSlots[index];
-      const status = getClassroomStatus(classroom.id, slot);
-
-      if (!status.occupied) continue;
-
-      // Find consecutive slots with the same schedule
-      let spanCount = 1;
-      let nextIndex = index + 1;
-
-      // Create a comparison key for matching schedules
-      const scheduleKey = `${status.scheduleId}-${status.startTime}-${status.endTime}`;
-
-      while (nextIndex < timeSlots.length) {
-        const nextStatus = getClassroomStatus(
-          classroom.id,
-          timeSlots[nextIndex]
-        );
-
-        // Check if next slot has the same schedule using the key
-        const nextKey = nextStatus.occupied
-          ? `${nextStatus.scheduleId}-${nextStatus.startTime}-${nextStatus.endTime}`
-          : "";
-
-        if (nextStatus.occupied && nextKey === scheduleKey) {
-          spanCount++;
-          processed.add(nextIndex);
-          nextIndex++;
-        } else {
-          break;
-        }
-      }
-
-      spans[index] = { span: spanCount, status };
-    }
-
-    return spans;
   };
 
   // Get all classroom schedules for card view with availability filter - OPTIMIZED
@@ -341,7 +399,22 @@ const Classroom = () => {
     const schedulesByClassroomId = filteredSchedules.reduce((acc, schedule) => {
       const id = parseInt(schedule.classroom_id);
       if (!acc[id]) acc[id] = [];
-      acc[id].push(schedule);
+
+      // Ensure time formats are consistent
+      const startTime = schedule.start_time.substring(0, 5); // Format to HH:MM
+      const endTime = schedule.end_time.substring(0, 5); // Format to HH:MM
+
+      // Add isApproved flag and username to each schedule
+      const enhancedSchedule = {
+        ...schedule,
+        start_time: startTime,
+        end_time: endTime,
+        isApproved: schedule.status === "approved",
+        username: schedule.user_name || `User ${schedule.user_id}`,
+        purpose: schedule.purpose || "No purpose specified",
+      };
+
+      acc[id].push(enhancedSchedule);
       return acc;
     }, {});
 
@@ -381,6 +454,7 @@ const Classroom = () => {
       : classroomsWithSchedules;
   };
 
+  // Format time function remains the same
   const formatTime = (time) => {
     const [hours, minutes] = time.split(":");
     const date = new Date();
@@ -392,6 +466,62 @@ const Classroom = () => {
       hour12: true,
     };
     return date.toLocaleTimeString("en-US", options);
+  };
+
+  // Add the missing calculateCellSpan function
+  const calculateCellSpan = (classroom, timeSlots) => {
+    const spans = {};
+    const processed = new Set();
+
+    // For each time slot
+    timeSlots.forEach((slot, slotIndex) => {
+      // Skip if already processed
+      if (processed.has(slotIndex)) return;
+
+      // Get status for this classroom and time slot
+      const status = getClassroomStatus(classroom.id, slot);
+
+      // If occupied, calculate span
+      if (status.occupied) {
+        // Convert times to minutes for easier comparison
+        const [startHour, startMinute] = status.startTime
+          .split(":")
+          .map(Number);
+        const [endHour, endMinute] = status.endTime.split(":").map(Number);
+        const startTimeInMinutes = startHour * 60 + startMinute;
+        const endTimeInMinutes = endHour * 60 + endMinute;
+
+        // Count how many slots this schedule spans
+        let spanCount = 0;
+        let currentSlotIndex = slotIndex;
+
+        while (currentSlotIndex < timeSlots.length) {
+          const currentSlot = timeSlots[currentSlotIndex];
+          const [currentSlotEndHour, currentSlotEndMinute] = currentSlot.end
+            .split(":")
+            .map(Number);
+          const currentSlotEndInMinutes =
+            currentSlotEndHour * 60 + currentSlotEndMinute;
+
+          // If the current slot ends after the schedule ends, stop counting
+          if (currentSlotEndInMinutes > endTimeInMinutes) {
+            break;
+          }
+
+          spanCount++;
+          processed.add(currentSlotIndex);
+          currentSlotIndex++;
+        }
+
+        // Store the span information
+        spans[slotIndex] = {
+          span: spanCount,
+          status: status,
+        };
+      }
+    });
+
+    return spans;
   };
 
   if (loading)
