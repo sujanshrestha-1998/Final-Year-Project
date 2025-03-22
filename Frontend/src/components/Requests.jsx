@@ -6,7 +6,7 @@ import { BiTime } from "react-icons/bi";
 import { MdOutlineDescription, MdPeople } from "react-icons/md";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { PiProjectorScreenDuotone, PiClockUserDuotone } from "react-icons/pi";
-import { BsGrid, BsListUl } from "react-icons/bs"; // Add these imports
+import { IoGrid, IoList } from "react-icons/io5"; // Replace BsGrid, BsListUl with IoGrid, IoList
 
 const Requests = () => {
   const [pendingRequests, setPendingRequests] = useState([]);
@@ -110,35 +110,37 @@ const Requests = () => {
         {/* Header with view toggle */}
         <div className="mb-4 flex justify-between items-center">
           <div className="flex py-1 gap-1 items-center">
-            <h1 className="text-xl font-semibold text-[#1d1d1f] tracking-tight">
+            <h1 className="text-2xl font-semibold text-[#1d1d1f] tracking-tight">
               RESERVATION REQUESTS
             </h1>
-            <IoMdInformationCircleOutline className="text-xl" />
+            <IoMdInformationCircleOutline className="text-2xl" />
           </div>
 
-          {/* View toggle buttons */}
-          <div className="flex bg-[#f2f2f7] rounded-lg p-1">
+          {/* View toggle buttons - updated to match Classroom.jsx style */}
+          <div className="flex bg-[#f2f2f7] rounded-full p-1">
             <button
               onClick={() => setViewMode("grid")}
-              className={`flex items-center gap-1 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+              className={`flex items-center justify-center w-8 h-8 rounded-full text-sm transition-colors ${
                 viewMode === "grid"
-                  ? "bg-white shadow-sm text-[#007aff]"
-                  : "text-[#86868b]"
+                  ? "bg-white shadow-sm text-blue-500"
+                  : "text-gray-500 hover:bg-white/30"
               }`}
+              aria-label="Grid view"
+              title="Grid view"
             >
-              <BsGrid />
-              Grid
+              <IoGrid />
             </button>
             <button
               onClick={() => setViewMode("list")}
-              className={`flex items-center gap-1 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+              className={`flex items-center justify-center w-8 h-8 rounded-full text-sm transition-colors ${
                 viewMode === "list"
-                  ? "bg-white shadow-sm text-[#007aff]"
-                  : "text-[#86868b]"
+                  ? "bg-white shadow-sm text-blue-500"
+                  : "text-gray-500 hover:bg-white/30"
               }`}
+              aria-label="List view"
+              title="List view"
             >
-              <BsListUl />
-              List
+              <IoList />
             </button>
           </div>
         </div>
