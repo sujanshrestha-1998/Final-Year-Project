@@ -6,12 +6,14 @@ import { BiTime } from "react-icons/bi";
 import { MdOutlineDescription, MdPeople } from "react-icons/md";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { PiProjectorScreenDuotone, PiClockUserDuotone } from "react-icons/pi";
+import { BsGrid, BsListUl } from "react-icons/bs"; // Add these imports
 
 const Requests = () => {
   const [pendingRequests, setPendingRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [viewMode, setViewMode] = useState("grid"); // Add this state for view mode
 
   useEffect(() => {
     const fetchPendingRequests = async () => {
@@ -105,12 +107,40 @@ const Requests = () => {
   return (
     <div className="h-screen w-[82vw] pl-4 overflow-auto">
       <div className="w-full px-4 py-4">
-        {/* Header */}
-        <div className="mb-4 flex py-1 gap-1 items-center">
-          <h1 className="text-2xl font-semibold text-[#1d1d1f] tracking-tight">
-            RESERVATION REQUETS
-          </h1>
-          <IoMdInformationCircleOutline className="text-xl" />
+        {/* Header with view toggle */}
+        <div className="mb-4 flex justify-between items-center">
+          <div className="flex py-1 gap-1 items-center">
+            <h1 className="text-xl font-semibold text-[#1d1d1f] tracking-tight">
+              RESERVATION REQUESTS
+            </h1>
+            <IoMdInformationCircleOutline className="text-xl" />
+          </div>
+
+          {/* View toggle buttons */}
+          <div className="flex bg-[#f2f2f7] rounded-lg p-1">
+            <button
+              onClick={() => setViewMode("grid")}
+              className={`flex items-center gap-1 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                viewMode === "grid"
+                  ? "bg-white shadow-sm text-[#007aff]"
+                  : "text-[#86868b]"
+              }`}
+            >
+              <BsGrid />
+              Grid
+            </button>
+            <button
+              onClick={() => setViewMode("list")}
+              className={`flex items-center gap-1 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                viewMode === "list"
+                  ? "bg-white shadow-sm text-[#007aff]"
+                  : "text-[#86868b]"
+              }`}
+            >
+              <BsListUl />
+              List
+            </button>
+          </div>
         </div>
 
         {/* Content */}
@@ -128,8 +158,9 @@ const Requests = () => {
                 this time.
               </p>
             </div>
-          ) : (
-            <div className="space-y-2">
+          ) : viewMode === "grid" ? (
+            // Grid View
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {pendingRequests.map((request) => (
                 <div
                   key={request.id}
@@ -155,7 +186,7 @@ const Requests = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3 text-xs">
+                    <div className="grid grid-cols-2 gap-2 mb-3 text-xs">
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 rounded-full bg-[#f2f2f7] flex items-center justify-center">
                           <BsCalendar2EventFill className="text-[#007aff] text-xs" />
@@ -222,6 +253,82 @@ const Requests = () => {
                         <FaCheck className="text-xs" />
                         Approve
                       </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            // List View
+            <div className="space-y-2">
+              {pendingRequests.map((request) => (
+                <div
+                  key={request.id}
+                  className="bg-white rounded-lg shadow-sm overflow-hidden border border-[#e6e6e6] transition-all hover:shadow-md"
+                >
+                  <div className="p-3">
+                    <div className="flex flex-wrap md:flex-nowrap justify-between items-center">
+                      <div className="flex items-center gap-3 w-full md:w-auto mb-2 md:mb-0">
+                        <div className="p-2 bg-[#f2f2f7] rounded-lg">
+                          <PiProjectorScreenDuotone className="text-[#007aff] text-base" />
+                        </div>
+                        <div>
+                          <h3 className="text-base font-medium text-[#1d1d1f]">
+                            {request.classroom_name}
+                          </h3>
+                          <div className="flex items-center gap-2 text-xs text-[#86868b]">
+                            <span>Requested by {request.user_name}</span>
+                            <span>•</span>
+                            <span>{formatDate(request.reservation_date)}</span>
+                            <span>•</span>
+                            <span>
+                              {formatTime(request.start_time)} -{" "}
+                              {formatTime(request.end_time)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <div className="bg-[#fff8e6] text-[#ff9500] px-2 py-0.5 rounded-full text-xs font-medium">
+                          Pending
+                        </div>
+                        <button
+                          onClick={() =>
+                            handleUpdateStatus(request.id, "rejected")
+                          }
+                          className="px-3 py-1.5 bg-white border border-[#e6e6e6] text-[#1d1d1f] rounded-full text-xs font-medium flex items-center gap-1 hover:bg-[#f5f5f7] transition-colors"
+                        >
+                          <FaTimes className="text-[#ff3b30] text-xs" />
+                          Decline
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleUpdateStatus(request.id, "approved")
+                          }
+                          className="px-3 py-1.5 bg-[#007aff] text-white rounded-full text-xs font-medium flex items-center gap-1 hover:bg-[#0071e3] transition-colors"
+                        >
+                          <FaCheck className="text-xs" />
+                          Approve
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="mt-2 text-xs text-[#86868b]">
+                      <span className="font-medium text-[#1d1d1f]">
+                        Purpose:
+                      </span>{" "}
+                      {request.purpose}
+                      {request.attendees && (
+                        <span>
+                          {" "}
+                          •{" "}
+                          <span className="font-medium text-[#1d1d1f]">
+                            Attendees:
+                          </span>{" "}
+                          {request.attendees}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
