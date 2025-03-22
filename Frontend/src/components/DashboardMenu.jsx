@@ -25,7 +25,8 @@ const DashboardMenu = ({ onStudentSelect }) => {
   const [isStudentOpen, setIsStudentOpen] = useState(false);
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
   const [isClassroomOpen, setIsClassroomOpen] = useState(false);
-  const [isRequestsOpen, setIsRequestsOpen] = useState(false); // Add this new state
+  const [isRequestsOpen, setIsRequestsOpen] = useState(false);
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(0); // Add this new state
 
   // Automatically open the dropdown that matches the current path
   useEffect(() => {
@@ -38,7 +39,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
     } else if (location.pathname.includes("/dashboard")) {
       setIsClassroomOpen(true);
     } else if (location.pathname.includes("/requests")) {
-      setIsRequestsOpen(true); // Add this condition
+      setIsRequestsOpen(true);
     }
   }, [location.pathname]);
 
@@ -70,6 +71,32 @@ const DashboardMenu = ({ onStudentSelect }) => {
     };
     fetchUserData();
   }, []);
+
+  // Fetch pending requests count for RTE Officer
+  useEffect(() => {
+    if (roleId === 2) {
+      const fetchPendingRequestsCount = async () => {
+        try {
+          const response = await axios.get(
+            "http://localhost:3000/api/get_pending_reservations"
+          );
+          if (response.data.success) {
+            setPendingRequestsCount(response.data.reservations.length);
+          }
+        } catch (err) {
+          console.error("Error fetching pending requests count:", err);
+        }
+      };
+
+      fetchPendingRequestsCount();
+
+      // Set up interval to refresh count every minute
+      const intervalId = setInterval(fetchPendingRequestsCount, 60000);
+
+      // Clean up interval on component unmount
+      return () => clearInterval(intervalId);
+    }
+  }, [roleId]);
 
   // Handle search result click
   const handleSearchResultClick = (result) => {
@@ -393,6 +420,11 @@ const DashboardMenu = ({ onStudentSelect }) => {
                   size={20}
                 />
                 <span className="font-medium">Requests</span>
+                {pendingRequestsCount > 0 && (
+                  <div className="bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    {pendingRequestsCount}
+                  </div>
+                )}
               </div>
               <span>
                 {isRequestsOpen ? (
