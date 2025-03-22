@@ -4,7 +4,7 @@ import { FaRegIdBadge } from "react-icons/fa";
 import { TbUserScreen } from "react-icons/tb";
 import { PiClockUser } from "react-icons/pi";
 import { GrSchedules, GrGroup } from "react-icons/gr";
-import { PiProjectorScreenDuotone, PiStudentDuotone } from "react-icons/pi";
+import { PiProjectorScreenDuotone, PiClockUserDuotone } from "react-icons/pi";
 
 import { BiCollection } from "react-icons/bi";
 import {
@@ -417,7 +417,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
               onClick={toggleRequestsMenu}
             >
               <div className="flex items-center gap-3">
-                <PiClockUser
+                <PiClockUserDuotone
                   className={
                     isActive("/requests") ? "text-blue-600" : "text-gray-600"
                   }

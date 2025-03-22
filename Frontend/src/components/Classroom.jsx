@@ -4,7 +4,6 @@ import { IoGrid, IoList } from "react-icons/io5";
 import { LuChevronsUpDown } from "react-icons/lu";
 import { BsCalendar2EventFill } from "react-icons/bs";
 import { MdBookmarkAdd } from "react-icons/md";
-import { IoSearch } from "react-icons/io5";
 import { FaChalkboardTeacher } from "react-icons/fa";
 import { FaUsersLine } from "react-icons/fa6";
 import { RiComputerFill } from "react-icons/ri";
@@ -650,7 +649,7 @@ const Classroom = () => {
             </div>
 
             {/* Group Selection */}
-            <div className="flex items-center gap-2.5">
+            {/* <div className="flex items-center gap-2.5">
               <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                 Group
               </span>
@@ -728,7 +727,7 @@ const Classroom = () => {
                   </div>
                 )}
               </div>
-            </div>
+            </div> */}
 
             {/* Type Filter */}
             <div className="flex items-center gap-2.5">
@@ -846,9 +845,9 @@ const Classroom = () => {
         <div className="p-5">
           <div className="mb-5 flex justify-between items-center">
             <h2 className="text-lg font-medium text-gray-800">
-              {activeTab === "all" ? "All Groups" : `Group ${activeTab}`}
+              {/* {activeTab === "all" ? "All Groups" : `Group ${activeTab}`} */}
               {typeFilter !== "all" ? ` - ${typeFilter} Rooms` : ""}
-              {` - ${
+              {` ${
                 selectedDay === currentDay ? "Today's" : selectedDay + "'s"
               } Schedule`}
             </h2>

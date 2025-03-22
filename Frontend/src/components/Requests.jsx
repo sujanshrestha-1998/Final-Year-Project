@@ -5,6 +5,7 @@ import { BsCalendar2EventFill } from "react-icons/bs";
 import { BiTime } from "react-icons/bi";
 import { MdOutlineDescription, MdPeople } from "react-icons/md";
 import { IoMdInformationCircleOutline } from "react-icons/io";
+import { PiProjectorScreenDuotone, PiClockUserDuotone } from "react-icons/pi";
 
 const Requests = () => {
   const [pendingRequests, setPendingRequests] = useState([]);
@@ -79,10 +80,12 @@ const Requests = () => {
 
   if (loading) {
     return (
-      <div className="h-screen w-[82vw] overflow-auto pl-6 flex items-center justify-center">
+      <div className="h-screen w-[82vw] overflow-auto pl-4 flex items-center justify-center">
         <div className="flex flex-col items-center">
-          <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-600 rounded-full animate-spin mb-2"></div>
-          <p className="text-gray-600">Loading reservation requests...</p>
+          <div className="w-6 h-6 border-3 border-gray-200 border-t-gray-600 rounded-full animate-spin mb-1"></div>
+          <p className="text-gray-600 text-sm">
+            Loading reservation requests...
+          </p>
         </div>
       </div>
     );
@@ -90,130 +93,133 @@ const Requests = () => {
 
   if (error) {
     return (
-      <div className="h-screen w-[82vw] overflow-auto pl-6 flex items-center justify-center">
+      <div className="h-screen w-[82vw] overflow-auto pl-4 flex items-center justify-center">
         <div className="text-red-500 text-center">
-          <p className="text-xl font-semibold mb-2">Error</p>
-          <p>{error}</p>
+          <p className="text-lg font-semibold mb-1">Error</p>
+          <p className="text-sm">{error}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-screen w-[82vw] overflow-auto pl-6">
-      <div className="w-full mx-auto">
+    <div className="h-screen w-[82vw] pl-4 overflow-auto">
+      <div className="w-full px-4 py-4">
         {/* Header */}
-        <div className="flex items-center justify-between p-5 bg-white border-b border-gray-200">
-          <div className="flex items-center gap-8">
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-2 py-1">
-                <h1 className="font-semibold text-2xl text-black">
-                  CLASSROOM RESERVATION REQUESTS
-                </h1>
-                <IoMdInformationCircleOutline className="text-2xl" />
-              </div>
-            </div>
-          </div>
+        <div className="mb-4 flex py-1 gap-1 items-center">
+          <h1 className="text-2xl font-semibold text-[#1d1d1f] tracking-tight">
+            RESERVATION REQUETS
+          </h1>
+          <IoMdInformationCircleOutline className="text-xl" />
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div>
           {pendingRequests.length === 0 ? (
-            <div className="text-center py-10">
-              <div className="bg-gray-100 rounded-full p-4 inline-flex mb-4">
-                <FaChalkboardTeacher className="text-gray-400 text-3xl" />
+            <div className="bg-white rounded-lg shadow-sm p-6 text-center">
+              <div className="mx-auto w-12 h-12 bg-[#f5f5f7] rounded-full flex items-center justify-center mb-3">
+                <FaChalkboardTeacher className="text-[#86868b] text-lg" />
               </div>
-              <h3 className="text-xl font-medium text-gray-700 mb-2">
+              <h3 className="text-lg font-medium text-[#1d1d1f] mb-1">
                 No Pending Requests
               </h3>
-              <p className="text-gray-500">
-                There are no classroom reservation requests pending approval.
+              <p className="text-[#86868b] text-sm max-w-md mx-auto">
+                There are no classroom reservation requests pending approval at
+                this time.
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-6">
+            <div className="space-y-2">
               {pendingRequests.map((request) => (
                 <div
                   key={request.id}
-                  className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200"
+                  className="bg-white rounded-lg shadow-sm overflow-hidden border border-[#e6e6e6] transition-all hover:shadow-md"
                 >
-                  <div className="p-6">
-                    <div className="flex justify-between items-start">
-                      <div className="flex items-start gap-4">
-                        <div className="p-3 bg-blue-100 rounded-lg">
-                          <FaChalkboardTeacher className="text-blue-600 text-xl" />
+                  <div className="p-3">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex items-start gap-2">
+                        <div className="p-2 bg-[#f2f2f7] rounded-lg">
+                          <PiProjectorScreenDuotone className="text-[#007aff] text-base" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold text-gray-800">
+                          <h3 className="text-base font-medium text-[#1d1d1f]">
                             {request.classroom_name}
                           </h3>
-                          <p className="text-sm text-gray-500">
-                            Requested by: {request.user_name}
+                          <p className="text-xs text-[#86868b]">
+                            Requested by {request.user_name}
                           </p>
                         </div>
                       </div>
-                      <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-medium">
+                      <div className="bg-[#fff8e6] text-[#ff9500] px-2 py-0.5 rounded-full text-xs font-medium">
                         Pending
                       </div>
                     </div>
 
-                    <div className="mt-6 grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3 text-xs">
                       <div className="flex items-center gap-2">
-                        <BsCalendar2EventFill className="text-blue-500" />
+                        <div className="w-6 h-6 rounded-full bg-[#f2f2f7] flex items-center justify-center">
+                          <BsCalendar2EventFill className="text-[#007aff] text-xs" />
+                        </div>
                         <div>
-                          <p className="text-xs text-gray-500">Date</p>
-                          <p className="text-sm font-medium">
+                          <p className="text-xs text-[#86868b]">Date</p>
+                          <p className="font-medium text-[#1d1d1f]">
                             {formatDate(request.reservation_date)}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <BiTime className="text-blue-500" />
+                        <div className="w-6 h-6 rounded-full bg-[#f2f2f7] flex items-center justify-center">
+                          <BiTime className="text-[#007aff] text-xs" />
+                        </div>
                         <div>
-                          <p className="text-xs text-gray-500">Time</p>
-                          <p className="text-sm font-medium">
+                          <p className="text-xs text-[#86868b]">Time</p>
+                          <p className="font-medium text-[#1d1d1f]">
                             {formatTime(request.start_time)} -{" "}
                             {formatTime(request.end_time)}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <MdOutlineDescription className="text-blue-500" />
+                        <div className="w-6 h-6 rounded-full bg-[#f2f2f7] flex items-center justify-center">
+                          <MdOutlineDescription className="text-[#007aff] text-xs" />
+                        </div>
                         <div>
-                          <p className="text-xs text-gray-500">Purpose</p>
-                          <p className="text-sm font-medium">
+                          <p className="text-xs text-[#86868b]">Purpose</p>
+                          <p className="font-medium text-[#1d1d1f]">
                             {request.purpose}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <MdPeople className="text-blue-500" />
+                        <div className="w-6 h-6 rounded-full bg-[#f2f2f7] flex items-center justify-center">
+                          <MdPeople className="text-[#007aff] text-xs" />
+                        </div>
                         <div>
-                          <p className="text-xs text-gray-500">Attendees</p>
-                          <p className="text-sm font-medium">
+                          <p className="text-xs text-[#86868b]">Attendees</p>
+                          <p className="font-medium text-[#1d1d1f]">
                             {request.attendees || "Not specified"}
                           </p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="mt-6 flex justify-end gap-3">
+                    <div className="flex justify-end gap-2">
                       <button
                         onClick={() =>
                           handleUpdateStatus(request.id, "rejected")
                         }
-                        className="px-4 py-2 bg-red-50 text-red-600 rounded-lg flex items-center gap-2 hover:bg-red-100 transition-colors"
+                        className="px-3 py-1.5 bg-white border border-[#e6e6e6] text-[#1d1d1f] rounded-full text-xs font-medium flex items-center gap-1 hover:bg-[#f5f5f7] transition-colors"
                       >
-                        <FaTimes />
+                        <FaTimes className="text-[#ff3b30] text-xs" />
                         Decline
                       </button>
                       <button
                         onClick={() =>
                           handleUpdateStatus(request.id, "approved")
                         }
-                        className="px-4 py-2 bg-green-50 text-green-600 rounded-lg flex items-center gap-2 hover:bg-green-100 transition-colors"
+                        className="px-3 py-1.5 bg-[#007aff] text-white rounded-full text-xs font-medium flex items-center gap-1 hover:bg-[#0071e3] transition-colors"
                       >
-                        <FaCheck />
+                        <FaCheck className="text-xs" />
                         Approve
                       </button>
                     </div>
