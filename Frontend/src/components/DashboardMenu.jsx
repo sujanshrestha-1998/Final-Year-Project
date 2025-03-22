@@ -25,6 +25,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
   const [isStudentOpen, setIsStudentOpen] = useState(false);
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
   const [isClassroomOpen, setIsClassroomOpen] = useState(false);
+  const [isRequestsOpen, setIsRequestsOpen] = useState(false); // Add this new state
 
   // Automatically open the dropdown that matches the current path
   useEffect(() => {
@@ -36,6 +37,8 @@ const DashboardMenu = ({ onStudentSelect }) => {
       setIsScheduleOpen(true);
     } else if (location.pathname.includes("/dashboard")) {
       setIsClassroomOpen(true);
+    } else if (location.pathname.includes("/requests")) {
+      setIsRequestsOpen(true); // Add this condition
     }
   }, [location.pathname]);
 
@@ -103,6 +106,9 @@ const DashboardMenu = ({ onStudentSelect }) => {
   const isActive = (path) => {
     return location.pathname.includes(path);
   };
+
+  // Add this toggle function
+  const toggleRequestsMenu = () => setIsRequestsOpen((prev) => !prev);
 
   return (
     <div className="bg-[#f5f7fa] flex flex-col h-full w-[280px] shadow-md">
@@ -368,6 +374,59 @@ const DashboardMenu = ({ onStudentSelect }) => {
             </div>
           )}
         </div>
+        {/* Requests Dropdown - Only visible for RTE Officer (role_id = 2) */}
+        {roleId === 2 && (
+          <div className="mb-1">
+            <button
+              className={`flex items-center justify-between w-full px-6 py-3 transition-colors ${
+                isActive("/requests")
+                  ? "text-blue-600 bg-blue-50 border-r-4 border-blue-600"
+                  : "text-gray-700 hover:bg-gray-100"
+              }`}
+              onClick={toggleRequestsMenu}
+            >
+              <div className="flex items-center gap-3">
+                <MdClass
+                  className={
+                    isActive("/requests") ? "text-blue-600" : "text-gray-600"
+                  }
+                  size={20}
+                />
+                <span className="font-medium">Requests</span>
+              </div>
+              <span>
+                {isRequestsOpen ? (
+                  <MdOutlineKeyboardArrowDown
+                    className={
+                      isActive("/requests") ? "text-blue-600" : "text-gray-600"
+                    }
+                  />
+                ) : (
+                  <MdOutlineKeyboardArrowRight
+                    className={
+                      isActive("/requests") ? "text-blue-600" : "text-gray-600"
+                    }
+                  />
+                )}
+              </span>
+            </button>
+
+            {isRequestsOpen && (
+              <div className="bg-gray-50 py-1">
+                <div
+                  className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
+                    location.pathname === "/requests/classroom"
+                      ? "text-blue-600 font-medium"
+                      : "text-gray-600 hover:text-blue-500"
+                  }`}
+                  onClick={() => navigate("/requests/classroom")}
+                >
+                  Classroom Requests
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* User profile section */}

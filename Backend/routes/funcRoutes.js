@@ -556,24 +556,78 @@ router.get("/get_user_by_email", (req, res) => {
   });
 });
 
-// Add endpoint to get approved classroom reservations with detailed error logging
-router.get("/get_approved_reservations", (req, res) => {
-  console.log("Fetching approved reservations...");
+// Add endpoint to get pending classroom reservations
+router.get("/get_pending_reservations", (req, res) => {
+  const query = `
+    SELECT cr.*, c.name AS classroom_name, u.username AS user_name
+    FROM classroom_reservations cr
+    JOIN classrooms c ON cr.classroom_id = c.id
+    JOIN users u ON cr.user_id = u.id
+    WHERE cr.status = 'pending'
+  `;
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error("Database error:", err.message);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch pending reservations",
+        error: err.message,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      reservations: results,
+    });
+  });
+});
+
+// Add endpoint to update reservation status
+router.post("/update_reservation_status", (req, res) => {
+  const { reservation_id, status } = req.body;
+  
+  if (!reservation_id || !status || !['approved', 'rejected'].includes(status)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid reservation ID or status",
+    });
+  }
 
   const query = `
-    SELECT 
-      cr.id,
-      cr.classroom_id,
-      cr.user_id,
-      cr.purpose,
-      cr.reservation_date,
-      cr.start_time,
-      cr.end_time,
-      cr.attendees,
-      cr.status,
-      cr.created_at,
-      c.name AS classroom_name, 
-      u.username AS user_name
+    UPDATE classroom_reservations
+    SET status = ?
+    WHERE id = ?
+  `;
+
+  connection.query(query, [status, reservation_id], (err, result) => {
+    if (err) {
+      console.error("Database error:", err.message);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to update reservation status",
+        error: err.message,
+      });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Reservation not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Reservation ${status === 'approved' ? 'approved' : 'rejected'} successfully`,
+    });
+  });
+});
+
+// Add endpoint to get approved classroom reservations
+router.get("/get_approved_reservations", (req, res) => {
+  const query = `
+    SELECT cr.*, c.name AS classroom_name, u.username AS user_name
     FROM classroom_reservations cr
     JOIN classrooms c ON cr.classroom_id = c.id
     JOIN users u ON cr.user_id = u.id
@@ -582,14 +636,7 @@ router.get("/get_approved_reservations", (req, res) => {
 
   connection.query(query, (err, results) => {
     if (err) {
-      console.error("Database error details:", {
-        message: err.message,
-        code: err.code,
-        errno: err.errno,
-        sqlState: err.sqlState,
-        sqlMessage: err.sqlMessage,
-      });
-
+      console.error("Database error:", err.message);
       return res.status(500).json({
         success: false,
         message: "Failed to fetch approved reservations",
@@ -597,47 +644,9 @@ router.get("/get_approved_reservations", (req, res) => {
       });
     }
 
-    console.log(`Found ${results.length} approved reservations`);
-
-    // Process the results to ensure proper formatting
-    const processedResults = results.map((reservation) => {
-      // Get day of week from reservation date
-      const reservationDate = new Date(reservation.reservation_date);
-      const daysOfWeek = [
-        "Sunday",
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-      ];
-      const dayOfWeek = daysOfWeek[reservationDate.getDay()];
-
-      console.log("Processing reservation:", {
-        id: reservation.id,
-        user_id: reservation.user_id,
-        username: reservation.user_name || "Unknown User", // Fallback if user_name is empty
-        day: dayOfWeek,
-      });
-
-      return {
-        ...reservation,
-        day_of_week: dayOfWeek,
-        // Ensure username is properly set
-        user_name: reservation.username || reservation.user_name,
-
-        course_name: null,
-        teacher_name: null,
-        group_name: null,
-        // Ensure these fields exist for compatibility with schedules
-        group_id: "all",
-      };
-    });
-
     return res.status(200).json({
       success: true,
-      reservations: processedResults,
+      reservations: results,
     });
   });
 });

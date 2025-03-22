@@ -112,7 +112,7 @@ const Classroom = () => {
 
         // Format reservations to match schedule structure
         // Update the formattedReservations mapping function:
-        
+
         const formattedReservations = approvedReservations.map(
           (reservation) => {
             // Convert reservation date to day of week
@@ -120,9 +120,12 @@ const Classroom = () => {
             const dayOfWeek = reservationDate.toLocaleDateString("en-US", {
               weekday: "long",
             });
-        
-            console.log("Processing reservation with username:", reservation.user_name);
-        
+
+            console.log(
+              "Processing reservation with username:",
+              reservation.user_name
+            );
+
             return {
               id: reservation.id,
               classroom_id: reservation.classroom_id,

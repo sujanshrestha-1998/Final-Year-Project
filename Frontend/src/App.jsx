@@ -17,6 +17,7 @@ import TimeDashboard from "./pages/TimeDashboard";
 import RegisterStudentDashboard from "./pages/RegisterStudentDashboard";
 import AddClassroomDashboard from "./pages/AddClassroomDashboard";
 import ProfilePage from "./pages/ProfilePage";
+import ClassroomRequests from "./pages/ClassroomRequests";
 
 const AppRoutes = () => {
   const location = useLocation();
@@ -75,6 +76,7 @@ const AppRoutes = () => {
       />
       <Route path="/schedule/allocate-groups" element={<ScheduleDashboard />} />
       <Route path="/schedule/allocate-time" element={<TimeDashboard />} />
+      <Route path="/requests/classroom" element={<ClassroomRequests />} />
       <Route
         path="/dashboard/addclassroom"
         element={<AddClassroomDashboard />}
