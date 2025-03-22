@@ -26,9 +26,27 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [allSchedules, setAllSchedules] = useState([]);
   const [classroomAvailability, setClassroomAvailability] = useState({});
+  // Move the reservation conflicts state to component level
+  const [reservationConflicts, setReservationConflicts] = useState([]);
 
   // Ref for dropdown
   const dropdownRef = useRef(null);
+
+  // Reset form function
+  const resetForm = () => {
+    setSelectedDate(new Date());
+    setStartTime("");
+    setEndTime("");
+    setPurpose("");
+    setAttendees("");
+    // Only reset selected classroom if no classroom was passed as prop
+    if (!classroom) {
+      setSelectedClassroom(null);
+    }
+    setSearchQuery("");
+    setIsDropdownOpen(false);
+    setTypeFilter("all");
+  };
 
   // Animation effect when panel opens
   useEffect(() => {
@@ -38,8 +56,10 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
       fetchClassrooms();
     } else {
       setAnimateIn(false);
+      // Reset form when panel closes
+      resetForm();
     }
-  }, [isOpen]);
+  }, [isOpen, classroom]);
 
   // Set selected classroom when prop changes
   useEffect(() => {
@@ -274,6 +294,8 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
         alert(
           "Classroom reservation submitted successfully! Awaiting approval."
         );
+        // Reset form after successful submission
+        resetForm();
         // Close the panel after successful submission
         handleClose();
       } else {
@@ -290,7 +312,34 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
     }
   };
 
-  // Add this function to check if a classroom is available for the selected date and time
+  // Add this useEffect at the component level
+  useEffect(() => {
+    // Only check for reservation conflicts when all required fields are filled
+    if (selectedClassroom && selectedDate && startTime && endTime) {
+      checkReservationConflicts();
+    }
+  }, [selectedClassroom, selectedDate, startTime, endTime]);
+
+  // Move this function to component level
+  const checkReservationConflicts = async () => {
+    try {
+      const formattedDate = selectedDate.toISOString().split("T")[0];
+      const response = await axios.get(
+        `http://localhost:3000/api/check_reservation_conflicts?classroom_id=${selectedClassroom.id}&date=${formattedDate}&start_time=${startTime}&end_time=${endTime}`
+      );
+
+      if (response.data && response.data.conflicts) {
+        setReservationConflicts(response.data.conflicts);
+      } else {
+        setReservationConflicts([]);
+      }
+    } catch (error) {
+      console.error("Error checking reservation conflicts:", error);
+      setReservationConflicts([]);
+    }
+  };
+
+  // Fix this function to not use hooks inside
   const checkAvailabilityForSelectedTime = () => {
     if (!selectedClassroom || !selectedDate || !startTime || !endTime) {
       return true; // If any required field is missing, assume available
@@ -316,7 +365,7 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
     const selectedEndMinutes = endHour * 60 + endMinute;
 
     // Check if there are any schedules that conflict with the selected time
-    const hasConflict = allSchedules.some((schedule) => {
+    const hasScheduleConflict = allSchedules.some((schedule) => {
       // Check if it's for this classroom and the selected day
       if (
         parseInt(schedule.classroom_id) !== selectedClassroom.id ||
@@ -343,7 +392,9 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
       );
     });
 
-    return !hasConflict;
+    // Use the reservationConflicts state that's now at component level
+    // If there are any conflicts (either from schedules or reservations), return false
+    return !hasScheduleConflict && reservationConflicts.length === 0;
   };
 
   const formatDate = (date) => {
@@ -368,7 +419,9 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
   // Handle close with animation
   const handleClose = () => {
     setAnimateIn(false);
-    setTimeout(() => onClose(), 300);
+    setTimeout(() => {
+      onClose();
+    }, 300);
   };
 
   // Handle classroom selection

@@ -586,8 +586,12 @@ router.get("/get_pending_reservations", (req, res) => {
 // Add endpoint to update reservation status
 router.post("/update_reservation_status", (req, res) => {
   const { reservation_id, status } = req.body;
-  
-  if (!reservation_id || !status || !['approved', 'rejected'].includes(status)) {
+
+  if (
+    !reservation_id ||
+    !status ||
+    !["approved", "rejected"].includes(status)
+  ) {
     return res.status(400).json({
       success: false,
       message: "Invalid reservation ID or status",
@@ -619,7 +623,9 @@ router.post("/update_reservation_status", (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: `Reservation ${status === 'approved' ? 'approved' : 'rejected'} successfully`,
+      message: `Reservation ${
+        status === "approved" ? "approved" : "rejected"
+      } successfully`,
     });
   });
 });
@@ -647,6 +653,58 @@ router.get("/get_approved_reservations", (req, res) => {
     return res.status(200).json({
       success: true,
       reservations: results,
+    });
+  });
+});
+
+// Add this new endpoint to check for reservation conflicts
+router.get("/check_reservation_conflicts", (req, res) => {
+  const { classroom_id, date, start_time, end_time } = req.query;
+
+  // Validate required parameters
+  if (!classroom_id || !date || !start_time || !end_time) {
+    return res.status(400).json({
+      success: false,
+      message: "Missing required parameters",
+    });
+  }
+
+  // Query to check for overlapping reservations
+  const query = `
+    SELECT id, purpose, start_time, end_time, status
+    FROM classroom_reservations
+    WHERE classroom_id = ?
+      AND reservation_date = ?
+      AND status IN ('approved', 'pending')
+      AND ((start_time < ? AND end_time > ?) 
+           OR (start_time < ? AND end_time > ?) 
+           OR (start_time >= ? AND end_time <= ?))
+  `;
+
+  const params = [
+    classroom_id,
+    date,
+    end_time, // New start time before existing end time
+    start_time, // New end time after existing start time
+    end_time, // Same start/end times
+    start_time,
+    start_time, // New schedule completely contains existing one
+    end_time,
+  ];
+
+  connection.query(query, params, (err, results) => {
+    if (err) {
+      console.error("Database error:", err.message);
+      return res.status(500).json({
+        success: false,
+        message: "Database error",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      conflicts: results,
+      hasConflicts: results.length > 0,
     });
   });
 });
