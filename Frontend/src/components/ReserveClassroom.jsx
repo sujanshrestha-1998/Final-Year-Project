@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { IoChevronBack, IoSearch } from "react-icons/io5";
-import { BsCalendar2EventFill } from "react-icons/bs";
+
+import { IoMdArrowDropdown } from "react-icons/io";
 import { LuChevronsUpDown } from "react-icons/lu";
 import { FaChalkboardTeacher } from "react-icons/fa";
 import { FaUsersLine } from "react-icons/fa6";
 import { RiComputerFill } from "react-icons/ri";
 import { MdOutlineDescription, MdPeople } from "react-icons/md";
+import { BsCalendar2Fill } from "react-icons/bs";
 import { BiTime } from "react-icons/bi";
 import axios from "axios";
 
@@ -472,16 +474,15 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
           <div className="flex-1 overflow-y-auto p-6">
             <form onSubmit={handleSubmit}>
               {/* Classroom Selection */}
-              <div className="mb-6">
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                  <FaChalkboardTeacher className="text-blue-500" />
+              <div className="mb-4">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-500 mb-2">
                   Select Classroom
                 </label>
 
                 {/* Search and dropdown */}
                 <div className="relative" ref={dropdownRef}>
                   <div
-                    className="flex items-center border border-gray-300 rounded-xl p-3.5 bg-white hover:border-blue-400 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all duration-200 cursor-pointer"
+                    className="flex items-center rounded-md p-2 bg-gray-100 hover:border-blue-400 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all duration-200 cursor-pointer"
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   >
                     {selectedClassroom ? (
@@ -498,14 +499,14 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
                             {selectedClassroom.name}
                           </span>
                         </div>
-                        <LuChevronsUpDown className="text-gray-400" />
+                        <IoMdArrowDropdown className="text-gray-400 text-xl" />
                       </div>
                     ) : (
                       <div className="flex items-center justify-between w-full">
                         <span className="text-gray-500">
                           Select a classroom
                         </span>
-                        <LuChevronsUpDown className="text-gray-400" />
+                        <IoMdArrowDropdown className="text-gray-400" />
                       </div>
                     )}
                   </div>
@@ -652,10 +653,8 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
 
               {/* Selected Classroom Display */}
               {selectedClassroom && (
-                <div className="mb-6 p-5 bg-blue-50 rounded-xl border border-blue-100">
-                  <h3 className="font-medium text-gray-800 mb-3">
-                    Selected Classroom
-                  </h3>
+                <div className="mb-6 p-6 rounded-lg bg-blue-100 shadow-md">
+                  <h3 className="font-medium mb-3">Selected Classroom</h3>
                   <div className="flex items-start gap-4">
                     <div className="p-4 bg-white rounded-xl shadow-sm">
                       {selectedClassroom.type === "Lecture" ? (
@@ -667,7 +666,7 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
                       )}
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-900 text-lg">
+                      <p className="font-bold text-gray-900 text-lg">
                         {selectedClassroom.name}
                       </p>
                       <p className="text-sm text-gray-500">
@@ -706,15 +705,14 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
 
               {/* Date Selection */}
               <div className="mb-6">
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                  <BsCalendar2EventFill className="text-blue-500" />
-                  Date
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-500 mb-2">
+                  Date - {formatDate(selectedDate)}
                 </label>
                 <div className="relative">
-                  <div className="flex items-center border border-gray-300 rounded-xl p-3.5 bg-white hover:border-blue-400 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all duration-200">
+                  <div className="flex items-center rounded-md p-2 bg-gray-100 hover:border-blue-400 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all duration-200">
                     <input
                       type="date"
-                      className="flex-1 outline-none text-gray-800"
+                      className="flex-1 outline-none text-gray-800 bg-gray-100"
                       value={selectedDate.toISOString().split("T")[0]}
                       onChange={(e) =>
                         setSelectedDate(new Date(e.target.value))
@@ -722,22 +720,18 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
                       required
                     />
                   </div>
-                  <p className="mt-2 text-sm text-gray-500 font-medium">
-                    {formatDate(selectedDate)}
-                  </p>
                 </div>
               </div>
 
               {/* Time Selection */}
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                    <BiTime className="text-blue-500" />
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-500 mb-2">
                     Start Time
                   </label>
                   <div className="relative">
                     <select
-                      className="w-full border border-gray-300 rounded-xl p-3.5 pr-10 appearance-none bg-white text-gray-800 hover:border-blue-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-all duration-200"
+                      className="w-full rounded-md p-1.5 pr-10 appearance-none bg-gray-100 text-gray-800 hover:border-blue-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-all duration-200"
                       value={startTime}
                       onChange={(e) => {
                         setStartTime(e.target.value);
@@ -755,17 +749,16 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
                         </option>
                       ))}
                     </select>
-                    <LuChevronsUpDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+                    <IoMdArrowDropdown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
                   </div>
                 </div>
                 <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                    <BiTime className="text-blue-500" />
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-500 mb-2">
                     End Time
                   </label>
                   <div className="relative">
                     <select
-                      className="w-full border border-gray-300 rounded-xl p-3.5 pr-10 appearance-none bg-white text-gray-800 hover:border-blue-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-all duration-200"
+                      className="w-full rounded-md p-1.5 pr-10 appearance-none bg-gray-100 text-gray-800 hover:border-blue-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-all duration-200"
                       value={endTime}
                       onChange={(e) => setEndTime(e.target.value)}
                       required
@@ -782,19 +775,18 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
                         </option>
                       ))}
                     </select>
-                    <LuChevronsUpDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+                    <IoMdArrowDropdown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
                   </div>
                 </div>
               </div>
 
               {/* Purpose */}
               <div className="mb-6">
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                  <MdOutlineDescription className="text-blue-500" />
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-500 mb-2">
                   Purpose
                 </label>
                 <textarea
-                  className="w-full border border-gray-300 rounded-xl p-3.5 bg-white text-gray-800 min-h-[120px] hover:border-blue-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-all duration-200"
+                  className="w-full  rounded-md p-2 bg-gray-100 text-gray-800 min-h-[120px] hover:border-blue-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-all duration-200"
                   placeholder="Describe the purpose of your reservation"
                   value={purpose}
                   onChange={(e) => setPurpose(e.target.value)}
@@ -804,13 +796,11 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
 
               {/* Attendees */}
               <div className="mb-6">
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                  <MdPeople className="text-blue-500" />
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-500 mb-2">
                   Number of Attendees
                 </label>
                 <input
-                  type="number"
-                  className="w-full border border-gray-300 rounded-xl p-3.5 bg-white text-gray-800 hover:border-blue-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-all duration-200"
+                  className="w-full  rounded-md p-2 bg-gray-100 text-gray-800 hover:border-blue-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-all duration-200"
                   placeholder="Enter number of attendees"
                   min="1"
                   value={attendees}
@@ -820,23 +810,19 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
               </div>
 
               {/* Submit Button */}
-              <div className="mt-8">
-                <button
-                  type="submit"
-                  className="w-full bg-blue-500 text-white py-3.5 px-4 rounded-xl font-medium hover:bg-blue-600 active:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-md"
-                >
-                  Submit Reservation
-                </button>
-              </div>
-
-              {/* Cancel Button */}
-              <div className="mt-3">
+              <div className="mt-8 flex gap-4">
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-xl font-medium hover:bg-gray-200 active:bg-gray-300 transition-colors focus:outline-none"
+                  className="w-full bg-gray-400 text-white py-1 px-2 rounded-lg font-medium hover:bg-gray-500 active:bg-gray-300 transition-colors focus:outline-none shadow-md"
                 >
                   Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="w-full bg-blue-500 text-white py-1 px-2 rounded-lg font-medium hover:bg-blue-600 active:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-md"
+                >
+                  Submit Reservation
                 </button>
               </div>
             </form>

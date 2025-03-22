@@ -561,21 +561,11 @@ const Classroom = () => {
                 <IoMdInformationCircleOutline className="text-2xl" />
               </div>
             </div>
-            <div className="relative w-96">
-              <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-              <input
-                type="text"
-                placeholder="Search"
-                className="w-full pl-8 pr-4 py-1 bg-gray-200 rounded-md 
-               text-[14px] border-none 
-               transition-all duration-200 placeholder-gray-500"
-              />
-            </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             <button
-              className="px-3 py-2 flex gap-1 items-center bg-blue-500 text-white text-sm font-semibold rounded-md shadow-md transition-transform duration-200 hover:scale-105 hover:brightness-105"
+              className="px-3 py-2 flex gap-1 items-center bg-blue-500 text-white text-sm font-semibold rounded-xl shadow-md transition-transform duration-200 hover:scale-105 hover:brightness-105"
               onClick={() => handleOpenReservation(getFilteredClassrooms()[0])}
             >
               <MdBookmarkAdd />

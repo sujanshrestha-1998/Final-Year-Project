@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { FaChalkboardTeacher } from "react-icons/fa";
-import { BsFillPersonLinesFill } from "react-icons/bs";
+import { FaRegIdBadge } from "react-icons/fa";
+import { TbUserScreen } from "react-icons/tb";
+import { PiClockUser } from "react-icons/pi";
+import { GrSchedules, GrGroup } from "react-icons/gr";
+import { PiProjectorScreenDuotone, PiStudentDuotone } from "react-icons/pi";
+
 import { BiCollection } from "react-icons/bi";
 import {
   MdClass,
@@ -163,7 +167,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
             onClick={toggleClassroomMenu}
           >
             <div className="flex items-center gap-3">
-              <MdClass
+              <PiProjectorScreenDuotone
                 className={
                   isActive("/dashboard") ? "text-blue-600" : "text-gray-600"
                 }
@@ -225,7 +229,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
             onClick={toggleTeacherMenu}
           >
             <div className="flex items-center gap-3">
-              <FaChalkboardTeacher
+              <TbUserScreen
                 className={
                   isActive("/teachers") ? "text-blue-600" : "text-gray-600"
                 }
@@ -288,7 +292,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
               onClick={toggleStudentMenu}
             >
               <div className="flex items-center gap-3">
-                <BsFillPersonLinesFill
+                <FaRegIdBadge
                   className={
                     isActive("/students") ? "text-blue-600" : "text-gray-600"
                   }
@@ -351,7 +355,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
             onClick={toggleScheduleMenu}
           >
             <div className="flex items-center gap-3">
-              <IoTime
+              <GrSchedules
                 className={
                   isActive("/schedule") ? "text-blue-600" : "text-gray-600"
                 }
@@ -413,7 +417,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
               onClick={toggleRequestsMenu}
             >
               <div className="flex items-center gap-3">
-                <MdClass
+                <PiClockUser
                   className={
                     isActive("/requests") ? "text-blue-600" : "text-gray-600"
                   }
