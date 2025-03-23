@@ -2,9 +2,11 @@ import React, { useState, useEffect, useRef } from "react";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { IoGrid, IoList } from "react-icons/io5";
 import { LuChevronsUpDown } from "react-icons/lu";
-import { BsCalendar2EventFill } from "react-icons/bs";
+
 import { MdBookmarkAdd } from "react-icons/md";
 import { FaChalkboardTeacher } from "react-icons/fa";
+import { BsFillCalendarFill } from "react-icons/bs";
+
 import { FaUsersLine } from "react-icons/fa6";
 import { RiComputerFill } from "react-icons/ri";
 import axios from "axios";
@@ -642,7 +644,7 @@ const Classroom = () => {
                   onClick={() => setIsCalendarOpen(!isCalendarOpen)}
                 >
                   <div className="flex items-center gap-2">
-                    <BsCalendar2EventFill
+                    <BsFillCalendarFill
                       className={`text-blue-500 ${
                         selectedDate.toDateString() ===
                         currentDate.toDateString()
@@ -758,9 +760,9 @@ const Classroom = () => {
             )}
             <div className="flex items-center gap-4">
               {/* View Toggle */}
-              <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+              <div className="flex items-center gap-1 bg-gray-100 rounded-full p-1">
                 <button
-                  className={`p-1.5 rounded-md transition-all duration-200 ${
+                  className={`p-1.5 rounded-full transition-all duration-200 ${
                     viewMode === "table"
                       ? "bg-white text-blue-600 shadow-sm"
                       : "text-gray-500 hover:text-gray-700"
@@ -771,7 +773,7 @@ const Classroom = () => {
                   <IoList className="text-lg" />
                 </button>
                 <button
-                  className={`p-1.5 rounded-md transition-all duration-200 ${
+                  className={`p-1.5 rounded-full transition-all duration-200 ${
                     viewMode === "card"
                       ? "bg-white text-blue-600 shadow-sm"
                       : "text-gray-500 hover:text-gray-700"

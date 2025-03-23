@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { MdAdd, MdDelete } from "react-icons/md";
-import { FaChalkboardTeacher } from "react-icons/fa";
 import { FaUsersLine } from "react-icons/fa6";
-import { RiComputerFill } from "react-icons/ri";
+import { PiProjectorScreenDuotone } from "react-icons/pi";
+import { PiLaptopDuotone } from "react-icons/pi";
 import { toast } from "react-toastify";
 import DeleteModal from "./DeleteModal";
 
@@ -141,9 +141,9 @@ const AddClassroom = () => {
 
   // Type icons mapping with React icons
   const typeIcons = {
-    Lecture: <FaChalkboardTeacher className="text-2xl" />,
+    Lecture: <PiProjectorScreenDuotone className="text-2xl" />,
     Tutorial: <FaUsersLine className="text-2xl" />,
-    Workshop: <RiComputerFill className="text-2xl" />,
+    Workshop: <PiLaptopDuotone className="text-2xl" />,
   };
 
   // Type colors mapping
@@ -267,15 +267,15 @@ const AddClassroom = () => {
             </h3>
             <ul className="text-xs text-blue-700 space-y-1">
               <li className="flex items-center gap-1">
-                <FaChalkboardTeacher className="text-blue-500" /> Lecture: For
-                large group sessions
+                <PiProjectorScreenDuotone className="text-blue-500" /> Lecture:
+                For large group sessions
               </li>
               <li className="flex items-center gap-1">
                 <FaUsersLine className="text-purple-500" /> Tutorial: For
                 smaller interactive groups
               </li>
               <li className="flex items-center gap-1">
-                <RiComputerFill className="text-orange-500" /> Workshop: For
+                <PiLaptopDuotone className="text-orange-500" /> Workshop: For
                 hands-on practical activities
               </li>
             </ul>

@@ -119,76 +119,77 @@ router.post("/stud_post", (req, res) => {
       });
     });
   });
+});
 
-  router.put("/update_student", (req, res) => {
-    const {
-      stud_id,
+// Move this route outside of the previous route handler
+router.put("/update_student", (req, res) => {
+  const {
+    stud_id,
+    first_name,
+    last_name,
+    grade_level,
+    stud_group,
+    date_of_birth,
+    enrollment_date,
+    student_email,
+  } = req.body;
+
+  if (
+    !stud_id ||
+    !first_name ||
+    !last_name ||
+    !grade_level ||
+    !stud_group ||
+    !date_of_birth ||
+    !enrollment_date ||
+    !student_email
+  ) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
+
+  const updateUserQuery = `
+    UPDATE users
+    SET email = ?
+    WHERE id = ?
+  `;
+  const updateUserValues = [student_email, stud_id];
+
+  connection.query(updateUserQuery, updateUserValues, (err, userResults) => {
+    if (err) {
+      console.error("Error updating user:", err);
+      return res.status(500).json({ message: "Error updating user" });
+    }
+
+    const updateStudentQuery = `
+      UPDATE students
+      SET first_name = ?, last_name = ?, grade_level = ?, stud_group = ?, 
+          date_of_birth = ?, enrollment_date = ?
+      WHERE stud_id = ?
+    `;
+    const updateStudentValues = [
       first_name,
       last_name,
       grade_level,
       stud_group,
       date_of_birth,
       enrollment_date,
-      student_email,
-    } = req.body;
+      stud_id,
+    ];
 
-    if (
-      !stud_id ||
-      !first_name ||
-      !last_name ||
-      !grade_level ||
-      !stud_group ||
-      !date_of_birth ||
-      !enrollment_date ||
-      !student_email
-    ) {
-      return res.status(400).json({ message: "Missing required fields" });
-    }
-
-    const updateUserQuery = `
-    UPDATE users
-    SET email = ?
-    WHERE id = ?
-  `;
-    const updateUserValues = [student_email, stud_id];
-
-    connection.query(updateUserQuery, updateUserValues, (err, userResults) => {
-      if (err) {
-        console.error("Error updating user:", err);
-        return res.status(500).json({ message: "Error updating user" });
-      }
-
-      const updateStudentQuery = `
-      UPDATE students
-      SET first_name = ?, last_name = ?, grade_level = ?, stud_group = ?, 
-          date_of_birth = ?, enrollment_date = ?
-      WHERE stud_id = ?
-    `;
-      const updateStudentValues = [
-        first_name,
-        last_name,
-        grade_level,
-        stud_group,
-        date_of_birth,
-        enrollment_date,
-        stud_id,
-      ];
-
-      connection.query(
-        updateStudentQuery,
-        updateStudentValues,
-        (err, studentResults) => {
-          if (err) {
-            console.error("Error updating student:", err);
-            return res.status(500).json({ message: "Error updating student" });
-          }
-
-          return res.status(200).json({
-            message: "Student data updated successfully",
-          });
+    connection.query(
+      updateStudentQuery,
+      updateStudentValues,
+      (err, studentResults) => {
+        if (err) {
+          console.error("Error updating student:", err);
+          return res.status(500).json({ message: "Error updating student" });
         }
-      );
-    });
+
+        return res.status(200).json({
+          message: "Student data updated successfully",
+        });
+      }
+    );
   });
 });
 
