@@ -59,7 +59,7 @@ const Classroom = () => {
 
   // Function to format date for display
   const formatDisplayDate = (date) => {
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleDateString("en-UK", {
       weekday: "long",
       month: "short",
       day: "numeric",
