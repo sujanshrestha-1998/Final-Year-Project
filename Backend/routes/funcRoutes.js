@@ -633,21 +633,34 @@ router.post("/update_reservation_status", (req, res) => {
 // Add endpoint to get approved classroom reservations
 router.get("/get_approved_reservations", (req, res) => {
   const query = `
-    SELECT cr.*, c.name AS classroom_name, u.username AS user_name
-    FROM classroom_reservations cr
-    JOIN classrooms c ON cr.classroom_id = c.id
-    JOIN users u ON cr.user_id = u.id
-    WHERE cr.status = 'approved'
+    SELECT 
+      cr.id, 
+      cr.classroom_id, 
+      cr.user_id, 
+      cr.reservation_date, 
+      cr.start_time, 
+      cr.end_time, 
+      cr.purpose, 
+      cr.attendees, 
+      cr.status,
+      u.username as user_name,
+      c.name as classroom_name
+    FROM 
+      classroom_reservations cr
+    JOIN 
+      users u ON cr.user_id = u.id
+    JOIN 
+      classrooms c ON cr.classroom_id = c.id
+    WHERE 
+      cr.status = 'approved'
   `;
 
   connection.query(query, (err, results) => {
     if (err) {
       console.error("Database error:", err.message);
-      return res.status(500).json({
-        success: false,
-        message: "Failed to fetch approved reservations",
-        error: err.message,
-      });
+      return res
+        .status(500)
+        .json({ success: false, message: "Database error" });
     }
 
     return res.status(200).json({

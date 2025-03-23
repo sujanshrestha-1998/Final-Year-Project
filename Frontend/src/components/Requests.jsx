@@ -120,7 +120,7 @@ const Requests = () => {
           <div className="flex bg-[#f2f2f7] rounded-full p-1">
             <button
               onClick={() => setViewMode("grid")}
-              className={`flex items-center justify-center w-10 h-10 rounded-full text-sm transition-colors ${
+              className={`flex items-center justify-center w-8 h-8 rounded-full text-sm transition-colors ${
                 viewMode === "grid"
                   ? "bg-white shadow-sm text-blue-500"
                   : "text-gray-500 hover:bg-white/30"
@@ -132,7 +132,7 @@ const Requests = () => {
             </button>
             <button
               onClick={() => setViewMode("list")}
-              className={`flex items-center justify-center w-10 h-10 rounded-full text-sm transition-colors ${
+              className={`flex items-center justify-center w-8 h-8 rounded-full text-sm transition-colors ${
                 viewMode === "list"
                   ? "bg-white shadow-sm text-blue-500"
                   : "text-gray-500 hover:bg-white/30"
