@@ -2,13 +2,11 @@ import React, { useState, useEffect, useRef } from "react";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { IoGrid, IoList } from "react-icons/io5";
 import { LuChevronsUpDown } from "react-icons/lu";
-
+import { LiaChalkboardTeacherSolid } from "react-icons/lia";
 import { MdBookmarkAdd } from "react-icons/md";
-import { FaChalkboardTeacher } from "react-icons/fa";
-import { BsFillCalendarFill } from "react-icons/bs";
+import { PiProjectorScreenDuotone } from "react-icons/pi";
+import { BsFillCalendarFill, BsPersonWorkspace } from "react-icons/bs";
 
-import { FaUsersLine } from "react-icons/fa6";
-import { RiComputerFill } from "react-icons/ri";
 import axios from "axios";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -207,6 +205,7 @@ const Classroom = () => {
     };
   }, []);
 
+  // Options for the type filter
   const options = [
     {
       value: "all",
@@ -216,48 +215,48 @@ const Classroom = () => {
     {
       value: "Lecture",
       label: "Lecture",
-      icon: <FaChalkboardTeacher className="text-blue-500" />,
+      icon: <PiProjectorScreenDuotone className="text-blue-500" />,
     },
     {
       value: "Tutorial",
       label: "Tutorial",
-      icon: <FaUsersLine className="text-green-500" />,
+      icon: <LiaChalkboardTeacherSolid className="text-green-500" />,
     },
     {
       value: "Workshop",
       label: "Workshop",
-      icon: <RiComputerFill className="text-orange-500" />,
+      icon: <BsPersonWorkspace className="text-orange-500" />,
     },
   ];
 
+  // REMOVE THIS DUPLICATE EFFECT
   // Updated click outside handler for all dropdowns
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        groupDropdownRef.current &&
-        !groupDropdownRef.current.contains(event.target)
-      ) {
-        setIsGroupOpen(false);
-      }
-      if (
-        typeDropdownRef.current &&
-        !typeDropdownRef.current.contains(event.target)
-      ) {
-        setIsTypeOpen(false);
-      }
-      if (
-        dayDropdownRef.current &&
-        !dayDropdownRef.current.contains(event.target)
-      ) {
-        setIsDayOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+  // useEffect(() => {
+  //   const handleClickOutside = (event) => {
+  //     if (
+  //       groupDropdownRef.current &&
+  //       !groupDropdownRef.current.contains(event.target)
+  //     ) {
+  //       setIsGroupOpen(false);
+  //     }
+  //     if (
+  //       typeDropdownRef.current &&
+  //       !typeDropdownRef.current.contains(event.target)
+  //     ) {
+  //       setIsTypeOpen(false);
+  //     }
+  //     if (
+  //       dayDropdownRef.current &&
+  //       !dayDropdownRef.current.contains(event.target)
+  //     ) {
+  //       setIsDayOpen(false);
+  //     }
+  //   };
+  //   document.addEventListener("mousedown", handleClickOutside);
+  //   return () => {
+  //     document.removeEventListener("mousedown", handleClickOutside);
+  //   };
+  // }, []);
 
   // Updated handleSelect function
   const handleSelect = (value) => {

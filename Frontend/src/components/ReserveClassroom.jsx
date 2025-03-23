@@ -1,14 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { IoChevronBack, IoSearch } from "react-icons/io5";
-
 import { IoMdArrowDropdown } from "react-icons/io";
-import { LuChevronsUpDown } from "react-icons/lu";
-import { FaChalkboardTeacher } from "react-icons/fa";
-import { FaUsersLine } from "react-icons/fa6";
-import { RiComputerFill } from "react-icons/ri";
-import { MdOutlineDescription, MdPeople } from "react-icons/md";
-import { BsCalendar2Fill } from "react-icons/bs";
-import { BiTime } from "react-icons/bi";
+import { PiProjectorScreenDuotone } from "react-icons/pi";
+import { LiaChalkboardTeacherSolid } from "react-icons/lia";
+import { BsPersonWorkspace } from "react-icons/bs";
 import axios from "axios";
 
 const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
@@ -489,11 +484,11 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
                       <div className="flex items-center justify-between w-full">
                         <div className="flex items-center gap-2">
                           {selectedClassroom.type === "Lecture" ? (
-                            <FaChalkboardTeacher className="text-blue-500" />
+                            <PiProjectorScreenDuotone className="text-blue-500" />
                           ) : selectedClassroom.type === "Tutorial" ? (
-                            <FaUsersLine className="text-green-500" />
+                            <LiaChalkboardTeacherSolid className="text-green-500" />
                           ) : (
-                            <RiComputerFill className="text-orange-500" />
+                            <BsPersonWorkspace className="text-orange-500" />
                           )}
                           <span className="text-gray-800">
                             {selectedClassroom.name}
@@ -557,7 +552,7 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
                               : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                           }`}
                         >
-                          <FaChalkboardTeacher className="text-xs" />
+                          <PiProjectorScreenDuotone className="text-xs" />
                           Lecture
                         </button>
                         <button
@@ -572,7 +567,7 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
                               : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                           }`}
                         >
-                          <FaUsersLine className="text-xs" />
+                          <LiaChalkboardTeacherSolid className="text-xs" />
                           Tutorial
                         </button>
                         <button
@@ -587,7 +582,7 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
                               : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                           }`}
                         >
-                          <RiComputerFill className="text-xs" />
+                          <BsPersonWorkspace className="text-xs" />
                           Workshop
                         </button>
                       </div>
@@ -613,11 +608,11 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
                             >
                               <div className="flex items-center gap-2">
                                 {room.type === "Lecture" ? (
-                                  <FaChalkboardTeacher className="text-blue-500" />
+                                  <PiProjectorScreenDuotone className="text-blue-500" />
                                 ) : room.type === "Tutorial" ? (
-                                  <FaUsersLine className="text-green-500" />
+                                  <LiaChalkboardTeacherSolid className="text-green-500" />
                                 ) : (
-                                  <RiComputerFill className="text-orange-500" />
+                                  <BsPersonWorkspace className="text-orange-500" />
                                 )}
                                 <div>
                                   <div className="font-medium text-gray-800">
@@ -658,11 +653,11 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
                   <div className="flex items-start gap-4">
                     <div className="p-4 bg-white rounded-xl shadow-sm">
                       {selectedClassroom.type === "Lecture" ? (
-                        <FaChalkboardTeacher className="text-blue-500 text-2xl" />
+                        <PiProjectorScreenDuotone className="text-blue-500 text-2xl" />
                       ) : selectedClassroom.type === "Tutorial" ? (
-                        <FaUsersLine className="text-green-500 text-2xl" />
+                        <LiaChalkboardTeacherSolid className="text-green-500 text-2xl" />
                       ) : (
-                        <RiComputerFill className="text-orange-500 text-2xl" />
+                        <BsPersonWorkspace className="text-orange-500 text-2xl" />
                       )}
                     </div>
                     <div>

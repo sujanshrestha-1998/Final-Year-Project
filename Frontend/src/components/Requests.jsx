@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { FaChalkboardTeacher, FaCheck, FaTimes } from "react-icons/fa";
-import { BsCalendar2EventFill } from "react-icons/bs";
+import { FaCheck, FaTimes } from "react-icons/fa";
+import { BsCalendar2EventFill, BsPersonWorkspace } from "react-icons/bs";
 import { BiTime } from "react-icons/bi";
 import { MdOutlineDescription, MdPeople } from "react-icons/md";
 import { IoMdInformationCircleOutline } from "react-icons/io";
-import { PiProjectorScreenDuotone, PiClockUserDuotone } from "react-icons/pi";
-import { IoGrid, IoList } from "react-icons/io5"; // Replace BsGrid, BsListUl with IoGrid, IoList
+import {
+  PiProjectorScreenDuotone,
+  PiChalkboardTeacherDuotone,
+} from "react-icons/pi";
+import { IoGrid, IoList } from "react-icons/io5";
 
 const Requests = () => {
   const [pendingRequests, setPendingRequests] = useState([]);
@@ -150,7 +153,7 @@ const Requests = () => {
           {pendingRequests.length === 0 ? (
             <div className="bg-white rounded-lg shadow-sm p-6 text-center">
               <div className="mx-auto w-12 h-12 bg-[#f5f5f7] rounded-full flex items-center justify-center mb-3">
-                <FaChalkboardTeacher className="text-[#86868b] text-lg" />
+                <PiProjectorScreenDuotone className="text-[#86868b] text-lg" />
               </div>
               <h3 className="text-lg font-medium text-[#1d1d1f] mb-1">
                 No Pending Requests
@@ -344,3 +347,19 @@ const Requests = () => {
 };
 
 export default Requests;
+
+// Add this where appropriate in the component
+const typeIcons = {
+  Lecture: <PiProjectorScreenDuotone className="text-xl" />,
+  Tutorial: <PiChalkboardTeacherDuotone className="text-xl" />,
+  Workshop: <BsPersonWorkspace className="text-xl" />,
+};
+
+// Update any references to the old icons in the component
+// For example, in the grid view where it shows classroom icons:
+
+// Replace:
+// <PiProjectorScreenDuotone className="text-[#007aff] text-base" />
+
+// With something like:
+// {typeIcons[request.classroom_type] || <PiProjectorScreenDuotone className="text-[#007aff] text-base" />}
