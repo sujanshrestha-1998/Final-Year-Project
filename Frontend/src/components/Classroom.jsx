@@ -628,21 +628,28 @@ const Classroom = () => {
         {/* Controls - Group Tabs and View Toggle */}
         <div className="flex justify-between items-center border-b border-gray-200 bg-white/95 backdrop-blur-lg px-6 sticky top-0 z-20 py-3 shadow-sm">
           <div className="flex items-center gap-5">
-            {/* Date Selection - Replace Day Selection with Calendar */}
+            {/* Replace Day Selection with Date Picker */}
             <div className="flex items-center gap-2.5">
               <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                 Date
               </span>
               <div className="relative" ref={calendarRef}>
                 <button
-                  className="flex items-center justify-between px-2 py-1 w-64 
+                  className="flex items-center justify-between px-2 py-1 w-56 
                   rounded-md bg-gray-100 text-sm font-medium 
                   text-gray-800 hover:bg-gray-200
                   transition-all duration-200 focus:outline-none"
                   onClick={() => setIsCalendarOpen(!isCalendarOpen)}
                 >
                   <div className="flex items-center gap-2">
-                    <BsCalendar2EventFill className="text-blue-500" />
+                    <BsCalendar2EventFill
+                      className={`text-blue-500 ${
+                        selectedDate.toDateString() ===
+                        currentDate.toDateString()
+                          ? "text-blue-600"
+                          : "text-gray-500"
+                      }`}
+                    />
                     <span>{formatDisplayDate(selectedDate)}</span>
                   </div>
                   <LuChevronsUpDown
@@ -677,14 +684,108 @@ const Classroom = () => {
                 Type
               </span>
               <div className="relative" ref={typeDropdownRef}>
-                {/* Type filter content remains the same */}
-                {/* ... */}
+                <button
+                  className="flex items-center justify-between px-2 py-1 w-40 
+                  rounded-md bg-gray-100 text-sm font-medium 
+                  text-gray-800 hover:bg-gray-200
+                  transition-all duration-200 focus:outline-none"
+                  onClick={() => setIsTypeOpen(!isTypeOpen)}
+                >
+                  <div className="flex items-center gap-2">
+                    {
+                      options.find((option) => option.value === typeFilter)
+                        ?.icon
+                    }
+                    <span>
+                      {
+                        options.find((option) => option.value === typeFilter)
+                          ?.label
+                      }
+                    </span>
+                  </div>
+                  <LuChevronsUpDown
+                    className={`h-4 w-4 text-gray-500 ${
+                      isTypeOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {isTypeOpen && (
+                  <div
+                    className="absolute left-0 mt-2 w-40 rounded-xl bg-white 
+                    shadow-lg border border-gray-100 overflow-hidden z-30"
+                  >
+                    <div className="py-1">
+                      {options.map((option) => (
+                        <button
+                          key={option.value}
+                          className={`flex items-center w-full px-4 py-2 text-sm text-left
+                          ${
+                            typeFilter === option.value
+                              ? "bg-blue-50 text-blue-600"
+                              : "text-gray-700 hover:bg-gray-50"
+                          }`}
+                          onClick={() => handleSelect(option.value)}
+                        >
+                          <span className="mr-2">{option.icon}</span>
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
           {/* View Toggle and Availability Filter */}
-          <div className="flex items-center gap-4">{/* ... */}</div>
+          <div className="flex gap-2 items-center">
+            {viewMode === "card" && (
+              <div className="flex items-center">
+                <label className="inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={showOnlyAvailable}
+                    onChange={() => setShowOnlyAvailable(!showOnlyAvailable)}
+                  />
+                  <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                  <span className="ms-3 text-sm font-medium text-gray-700">
+                    Show only available
+                  </span>
+                </label>
+              </div>
+            )}
+            <div className="flex items-center gap-4">
+              {/* View Toggle */}
+              <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                <button
+                  className={`p-1.5 rounded-md transition-all duration-200 ${
+                    viewMode === "table"
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                  onClick={() => setViewMode("table")}
+                  title="Table View"
+                >
+                  <IoList className="text-lg" />
+                </button>
+                <button
+                  className={`p-1.5 rounded-md transition-all duration-200 ${
+                    viewMode === "card"
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                  onClick={() => setViewMode("card")}
+                  title="Card View"
+                >
+                  <IoGrid className="text-lg" />
+                </button>
+              </div>
+
+              {/* Availability Filter - Only show in Card View */}
+            </div>
+          </div>
         </div>
 
         {/* Body */}
