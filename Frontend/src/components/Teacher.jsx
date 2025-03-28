@@ -1,8 +1,62 @@
-import React from "react";
+import React, { useState } from "react";
 import { IoSearch } from "react-icons/io5";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 
 const Teacher = () => {
+  // Demo data for teachers in each academic block
+  const academicTeachers = {
+    "Academics A": [
+      { name: "Dr. Sarah Johnson", subject: "Computer Science", room: "A101" },
+      {
+        name: "Prof. Michael Chen",
+        subject: "Software Engineering",
+        room: "A102",
+      },
+      { name: "Dr. Emily Rodriguez", subject: "Data Structures", room: "A103" },
+    ],
+    "Academics B": [
+      { name: "Dr. James Wilson", subject: "Mathematics", room: "B201" },
+      { name: "Prof. Lisa Wang", subject: "Statistics", room: "B202" },
+      { name: "Dr. Robert Brown", subject: "Physics", room: "B203" },
+    ],
+    "Academics C": [
+      {
+        name: "Dr. Olivia Martinez",
+        subject: "Artificial Intelligence",
+        room: "C301",
+      },
+      { name: "Prof. David Kim", subject: "Machine Learning", room: "C302" },
+      { name: "Dr. Sophia Lee", subject: "Robotics", room: "C303" },
+    ],
+    "Academics D": [
+      { name: "Dr. Thomas Clark", subject: "Database Systems", room: "D401" },
+      { name: "Prof. Anna Patel", subject: "Web Development", room: "D402" },
+      { name: "Dr. Kevin Zhang", subject: "Mobile Computing", room: "D403" },
+    ],
+    "Academics E": [
+      { name: "Dr. Rachel Green", subject: "Cybersecurity", room: "E501" },
+      {
+        name: "Prof. Daniel Taylor",
+        subject: "Network Engineering",
+        room: "E502",
+      },
+      { name: "Dr. Jessica White", subject: "Cloud Computing", room: "E503" },
+    ],
+  };
+
+  // State to track which academic block is being hovered
+  const [hoveredBlock, setHoveredBlock] = useState(null);
+
+  // Function to handle mouse enter
+  const handleMouseEnter = (blockName) => {
+    setHoveredBlock(blockName);
+  };
+
+  // Function to handle mouse leave
+  const handleMouseLeave = () => {
+    setHoveredBlock(null);
+  };
+
   return (
     <div className="h-screen w-full overflow-hidden">
       <div className="mx-8 w-full overflow-auto">
@@ -40,13 +94,61 @@ const Teacher = () => {
                     Second <br /> Floor
                   </h1>
                   <div className="flex gap-5">
-                    <div className="w-40 h-48 bg-[#92bd63] shadow-lg shadow-gray-800/50">
+                    <div
+                      className="w-40 h-48 bg-[#92bd63] shadow-lg shadow-gray-800/50 relative cursor-pointer"
+                      onMouseEnter={() => handleMouseEnter("Academics E")}
+                      onMouseLeave={handleMouseLeave}
+                    >
                       <h1 className="text-white ml-2 font-medium mt-2">
                         Academics E
                       </h1>
+                      {hoveredBlock === "Academics E" && (
+                        <div className="absolute top-full left-0 mt-2 w-64 bg-white p-3 rounded shadow-lg z-50">
+                          <h3 className="font-bold mb-2">
+                            Academics E Teachers
+                          </h3>
+                          {academicTeachers["Academics E"].map(
+                            (teacher, idx) => (
+                              <div key={idx} className="mb-2">
+                                <p className="font-medium">{teacher.name}</p>
+                                <p className="text-sm text-gray-600">
+                                  {teacher.subject} - Room {teacher.room}
+                                </p>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      )}
                     </div>
-                    <div className="w-40 h-48 bg-[#92bd63] shadow-lg shadow-gray-800/50"></div>
-                    <div className="w-40 h-48 border border-gray-400 shadow-lg bg-white shadow-gray-800/50"></div>
+                    <div
+                      className="w-40 h-48 bg-[#92bd63] shadow-lg shadow-gray-800/50 relative cursor-pointer"
+                      onMouseEnter={() => handleMouseEnter("Academics C")}
+                      onMouseLeave={handleMouseLeave}
+                    >
+                      <h1 className="text-white p-2 font-medium ">
+                        Academics C
+                      </h1>
+                      {hoveredBlock === "Academics C" && (
+                        <div className="absolute top-full left-0 mt-2 w-64 bg-white p-3 rounded shadow-lg z-50">
+                          <h3 className="font-bold mb-2">
+                            Academics C Teachers
+                          </h3>
+                          {academicTeachers["Academics C"].map(
+                            (teacher, idx) => (
+                              <div key={idx} className="mb-2">
+                                <p className="font-medium">{teacher.name}</p>
+                                <p className="text-sm text-gray-600">
+                                  {teacher.subject} - Room {teacher.room}
+                                </p>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <div className="w-40 h-48 border border-gray-400 shadow-lg bg-white shadow-gray-800/50">
+                      <h1 className="p-2 font-medium ">PAT Office</h1>
+                    </div>
                   </div>
                 </div>
                 <div className="w-[620px] h-0.5 bg-black  "></div>
@@ -61,12 +163,37 @@ const Teacher = () => {
                     First <br /> Floor
                   </h1>
                   <div className="flex gap-5">
-                    <div className="w-64 h-36 bg-[#92bd63] shadow-lg shadow-gray-800/50">
+                    <div
+                      className="w-64 h-36 bg-[#92bd63] shadow-lg shadow-gray-800/50 relative cursor-pointer"
+                      onMouseEnter={() => handleMouseEnter("Academics B")}
+                      onMouseLeave={handleMouseLeave}
+                    >
                       <h1 className="text-white ml-2 font-medium mt-28">
-                        Academics E
+                        Academics B
+                      </h1>
+                      {hoveredBlock === "Academics B" && (
+                        <div className="absolute top-full left-0 mt-2 w-64 bg-white p-3 rounded shadow-lg z-50">
+                          <h3 className="font-bold mb-2">
+                            Academics B Teachers
+                          </h3>
+                          {academicTeachers["Academics B"].map(
+                            (teacher, idx) => (
+                              <div key={idx} className="mb-2">
+                                <p className="font-medium">{teacher.name}</p>
+                                <p className="text-sm text-gray-600">
+                                  {teacher.subject} - Room {teacher.room}
+                                </p>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <div className="w-56 h-36 border bg-white border-gray-400 shadow-lg shadow-gray-800/50">
+                      <h1 className="text-black ml-2 font-medium mt-28">
+                        IT Department
                       </h1>
                     </div>
-                    <div className="w-56 h-36 border bg-white border-gray-400 shadow-lg shadow-gray-800/50"></div>
                   </div>
                 </div>
                 <div className="w-[620px] h-0.5 bg-black"></div>
@@ -82,7 +209,7 @@ const Teacher = () => {
                   </h1>
                   <div className="flex gap-5">
                     <div className="w-36 h-36 bg-white border-gray-400 shadow-lg shadow-gray-800/50">
-                      <h1 className=" ml-2 font-medium mt-24">
+                      <h1 className=" ml-2 font-medium mt-28">
                         RTE Department
                       </h1>
                     </div>
@@ -91,7 +218,32 @@ const Teacher = () => {
                         Student Department
                       </h1>
                     </div>
-                    <div className="w-44 h-36 bg-[#92bd63]  shadow-lg shadow-gray-800/50"></div>
+                    <div
+                      className="w-44 h-36 bg-[#92bd63] shadow-lg shadow-gray-800/50 relative cursor-pointer"
+                      onMouseEnter={() => handleMouseEnter("Academics A")}
+                      onMouseLeave={handleMouseLeave}
+                    >
+                      <h1 className=" ml-2 text-white font-medium mt-28">
+                        Academics A
+                      </h1>
+                      {hoveredBlock === "Academics A" && (
+                        <div className="absolute top-full left-0 mt-2 w-64 bg-white p-3 rounded shadow-lg z-50">
+                          <h3 className="font-bold mb-2">
+                            Academics A Teachers
+                          </h3>
+                          {academicTeachers["Academics A"].map(
+                            (teacher, idx) => (
+                              <div key={idx} className="mb-2">
+                                <p className="font-medium">{teacher.name}</p>
+                                <p className="text-sm text-gray-600">
+                                  {teacher.subject} - Room {teacher.room}
+                                </p>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="w-[620px] h-0.5 bg-black"></div>
@@ -114,8 +266,31 @@ const Teacher = () => {
           {/* Right Section */}
           <div>
             <div className="mt-56">
-              <div className="z-20 relative w-52 h-72 border border-gray-400 shadow-lg shadow-gray-800/50"></div>
-              <div className="z-10 relative mt-[-260px] ml-5 w-36 h-48 bg-[#92bd63] shadow-lg shadow-gray-800/50"></div>
+              <div className="w-52 h-72 border border-gray-400 shadow-lg shadow-gray-800/50">
+                <h1 className=" ml-2 font-medium mt-60">Resource Department</h1>
+              </div>
+              <div
+                className="z-10 relative mt-[-260px] ml-5 w-36 h-48 bg-[#92bd63] shadow-lg shadow-gray-800/50 cursor-pointer"
+                onMouseEnter={() => handleMouseEnter("Academics D")}
+                onMouseLeave={handleMouseLeave}
+              >
+                <h1 className="z-20 relative ml-2 font-medium text-white p-2">
+                  Academics D
+                </h1>
+                {hoveredBlock === "Academics D" && (
+                  <div className="absolute bottom-[-120px] left-[-30px] w-64 bg-white p-3 rounded shadow-lg z-[100]">
+                    <h3 className="font-bold mb-2">Academics D Teachers</h3>
+                    {academicTeachers["Academics D"].map((teacher, idx) => (
+                      <div key={idx} className="mb-2">
+                        <p className="font-medium">{teacher.name}</p>
+                        <p className="text-sm text-gray-600">
+                          {teacher.subject} - Room {teacher.room}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
