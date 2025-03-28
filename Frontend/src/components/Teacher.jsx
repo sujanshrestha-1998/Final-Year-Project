@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { IoSearch } from "react-icons/io5";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import axios from "axios";
+import AcademicBlockPopup from "./AcademicBlockPopup";
 
 const Teacher = () => {
   // State for storing teachers grouped by academic block
@@ -14,6 +15,10 @@ const Teacher = () => {
   const [hoveredBlock, setHoveredBlock] = useState(null);
   // State to track if search is in progress
   const [isSearching, setIsSearching] = useState(false);
+  // New state for popup
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [selectedBlock, setSelectedBlock] = useState(null);
+  const [blockInfo, setBlockInfo] = useState({});
 
   // Debounce function to prevent excessive API calls
   const debounce = (func, delay) => {
@@ -113,6 +118,48 @@ const Teacher = () => {
     }
   };
 
+  // Function to handle block click
+  const handleBlockClick = (blockName) => {
+    // Set block information based on the selected block
+    const blockInfoData = {
+      "Academics A": {
+        location: "Administration Building",
+        floor: "Ground Floor",
+        facilities: "Classrooms, Computer Lab, Staff Room",
+      },
+      "Academics B": {
+        location: "Administration Building",
+        floor: "First Floor",
+        facilities: "Lecture Halls, Meeting Rooms",
+      },
+      "Academics C": {
+        location: "Administration Building",
+        floor: "Second Floor",
+        facilities: "Research Labs, Faculty Offices",
+      },
+      "Academics D": {
+        location: "Resource Building",
+        floor: "First Floor",
+        facilities: "Seminar Rooms, Study Areas",
+      },
+      "Academics E": {
+        location: "Administration Building",
+        floor: "Second Floor",
+        facilities: "Tutorial Rooms, Department Office",
+      },
+    };
+
+    setSelectedBlock(blockName);
+    setBlockInfo(blockInfoData[blockName] || {});
+    setIsPopupOpen(true);
+  };
+
+  // Function to close popup
+  const handleClosePopup = () => {
+    setIsPopupOpen(false);
+    setSelectedBlock(null);
+  };
+
   return (
     <div className="h-screen w-full overflow-hidden">
       <div className="mx-8 w-full overflow-auto">
@@ -164,6 +211,7 @@ const Teacher = () => {
                         className="w-40 h-48 bg-[#92bd63] shadow-lg shadow-gray-800/50 relative cursor-pointer hover:bg-[#7da952] transition-colors duration-200"
                         onMouseEnter={() => handleMouseEnter("Academics E")}
                         onMouseLeave={handleMouseLeave}
+                        onClick={() => handleBlockClick("Academics E")}
                       >
                         <h1 className="text-white ml-2 font-medium mt-2">
                           Academics E
@@ -206,6 +254,7 @@ const Teacher = () => {
                         className="w-40 h-48 bg-[#92bd63] shadow-lg shadow-gray-800/50 relative cursor-pointer hover:bg-[#7da952] transition-colors duration-200"
                         onMouseEnter={() => handleMouseEnter("Academics C")}
                         onMouseLeave={handleMouseLeave}
+                        onClick={() => handleBlockClick("Academics C")}
                       >
                         <h1 className="text-white p-2 font-medium ">
                           Academics C
@@ -265,6 +314,7 @@ const Teacher = () => {
                         className="w-64 h-36 bg-[#92bd63] shadow-lg shadow-gray-800/50 relative cursor-pointer hover:bg-[#7da952] transition-colors duration-200"
                         onMouseEnter={() => handleMouseEnter("Academics B")}
                         onMouseLeave={handleMouseLeave}
+                        onClick={() => handleBlockClick("Academics B")}
                       >
                         <h1 className="text-white ml-2 font-medium mt-28">
                           Academics B
@@ -336,6 +386,7 @@ const Teacher = () => {
                         className="w-44 h-36 bg-[#92bd63] shadow-lg shadow-gray-800/50 relative cursor-pointer hover:bg-[#7da952] transition-colors duration-200"
                         onMouseEnter={() => handleMouseEnter("Academics A")}
                         onMouseLeave={handleMouseLeave}
+                        onClick={() => handleBlockClick("Academics A")}
                       >
                         <h1 className=" ml-2 text-white font-medium mt-28">
                           Academics A
@@ -405,6 +456,7 @@ const Teacher = () => {
                   className="z-10 relative mt-[-260px] ml-5 w-36 h-48 bg-[#92bd63] shadow-lg shadow-gray-800/50 cursor-pointer hover:bg-[#7da952] transition-colors duration-200"
                   onMouseEnter={() => handleMouseEnter("Academics D")}
                   onMouseLeave={handleMouseLeave}
+                  onClick={() => handleBlockClick("Academics D")}
                 >
                   <h1 className="z-20 relative ml-2 font-medium text-white p-2">
                     Academics D
@@ -440,6 +492,15 @@ const Teacher = () => {
           </div>
         )}
       </div>
+
+      {/* Add the popup component */}
+      <AcademicBlockPopup
+        isOpen={isPopupOpen}
+        onClose={handleClosePopup}
+        blockName={selectedBlock}
+        teachers={selectedBlock ? academicTeachers[selectedBlock] : []}
+        blockInfo={blockInfo}
+      />
     </div>
   );
 };
