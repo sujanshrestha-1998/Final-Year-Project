@@ -59,6 +59,8 @@ const Teacher = () => {
 
   return (
     <div className="h-screen w-full overflow-hidden">
+      {/* Remove the problematic overlay */}
+
       <div className="mx-8 w-full overflow-auto">
         {/* Top Section */}
         <div className="flex items-center gap-4 ">
@@ -95,7 +97,7 @@ const Teacher = () => {
                   </h1>
                   <div className="flex gap-5">
                     <div
-                      className="w-40 h-48 bg-[#92bd63] shadow-lg shadow-gray-800/50 relative cursor-pointer"
+                      className="w-40 h-48 bg-[#92bd63] shadow-lg shadow-gray-800/50 relative cursor-pointer hover:bg-[#7da952] transition-colors duration-200"
                       onMouseEnter={() => handleMouseEnter("Academics E")}
                       onMouseLeave={handleMouseLeave}
                     >
@@ -103,7 +105,7 @@ const Teacher = () => {
                         Academics E
                       </h1>
                       {hoveredBlock === "Academics E" && (
-                        <div className="absolute top-full left-0 mt-2 w-64 bg-white p-3 rounded shadow-lg z-50">
+                        <div className="absolute top-full left-0 mt-2 w-64 bg-black/90 text-white p-4 rounded-md shadow-xl z-50">
                           <h3 className="font-bold mb-2">
                             Academics E Teachers
                           </h3>
@@ -111,7 +113,7 @@ const Teacher = () => {
                             (teacher, idx) => (
                               <div key={idx} className="mb-2">
                                 <p className="font-medium">{teacher.name}</p>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm text-gray-300">
                                   {teacher.subject} - Room {teacher.room}
                                 </p>
                               </div>
@@ -121,7 +123,7 @@ const Teacher = () => {
                       )}
                     </div>
                     <div
-                      className="w-40 h-48 bg-[#92bd63] shadow-lg shadow-gray-800/50 relative cursor-pointer"
+                      className="w-40 h-48 bg-[#92bd63] shadow-lg shadow-gray-800/50 relative cursor-pointer hover:bg-[#7da952] transition-colors duration-200"
                       onMouseEnter={() => handleMouseEnter("Academics C")}
                       onMouseLeave={handleMouseLeave}
                     >
@@ -129,7 +131,7 @@ const Teacher = () => {
                         Academics C
                       </h1>
                       {hoveredBlock === "Academics C" && (
-                        <div className="absolute top-full left-0 mt-2 w-64 bg-white p-3 rounded shadow-lg z-50">
+                        <div className="absolute top-full left-0 mt-2 w-64 bg-black/90 text-white p-4 rounded-md shadow-xl z-50">
                           <h3 className="font-bold mb-2">
                             Academics C Teachers
                           </h3>
@@ -137,7 +139,7 @@ const Teacher = () => {
                             (teacher, idx) => (
                               <div key={idx} className="mb-2">
                                 <p className="font-medium">{teacher.name}</p>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm text-gray-300">
                                   {teacher.subject} - Room {teacher.room}
                                 </p>
                               </div>
@@ -164,7 +166,7 @@ const Teacher = () => {
                   </h1>
                   <div className="flex gap-5">
                     <div
-                      className="w-64 h-36 bg-[#92bd63] shadow-lg shadow-gray-800/50 relative cursor-pointer"
+                      className="w-64 h-36 bg-[#92bd63] shadow-lg shadow-gray-800/50 relative cursor-pointer hover:bg-[#7da952] transition-colors duration-200"
                       onMouseEnter={() => handleMouseEnter("Academics B")}
                       onMouseLeave={handleMouseLeave}
                     >
@@ -172,7 +174,7 @@ const Teacher = () => {
                         Academics B
                       </h1>
                       {hoveredBlock === "Academics B" && (
-                        <div className="absolute top-full left-0 mt-2 w-64 bg-white p-3 rounded shadow-lg z-50">
+                        <div className="absolute top-full left-0 mt-2 w-64 bg-black/90 text-white p-4 rounded-md shadow-xl z-50">
                           <h3 className="font-bold mb-2">
                             Academics B Teachers
                           </h3>
@@ -180,7 +182,7 @@ const Teacher = () => {
                             (teacher, idx) => (
                               <div key={idx} className="mb-2">
                                 <p className="font-medium">{teacher.name}</p>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm text-gray-300">
                                   {teacher.subject} - Room {teacher.room}
                                 </p>
                               </div>
@@ -219,7 +221,7 @@ const Teacher = () => {
                       </h1>
                     </div>
                     <div
-                      className="w-44 h-36 bg-[#92bd63] shadow-lg shadow-gray-800/50 relative cursor-pointer"
+                      className="w-44 h-36 bg-[#92bd63] shadow-lg shadow-gray-800/50 relative cursor-pointer hover:bg-[#7da952] transition-colors duration-200"
                       onMouseEnter={() => handleMouseEnter("Academics A")}
                       onMouseLeave={handleMouseLeave}
                     >
@@ -227,7 +229,7 @@ const Teacher = () => {
                         Academics A
                       </h1>
                       {hoveredBlock === "Academics A" && (
-                        <div className="absolute top-full left-0 mt-2 w-64 bg-white p-3 rounded shadow-lg z-50">
+                        <div className="absolute top-full left-0 mt-2 w-64 bg-black/90 text-white p-4 rounded-md shadow-xl z-50">
                           <h3 className="font-bold mb-2">
                             Academics A Teachers
                           </h3>
@@ -235,7 +237,7 @@ const Teacher = () => {
                             (teacher, idx) => (
                               <div key={idx} className="mb-2">
                                 <p className="font-medium">{teacher.name}</p>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm text-gray-300">
                                   {teacher.subject} - Room {teacher.room}
                                 </p>
                               </div>
@@ -264,13 +266,13 @@ const Teacher = () => {
           </div>
 
           {/* Right Section */}
-          <div>
+          <div className="w-[400px]">
             <div className="mt-56">
               <div className="w-52 h-72 border border-gray-400 shadow-lg shadow-gray-800/50">
                 <h1 className=" ml-2 font-medium mt-60">Resource Department</h1>
               </div>
               <div
-                className="z-10 relative mt-[-260px] ml-5 w-36 h-48 bg-[#92bd63] shadow-lg shadow-gray-800/50 cursor-pointer"
+                className="z-10 relative mt-[-260px] ml-5 w-36 h-48 bg-[#92bd63] shadow-lg shadow-gray-800/50 cursor-pointer hover:bg-[#7da952] transition-colors duration-200"
                 onMouseEnter={() => handleMouseEnter("Academics D")}
                 onMouseLeave={handleMouseLeave}
               >
@@ -278,12 +280,12 @@ const Teacher = () => {
                   Academics D
                 </h1>
                 {hoveredBlock === "Academics D" && (
-                  <div className="absolute bottom-[-120px] left-[-30px] w-64 bg-white p-3 rounded shadow-lg z-[100]">
+                  <div className="absolute bottom-[-230px] left-[-30px] w-64 bg-black/90 text-white p-4 rounded-md shadow-xl z-[100]">
                     <h3 className="font-bold mb-2">Academics D Teachers</h3>
                     {academicTeachers["Academics D"].map((teacher, idx) => (
                       <div key={idx} className="mb-2">
                         <p className="font-medium">{teacher.name}</p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-300">
                           {teacher.subject} - Room {teacher.room}
                         </p>
                       </div>
