@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { IoSearch } from "react-icons/io5";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import axios from "axios";
@@ -12,64 +12,31 @@ const Teacher = () => {
   const [searchQuery, setSearchQuery] = useState("");
   // State to track which academic block is being hovered
   const [hoveredBlock, setHoveredBlock] = useState(null);
+  // State to track if search is in progress
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Debounce function to prevent excessive API calls
+  const debounce = (func, delay) => {
+    let timeoutId;
+    return (...args) => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        func(...args);
+      }, delay);
+    };
+  };
 
   // Function to fetch teachers data from API
-  useEffect(() => {
-    const fetchTeachers = async () => {
-      try {
-        setLoading(true);
-        // Change port from 3000 to 5000
-        const response = await axios.get(
-          "http://localhost:3000/api/teacher_details"
-        );
-
-        if (response.data && response.data.teachers) {
-          // Group teachers by their assigned academics
-          const groupedTeachers = {};
-
-          // Initialize all academic blocks with empty arrays
-          for (let i = 1; i <= 5; i++) {
-            groupedTeachers[`Academics ${String.fromCharCode(64 + i)}`] = [];
-          }
-
-          // Populate the groups with teachers
-          response.data.teachers.forEach((teacher) => {
-            const academicKey = `Academics ${String.fromCharCode(
-              64 + parseInt(teacher.assigned_academics)
-            )}`;
-            if (groupedTeachers[academicKey]) {
-              groupedTeachers[academicKey].push({
-                name: `${teacher.first_name} ${teacher.last_name}`,
-                subject: teacher.course,
-                room: `${String.fromCharCode(
-                  64 + parseInt(teacher.assigned_academics)
-                )}${teacher.teacher_id.toString().slice(-3)}`,
-              });
-            }
-          });
-
-          setAcademicTeachers(groupedTeachers);
-        }
-      } catch (error) {
-        console.error("Error fetching teachers:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTeachers();
-  }, []);
-
-  // Function to handle search
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
-
+  const fetchTeachers = async (query = "") => {
     try {
-      setLoading(true);
-      // Change port from 3000 to 5000
-      const response = await axios.get(
-        `http://localhost:3000/api/search_teachers?query=${searchQuery}`
-      );
+      if (!isSearching) setLoading(true);
+
+      // Determine the API endpoint based on whether there's a search query
+      const endpoint = query.trim()
+        ? `http://localhost:3000/api/search_teachers?query=${query}`
+        : "http://localhost:3000/api/teacher_details";
+
+      const response = await axios.get(endpoint);
 
       if (response.data && response.data.teachers) {
         // Group teachers by their assigned academics
@@ -89,20 +56,48 @@ const Teacher = () => {
             groupedTeachers[academicKey].push({
               name: `${teacher.first_name} ${teacher.last_name}`,
               subject: teacher.course,
-              room: `${String.fromCharCode(
-                64 + parseInt(teacher.assigned_academics)
-              )}${teacher.teacher_id.toString().slice(-3)}`,
             });
           }
         });
 
         setAcademicTeachers(groupedTeachers);
+
+        // If search returns results, automatically highlight the first teacher's location
+        if (query.trim() && response.data.teachers.length > 0) {
+          const firstTeacher = response.data.teachers[0];
+          const blockName = `Academics ${String.fromCharCode(
+            64 + parseInt(firstTeacher.assigned_academics)
+          )}`;
+          setHoveredBlock(blockName);
+        }
       }
     } catch (error) {
-      console.error("Error searching teachers:", error);
+      console.error("Error fetching teachers:", error);
     } finally {
       setLoading(false);
+      setIsSearching(false);
     }
+  };
+
+  // Create a debounced version of the search function
+  const debouncedSearch = useCallback(
+    debounce((query) => {
+      fetchTeachers(query);
+    }, 300),
+    []
+  );
+
+  // Initial data fetch
+  useEffect(() => {
+    fetchTeachers();
+  }, []);
+
+  // Function to handle search input change with real-time results
+  const handleSearchChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    setIsSearching(true);
+    debouncedSearch(query);
   };
 
   // Function to handle mouse enter
@@ -112,18 +107,9 @@ const Teacher = () => {
 
   // Function to handle mouse leave
   const handleMouseLeave = () => {
-    setHoveredBlock(null);
-  };
-
-  // Function to handle search input change
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
-  };
-
-  // Function to handle search on Enter key press
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter") {
-      handleSearch();
+    // Only clear hover state if not in search mode
+    if (!searchQuery.trim()) {
+      setHoveredBlock(null);
     }
   };
 
@@ -146,7 +132,6 @@ const Teacher = () => {
                transition-all duration-200 placeholder-gray-500"
               value={searchQuery}
               onChange={handleSearchChange}
-              onKeyPress={handleKeyPress}
             />
           </div>
         </div>
@@ -197,7 +182,7 @@ const Teacher = () => {
                                       {teacher.name}
                                     </p>
                                     <p className="text-sm text-gray-300">
-                                      {teacher.subject} - Room {teacher.room}
+                                      {teacher.subject}
                                     </p>
                                   </div>
                                 )
@@ -239,7 +224,7 @@ const Teacher = () => {
                                       {teacher.name}
                                     </p>
                                     <p className="text-sm text-gray-300">
-                                      {teacher.subject} - Room {teacher.room}
+                                      {teacher.subject}
                                     </p>
                                   </div>
                                 )
@@ -298,7 +283,7 @@ const Teacher = () => {
                                       {teacher.name}
                                     </p>
                                     <p className="text-sm text-gray-300">
-                                      {teacher.subject} - Room {teacher.room}
+                                      {teacher.subject}
                                     </p>
                                   </div>
                                 )
@@ -369,7 +354,7 @@ const Teacher = () => {
                                       {teacher.name}
                                     </p>
                                     <p className="text-sm text-gray-300">
-                                      {teacher.subject} - Room {teacher.room}
+                                      {teacher.subject}
                                     </p>
                                   </div>
                                 )
@@ -427,13 +412,13 @@ const Teacher = () => {
                   {hoveredBlock === "Academics D" &&
                     academicTeachers["Academics D"] &&
                     academicTeachers["Academics D"].length > 0 && (
-                      <div className="absolute bottom-[-230px] left-[-30px] w-64 bg-black/90 text-white p-4 rounded-md shadow-xl z-[100]">
+                      <div className="absolute bottom-[-125px] left-[-30px] w-64 bg-black/90 text-white p-4 rounded-md shadow-xl z-[100]">
                         <h3 className="font-bold mb-2">Academics D Teachers</h3>
                         {academicTeachers["Academics D"].map((teacher, idx) => (
                           <div key={idx} className="mb-2">
                             <p className="font-medium">{teacher.name}</p>
                             <p className="text-sm text-gray-300">
-                              {teacher.subject} - Room {teacher.room}
+                              {teacher.subject}
                             </p>
                           </div>
                         ))}
