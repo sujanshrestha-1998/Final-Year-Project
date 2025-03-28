@@ -12,7 +12,7 @@ import StudentsDashboard from "./pages/StudentsDashboard"; // Import Students pa
 import PrivateRoute from "./components/PrivateRoute";
 import ScheduleDashboard from "./pages/ScheduleDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
-import RegisterTeacher from "./pages/RegisterTeacher";
+import RegisterTeacherDashboard from "./pages/RegisterTeacherDashboard";
 import TimeDashboard from "./pages/TimeDashboard";
 import RegisterStudentDashboard from "./pages/RegisterStudentDashboard";
 import AddClassroomDashboard from "./pages/AddClassroomDashboard";
@@ -62,7 +62,7 @@ const AppRoutes = () => {
         path="/teachers/register"
         element={
           <PrivateRoute>
-            <RegisterTeacher />
+            <RegisterTeacherDashboard />
           </PrivateRoute>
         }
       />

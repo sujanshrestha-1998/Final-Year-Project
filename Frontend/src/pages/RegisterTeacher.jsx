@@ -113,17 +113,17 @@ const RegisterTeacher = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="loader w-16 h-16 border-4 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="flex items-center justify-center min-h-screen bg-gray-100">
+  //       <div className="loader w-16 h-16 border-4 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
+  //     </div>
+  //   );
+  // }
 
   return (
-    <div className="min-h-full">
-      <div className="ml-[475px] my-10">
+    <div className=" h-screen w-[70vw] p-5">
+      {/* <div className="ml-[475px] my-10">
         <button
           onClick={() => navigate("/teachers")}
           className="flex justify-center items-center gap-1 font-semibold text-blue-500"
@@ -131,7 +131,7 @@ const RegisterTeacher = () => {
           <IoChevronBackOutline />
           Teacher Dashboard
         </button>
-      </div>
+      </div> */}
       <div className="flex flex-col justify-center items-center gap-8">
         <img
           src="/src/assets/hck-logo.png"
