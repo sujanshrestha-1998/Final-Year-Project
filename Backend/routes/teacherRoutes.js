@@ -14,7 +14,8 @@ const connection = mysql.createConnection(dbConfig);
 // Route to show details of all teachers
 router.get("/teacher_details", (req, res) => {
   const query = `
-    SELECT t.teacher_id, t.first_name, t.last_name, t.enrolled_date, t.date_of_birth, u.email 
+    SELECT t.teacher_id, t.first_name, t.last_name, t.enrolled_date, t.date_of_birth, 
+           t.course, t.assigned_academics, u.email 
     FROM teachers t
     JOIN users u ON t.teacher_id = u.id
     WHERE u.role_id = 3
@@ -46,6 +47,7 @@ router.post("/teacher_post", (req, res) => {
     teacherId,
     password,
     course,
+    assignedAcademics
   } = req.body;
   console.log("Request body:", req.body);
 
@@ -75,11 +77,11 @@ router.post("/teacher_post", (req, res) => {
         });
       }
 
-      const studentQuery = `
-        INSERT INTO teachers (teacher_id, first_name, last_name, email, enrolled_date, date_of_birth, course)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+      const teacherQuery = `
+        INSERT INTO teachers (teacher_id, first_name, last_name, email, enrolled_date, date_of_birth, course, assigned_academics)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `;
-      const studentValues = [
+      const teacherValues = [
         teacherId,
         firstName,
         lastName,
@@ -87,19 +89,20 @@ router.post("/teacher_post", (req, res) => {
         enrolledDate,
         dob,
         course,
+        assignedAcademics
       ];
 
-      // Log the student query and values for debugging
-      console.log("Student Insert Query:", studentQuery);
-      console.log("Student Values:", studentValues);
+      // Log the teacher query and values for debugging
+      console.log("Teacher Insert Query:", teacherQuery);
+      console.log("Teacher Values:", teacherValues);
 
-      connection.query(studentQuery, studentValues, (err, studentResults) => {
+      connection.query(teacherQuery, teacherValues, (err, teacherResults) => {
         if (err) {
-          console.error("Error inserting student:", err); // Log error details
+          console.error("Error inserting teacher:", err); // Log error details
           return connection.rollback(() => {
             res
               .status(500)
-              .json({ message: "Error inserting student", error: err.message });
+              .json({ message: "Error inserting teacher", error: err.message });
           });
         }
 
@@ -116,86 +119,11 @@ router.post("/teacher_post", (req, res) => {
 
           return res
             .status(201)
-            .json({ message: "User and student data inserted successfully" });
+            .json({ message: "User and teacher data inserted successfully" });
         });
       });
     });
   });
-
-  // Route to update student data
-  // router.put("/update_student", (req, res) => {
-  //   const {
-  //     stud_id,
-  //     first_name,
-  //     last_name,
-  //     grade_level,
-  //     stud_group,
-  //     date_of_birth,
-  //     enrollment_date,
-  //     student_email,
-  //   } = req.body;
-
-  //   // Validate that all necessary fields are provided
-  //   if (
-  //     !stud_id ||
-  //     !first_name ||
-  //     !last_name ||
-  //     !grade_level ||
-  //     !stud_group ||
-  //     !date_of_birth ||
-  //     !enrollment_date ||
-  //     !student_email
-  //   ) {
-  //     return res.status(400).json({ message: "Missing required fields" });
-  //   }
-
-  //   // Update user table with new email
-  //   const updateUserQuery = `
-  //   UPDATE users
-  //   SET email = ?
-  //   WHERE id = ?
-  // `;
-  //   const updateUserValues = [student_email, stud_id];
-
-  //   connection.query(updateUserQuery, updateUserValues, (err, userResults) => {
-  //     if (err) {
-  //       console.error("Error updating user:", err);
-  //       return res.status(500).json({ message: "Error updating user" });
-  //     }
-
-  //     // Update student table with new data
-  //     const updateStudentQuery = `
-  //     UPDATE students
-  //     SET first_name = ?, last_name = ?, grade_level = ?, stud_group = ?,
-  //         date_of_birth = ?, enrollment_date = ?
-  //     WHERE stud_id = ?
-  //   `;
-  //     const updateStudentValues = [
-  //       first_name,
-  //       last_name,
-  //       grade_level,
-  //       stud_group,
-  //       date_of_birth,
-  //       enrollment_date,
-  //       stud_id,
-  //     ];
-
-  //     connection.query(
-  //       updateStudentQuery,
-  //       updateStudentValues,
-  //       (err, studentResults) => {
-  //         if (err) {
-  //           console.error("Error updating student:", err);
-  //           return res.status(500).json({ message: "Error updating student" });
-  //         }
-
-  //         return res.status(200).json({
-  //           message: "Student data updated successfully",
-  //         });
-  //       }
-  //     );
-  //   });
-  // });
 });
 
 // Search teachers by name or email
@@ -207,7 +135,8 @@ router.get("/search_teachers", (req, res) => {
   }
 
   const searchQuery = `
-    SELECT t.teacher_id, t.first_name, t.last_name, t.enrolled_date, t.date_of_birth, u.email AS teacher_email 
+    SELECT t.teacher_id, t.first_name, t.last_name, t.enrolled_date, t.date_of_birth, 
+           t.course, t.assigned_academics, u.email 
     FROM teachers t
     JOIN users u ON t.teacher_id = u.id
     WHERE u.role_id = 3 AND (t.first_name LIKE ? OR t.last_name LIKE ? OR u.email LIKE ?)
