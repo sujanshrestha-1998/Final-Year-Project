@@ -4,6 +4,10 @@ import { IoMdInformationCircleOutline } from "react-icons/io";
 import { MdEditDocument } from "react-icons/md";
 import { format } from "date-fns";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+
+// Add this import at the top
+import TeacherEdit from "./TeacherEdit";
 
 const TeacherData = () => {
   // Replace student data with teacher data state
@@ -14,6 +18,33 @@ const TeacherData = () => {
   // Initialize with no teacher selected
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  // Add state for edit panel
+  const [isEditPanelOpen, setIsEditPanelOpen] = useState(false);
+
+  // Handle edit button click
+  const handleEditClick = () => {
+    // Only open the panel if a teacher is selected
+    if (selectedTeacher) {
+      setIsEditPanelOpen(true);
+    }
+  };
+
+  // Function to close the edit panel
+  const handleCloseEditPanel = () => {
+    setIsEditPanelOpen(false);
+  };
+
+  // Function to handle teacher updates
+  const handleTeacherUpdated = (updatedTeacher) => {
+    // Update the teacher in the list
+    setTeachersData((prevData) =>
+      prevData.map((teacher) =>
+        teacher.id === updatedTeacher.id ? updatedTeacher : teacher
+      )
+    );
+    // Update selected teacher
+    setSelectedTeacher(updatedTeacher);
+  };
 
   // Fetch teachers data from API
   useEffect(() => {
@@ -93,6 +124,11 @@ const TeacherData = () => {
 
   return (
     <div className="h-screen w-[80vw] overflow-hidden">
+      {/* Add a conditional blur overlay when edit panel is open */}
+      {isEditPanelOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-40"></div>
+      )}
+
       <div className="mx-8 w-full overflow-auto">
         {/* Top Bar - updated for teachers */}
         <div className="flex items-center gap-4 ">
@@ -164,7 +200,10 @@ const TeacherData = () => {
               <div className="border-b pb-4 flex flex-col mb-6 gap-4">
                 <div className="flex justify-between">
                   <h1 className="font-medium text-lg">Teacher Information</h1>
-                  <button className="text-blue-500 font-medium flex gap-2 items-center">
+                  <button
+                    className="text-blue-500 font-medium flex gap-2 items-center"
+                    onClick={handleEditClick}
+                  >
                     Edit
                     <MdEditDocument />
                   </button>
@@ -341,6 +380,16 @@ const TeacherData = () => {
           </div>
         </div>
       </div>
+
+      {/* Add the TeacherEdit component here, inside the main component return */}
+      {selectedTeacher && (
+        <TeacherEdit
+          isOpen={isEditPanelOpen}
+          onClose={handleCloseEditPanel}
+          teacherData={selectedTeacher}
+          onTeacherUpdated={handleTeacherUpdated}
+        />
+      )}
     </div>
   );
 };
