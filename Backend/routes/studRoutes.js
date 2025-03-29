@@ -84,7 +84,7 @@ router.post("/stud_post", (req, res) => {
         firstName,
         lastName,
         gradeLevel,
-        studGroup,
+        null,
         enrollmentDate,
         dob,
       ];

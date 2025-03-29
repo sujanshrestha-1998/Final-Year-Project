@@ -166,7 +166,7 @@ const Teacher = () => {
         {/* Top Section */}
         <div className="flex items-center gap-4 ">
           <div className="flex items-center gap-2 py-5">
-            <h1 className="font-semibold text-2xl text-black">CAMPUS MAP</h1>
+            <h1 className="font-semibold text-2xl text-black">ACADEMICS MAP</h1>
             <IoMdInformationCircleOutline className="text-2xl" />
           </div>
           <div className="relative w-80">
@@ -445,15 +445,18 @@ const Teacher = () => {
             </div>
 
             {/* Right Section */}
-            <div className="w-[400px]">
-              <div className="mt-56">
+            <div className="w-[400px] mt-44">
+              <div className="">
+                <div className="w-96 h-0.5 bg-black z-10 relative mb-[-20px]  ml-[-20px]"></div>
+
                 <div className="w-52 h-72 border border-gray-400 shadow-lg shadow-gray-800/50">
                   <h1 className=" ml-2 font-medium mt-60">
                     Resource Department
                   </h1>
                 </div>
+
                 <div
-                  className="z-10 relative mt-[-260px] ml-5 w-36 h-48 bg-[#92bd63] shadow-lg shadow-gray-800/50 cursor-pointer hover:bg-[#7da952] transition-colors duration-200"
+                  className="z-30 relative mt-[-260px] ml-5 w-36 h-48 bg-[#92bd63] shadow-lg shadow-gray-800/50 cursor-pointer hover:bg-[#7da952] transition-colors duration-200"
                   onMouseEnter={() => handleMouseEnter("Academics D")}
                   onMouseLeave={handleMouseLeave}
                   onClick={() => handleBlockClick("Academics D")}
@@ -487,6 +490,8 @@ const Teacher = () => {
                       </div>
                     )}
                 </div>
+
+                <div className="w-96 h-0.5 bg-black z-10 relative mt-4 ml-[-20px]"></div>
               </div>
             </div>
           </div>
