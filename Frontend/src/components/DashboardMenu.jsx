@@ -264,7 +264,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
                 }`}
                 onClick={() => navigate("/teachers")}
               >
-                Campus Map
+                Academics Map
               </div>
               <div
                 className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
