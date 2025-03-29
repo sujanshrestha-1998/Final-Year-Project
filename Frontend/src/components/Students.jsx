@@ -297,7 +297,7 @@ const Students = () => {
                             </div>
 
                             {/* Green footer */}
-                            <div className="absolute bottom-0 left-0 right-0 bg-[#86be56] py-2 px-4">
+                            <div className="z-40 absolute bottom-0 left-0 right-0 bg-[#86be56] py-2 px-4">
                               <p className="text-white text-xs">
                                 Student ID: {selectedStudent.rollNo}
                               </p>
