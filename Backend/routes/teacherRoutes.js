@@ -37,6 +37,28 @@ router.get("/teacher_details", (req, res) => {
   });
 });
 
+// New route to fetch academics data
+router.get("/academics", (req, res) => {
+  const query = `
+    SELECT * FROM academics
+  `;
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error("Database error:", err.message);
+      return res.status(500).json({ message: "Database error" });
+    }
+
+    if (results.length > 0) {
+      return res
+        .status(200)
+        .json({ message: "Academics found", academics: results });
+    } else {
+      return res.status(404).json({ message: "No academics found" });
+    }
+  });
+});
+
 router.post("/teacher_post", (req, res) => {
   const {
     firstName,
@@ -47,7 +69,7 @@ router.post("/teacher_post", (req, res) => {
     teacherId,
     password,
     course,
-    assignedAcademics
+    assignedAcademics,
   } = req.body;
   console.log("Request body:", req.body);
 
@@ -89,7 +111,7 @@ router.post("/teacher_post", (req, res) => {
         enrolledDate,
         dob,
         course,
-        assignedAcademics
+        assignedAcademics,
       ];
 
       // Log the teacher query and values for debugging

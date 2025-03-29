@@ -268,6 +268,16 @@ const DashboardMenu = ({ onStudentSelect }) => {
               </div>
               <div
                 className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
+                  location.pathname === "/teachers/details"
+                    ? "text-blue-600 font-medium"
+                    : "text-gray-600 hover:text-blue-500"
+                }`}
+                onClick={() => navigate("/teachers/details")}
+              >
+                Teacher Details
+              </div>
+              <div
+                className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
                   location.pathname === "/teachers/register"
                     ? "text-blue-600 font-medium"
                     : "text-gray-600 hover:text-blue-500"
@@ -327,7 +337,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
                   }`}
                   onClick={() => navigate("/students")}
                 >
-                  View Student Data
+                  Student Details
                 </div>
                 <div
                   className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${

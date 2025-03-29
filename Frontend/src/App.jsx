@@ -6,7 +6,6 @@ import {
   useLocation,
 } from "react-router-dom";
 import Login from "./pages/Login";
-import AdministrationLogin from "./pages/AdministrationLogin";
 import Dashboard from "./pages/Dashboard";
 import StudentsDashboard from "./pages/StudentsDashboard"; // Import Students page
 import PrivateRoute from "./components/PrivateRoute";
@@ -18,6 +17,7 @@ import RegisterStudentDashboard from "./pages/RegisterStudentDashboard";
 import AddClassroomDashboard from "./pages/AddClassroomDashboard";
 import ProfilePage from "./pages/ProfilePage";
 import ClassroomRequests from "./pages/ClassroomRequests";
+import TeacherDataDashboard from "./pages/TeacherDataDashboard";
 
 const AppRoutes = () => {
   const location = useLocation();
@@ -63,6 +63,14 @@ const AppRoutes = () => {
         element={
           <PrivateRoute>
             <RegisterTeacherDashboard />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/teachers/details"
+        element={
+          <PrivateRoute>
+            <TeacherDataDashboard />
           </PrivateRoute>
         }
       />
