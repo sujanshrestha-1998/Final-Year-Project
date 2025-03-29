@@ -131,11 +131,11 @@ const Students = () => {
             ) : filteredStudents.length === 0 ? (
               <p className="text-center py-4">No students found</p>
             ) : (
-              <div className="space-y-2">
+              <div className="">
                 {filteredStudents.map((student) => (
                   <div
                     key={student.id}
-                    className={`p-1 rounded-md cursor-pointer transition-all ${
+                    className={`p-1 border-t-2 cursor-pointer transition-all ${
                       selectedStudent && selectedStudent.id === student.id
                         ? "bg-blue-500 text-white"
                         : "hover:bg-gray-100"
@@ -160,8 +160,8 @@ const Students = () => {
           </div>
 
           {/* Right Side - Student Details with fixed layout */}
-          <div className="pl-6 z-30 relative ml-[-50px] w-[60vw] h-[700px]">
-            <div className="bg-white w-[600px] p-8 shadow-2xl h-full">
+          <div className="pl-6 z-30 relative ml-[-50px] w-[65vw] h-[700px]">
+            <div className="bg-white w-[650px] p-8 shadow-2xl h-full">
               {/* Student Header with Name and Email */}
               <div className="border-b pb-4 flex flex-col mb-6 gap-4">
                 <div className="flex justify-between">
@@ -184,75 +184,132 @@ const Students = () => {
                 </div>
               </div>
 
-              {/* Student Information Grid */}
-              <div className="flex flex-col gap-5">
-                <fieldset className="mb-6">
-                  <legend className="text-lg font-bold mb-4 text-blue-500 border-b-2 pb-2">
-                    College Information
-                  </legend>
-                  <div className="flex flex-col gap-2">
-                    <div className="flex gap-1">
-                      <h1 className="text-gray-500">Student ID: </h1>
-                      <p className="font-medium text-md">
-                        {selectedStudent
-                          ? selectedStudent.rollNo
-                          : "Roll Number"}
-                      </p>
-                    </div>
-                    <div>
-                      <h1 className="text-gray-500">Enrollment Date</h1>
-                      <p className="font-medium text-md">
-                        {selectedStudent
-                          ? new Date(
-                              selectedStudent.enrollmentDate
-                            ).toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                            })
-                          : "Enrollment Date"}
-                      </p>
-                    </div>
-                    <div>
-                      <h1 className="text-gray-500">Group</h1>
-                      <p className="font-medium text-md">
-                        {selectedStudent
-                          ? selectedStudent.year
-                          : "Not Assigned"}
-                      </p>
-                    </div>
-                  </div>
-                </fieldset>
-                <fieldset className="mb-6">
-                  <legend className="text-lg font-bold mb-4 text-blue-500 border-b-2 pb-2">
-                    Personal Information
-                  </legend>
-                  <div className="flex flex-col gap-2">
-                    <div>
-                      <h1 className="text-gray-500">Date of Birth</h1>
-                      <p className="font-medium text-md">
-                        {selectedStudent
-                          ? new Date(selectedStudent.dob).toLocaleDateString(
-                              "en-US",
-                              {
+              {/* Student Information Grid - Now with two columns */}
+              <div className="flex gap-6">
+                {/* Left column - Information sections */}
+                <div className="flex flex-col gap-5 w-1/2">
+                  <fieldset className="mb-6">
+                    <legend className="text-lg font-bold mb-4 text-blue-500 border-b-2 pb-2">
+                      College Information
+                    </legend>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex gap-1">
+                        <h1 className="text-gray-500">Student ID: </h1>
+                        <p className="font-medium text-md">
+                          {selectedStudent
+                            ? selectedStudent.rollNo
+                            : "Roll Number"}
+                        </p>
+                      </div>
+                      <div>
+                        <h1 className="text-gray-500">Enrollment Date</h1>
+                        <p className="font-medium text-md">
+                          {selectedStudent
+                            ? new Date(
+                                selectedStudent.enrollmentDate
+                              ).toLocaleDateString("en-US", {
                                 year: "numeric",
                                 month: "long",
                                 day: "numeric",
-                              }
-                            )
-                          : "Date of Birth"}
-                      </p>
+                              })
+                            : "Enrollment Date"}
+                        </p>
+                      </div>
+                      <div>
+                        <h1 className="text-gray-500">Group</h1>
+                        <p className="font-medium text-md">
+                          {selectedStudent
+                            ? selectedStudent.year
+                            : "Not Assigned"}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h1 className="text-gray-500">Age</h1>
-                      <p className="font-medium text-md">
-                        {selectedStudent
-                          ? `${selectedStudent.age} years`
-                          : "Age"}
-                      </p>
+                  </fieldset>
+                  <fieldset className="mb-6">
+                    <legend className="text-lg font-bold mb-4 text-blue-500 border-b-2 pb-2">
+                      Personal Information
+                    </legend>
+                    <div className="flex flex-col gap-2">
+                      <div>
+                        <h1 className="text-gray-500">Date of Birth</h1>
+                        <p className="font-medium text-md">
+                          {selectedStudent
+                            ? new Date(selectedStudent.dob).toLocaleDateString(
+                                "en-US",
+                                {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                }
+                              )
+                            : "Date of Birth"}
+                        </p>
+                      </div>
+                      <div>
+                        <h1 className="text-gray-500">Age</h1>
+                        <p className="font-medium text-md">
+                          {selectedStudent
+                            ? `${selectedStudent.age} years`
+                            : "Age"}
+                        </p>
+                      </div>
+                    </div>
+                  </fieldset>
+                </div>
+
+                {/* Right column - ID Card Design */}
+                {selectedStudent && (
+                  <div className="w-[350px] flex items-center justify-center">
+                    <div className="flex flex-col gap-4">
+                      {/* Front of ID Card */}
+                      <div className="w-[280px] h-[420px] bg-white rounded-lg overflow-hidden shadow-md border border-gray-200">
+                        {/* Green accent line on the right */}
+                        <div className="relative h-full">
+                          <div className="absolute top-0 right-0 w-1 h-1/4  border-r-2 border-green-600 mr-5"></div>
+
+                          {/* Logo at top */}
+                          <div className="p-4">
+                            <div className="flex items-center gap-2 mb-6">
+                              <div className="w-20 h-8 ">
+                                <img src="/src/assets/hck-logo.png" alt="" />
+                              </div>
+                            </div>
+
+                            {/* Student Name */}
+                            <div className="mb-4">
+                              <h3 className="text-xl font-bold text-gray-800">
+                                {selectedStudent.name}
+                              </h3>
+                              <p>Student</p>
+                              <p className="text-[10px] text-gray-500">
+                                {selectedStudent.email}
+                              </p>
+                            </div>
+
+                            {/* Student Photo */}
+                            <div className="mb-4">
+                              <div className="z-10 relative ml-5 w-52 h-[150px] mt-20 bg-gray-100  overflow-hidden flex items-center justify-center"></div>
+                              <img
+                                src="/src/assets/Profile-Person.png"
+                                alt=""
+                                className="w-10/12 h-10/12 object-cover z-20 relative mt-[-200px] ml-5"
+                              />
+                            </div>
+
+                            {/* Green footer */}
+                            <div className="absolute bottom-0 left-0 right-0 bg-[#86be56] py-2 px-4">
+                              <p className="text-white text-xs">
+                                Student ID: {selectedStudent.rollNo}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Back of ID Card */}
                     </div>
                   </div>
-                </fieldset>
+                )}
               </div>
 
               {!selectedStudent && !loading && (
