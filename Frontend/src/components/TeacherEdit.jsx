@@ -121,13 +121,15 @@ const TeacherEdit = ({ isOpen, onClose, teacherData, onTeacherUpdated }) => {
         <div className="flex items-center gap-20 mb-10">
           <button
             onClick={onClose}
-            className="flex items-center justify-center text-blue-500 gap-1"
+            className="flex items-center font-medium justify-center text-blue-500 gap-1"
           >
             <IoChevronBackOutline />
             Close
           </button>
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-medium text-gray-800">Edit Teacher</h2>
+            <h2 className="text-xl font-semibold text-gray-800">
+              Edit Teacher
+            </h2>
           </div>
         </div>
 
@@ -157,7 +159,7 @@ const TeacherEdit = ({ isOpen, onClose, teacherData, onTeacherUpdated }) => {
                     name="first_name"
                     value={formData.first_name}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
+                    className="w-full px-4 py-1 bg-gray-200  border-gray-200 rounded-md "
                     required
                   />
                 </div>
@@ -171,7 +173,7 @@ const TeacherEdit = ({ isOpen, onClose, teacherData, onTeacherUpdated }) => {
                     name="last_name"
                     value={formData.last_name}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
+                    className="ml-2 w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                     required
                   />
                 </div>
