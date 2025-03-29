@@ -259,10 +259,10 @@ const Students = () => {
 
                 {/* Right column - ID Card Design */}
                 {selectedStudent && (
-                  <div className="w-[350px] flex items-center justify-center">
+                  <div className="w-[350px] flex items-center justify-center ">
                     <div className="flex flex-col gap-4">
                       {/* Front of ID Card */}
-                      <div className="w-[280px] h-[420px] bg-white rounded-lg overflow-hidden shadow-md border border-gray-200">
+                      <div className="w-[280px] h-[420px] bg-white rounded-lg overflow-hidden shadow-xl border border-gray-200">
                         {/* Green accent line on the right */}
                         <div className="relative h-full">
                           <div className="absolute top-0 right-0 w-1 h-1/4  border-r-2 border-green-600 mr-5"></div>
