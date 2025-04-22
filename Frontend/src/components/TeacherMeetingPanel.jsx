@@ -5,6 +5,7 @@ import {
   FaClock,
   FaUser,
   FaClipboardList,
+  FaCheckCircle,
 } from "react-icons/fa";
 import axios from "axios";
 
@@ -42,6 +43,10 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
       setTimeout(() => setAnimateIn(true), 50);
       // Fetch all teachers when panel opens
       fetchAllTeachers();
+
+      // Set current date as default
+      const today = new Date().toISOString().split("T")[0];
+      setMeetingDate(today);
     } else {
       setAnimateIn(false);
     }
@@ -58,6 +63,11 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
 
       if (response.data && response.data.teachers) {
         setAllTeachers(response.data.teachers);
+
+        // Preselect the first teacher if available
+        if (response.data.teachers.length > 0) {
+          setSelectedTeacher(response.data.teachers[0].teacher_id.toString());
+        }
       } else {
         console.error("No teachers found in response:", response.data);
       }
@@ -160,9 +170,6 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
         setIsTeacherAvailable(teacherIsAvailable);
 
         if (!teacherIsAvailable) {
-          setErrorMessage(
-            "The selected teacher is not available at this time slot. Please select a different time."
-          );
         }
       } else {
         setErrorMessage(
@@ -316,17 +323,61 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
         }`}
       >
         <div className="h-full flex flex-col">
-          {/* Header */}
-          <div className="flex items-center px-6 py-4 border-b border-gray-200">
-            <button
-              onClick={handleClose}
-              className="p-2 flex gap-1 text-blue-500 items-center text-sm font-medium"
-            >
-              <IoChevronBack /> Cancel
-            </button>
-            <h2 className="text-xl ml-10 font-semibold text-gray-800">
-              Schedule Teacher Meeting
-            </h2>
+          {/* Header with gradient background */}
+          <div className="">
+            <div className="flex items-center px-6 py-4 gap-5 my-2">
+              <button
+                onClick={handleClose}
+                className=" flex gap-1 text-blue-500 font-semibold items-center text-sm  hover:bg-white/10 rounded-md transition-colors"
+              >
+                <IoChevronBack /> Cancel
+              </button>
+              <h2 className="text-xl  font-semibold">
+                Schedule Teacher Meeting
+              </h2>
+            </div>
+
+            {/* Progress steps */}
+            <div className="px-6 pb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div
+                  className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                    selectedTeacher
+                      ? "text-white bg-blue-500"
+                      : "bg-white border-2"
+                  }`}
+                >
+                  <span className="text-xs font-bold">1</span>
+                </div>
+                <span className="text-sm font-medium">Teacher</span>
+              </div>
+              <div className="h-0.5 w-12 bg-blue-400"></div>
+              <div className="flex items-center gap-2">
+                <div
+                  className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                    selectedTeacher && meetingDate
+                      ? "text-white bg-blue-500"
+                      : "bg-white border-2"
+                  }`}
+                >
+                  <span className="text-xs font-bold">2</span>
+                </div>
+                <span className="text-sm font-medium">Date</span>
+              </div>
+              <div className="h-0.5 w-12 bg-blue-400"></div>
+              <div className="flex items-center gap-2">
+                <div
+                  className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                    selectedTeacher && meetingDate && meetingTime
+                      ? "text-white bg-blue-500"
+                      : "bg-white border-2"
+                  }`}
+                >
+                  <span className="text-xs font-bold">3</span>
+                </div>
+                <span className="text-sm font-medium">Time</span>
+              </div>
+            </div>
           </div>
 
           {/* Content */}
@@ -349,14 +400,15 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
             <form onSubmit={handleSubmit}>
               {/* Teacher Selection */}
               <div className="mb-6">
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-500 mb-2">
-                  <FaUser className="text-blue-500" />
-                  Select Teacher
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-400">
+                    Select Teacher
+                  </label>
+                </div>
                 <div className="relative">
                   <select
                     id="teacher"
-                    className="block w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none text-gray-700 transition-all duration-200"
+                    className="block w-full px-4 py-1 bg-gray-100 border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none text-gray-700 transition-all duration-200"
                     value={selectedTeacher}
                     onChange={(e) => setSelectedTeacher(e.target.value)}
                     required
@@ -413,49 +465,55 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
                 )}
               </div>
 
-              {/* Selected Teacher Display */}
+              {/* Selected Teacher Display - Enhanced with card design */}
               {selectedTeacher && allTeachers.length > 0 && (
-                <div className="mb-6 p-6 rounded-lg bg-blue-50 shadow-sm border border-blue-100">
-                  <h3 className="font-medium mb-3 text-gray-700">
+                <div className="mb-6 overflow-hidden rounded-lg bg-blue-100 shadow-md">
+                  <p className="ml-5 mt-4 font-medium text-lg">
                     Selected Teacher
-                  </h3>
-                  <div className="flex items-start gap-4">
-                    <div className="p-4 bg-white rounded-xl shadow-sm">
-                      <FaUser className="text-blue-500 text-2xl" />
-                    </div>
-                    <div>
-                      {(() => {
-                        const teacher = allTeachers.find(
-                          (t) =>
-                            t.teacher_id.toString() ===
-                            selectedTeacher.toString()
-                        );
-                        return teacher ? (
-                          <>
-                            <p className="font-bold text-gray-900 text-lg">
+                  </p>
+                  <div className="px-4 py-2 mb-4">
+                    {(() => {
+                      const teacher = allTeachers.find(
+                        (t) =>
+                          t.teacher_id.toString() === selectedTeacher.toString()
+                      );
+
+                      return teacher ? (
+                        <div className="flex items-center gap-5">
+                          <div className="flex-shrink-0 w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                            <FaUser className="text-gray-400 text-lg" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900">
                               {teacher.first_name} {teacher.last_name}
-                            </p>
+                            </h3>
                             <p className="text-sm text-gray-500">
                               {teacher.course || "No course assigned"}
                             </p>
-                          </>
-                        ) : (
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-5">
+                          <div className="flex-shrink-0 w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                            <FaUser className="text-gray-400 text-lg" />
+                          </div>
                           <p className="text-sm text-gray-500">
                             Teacher information not available
                           </p>
-                        );
-                      })()}
-                    </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               )}
 
-              {/* Date Selection */}
+              {/* Date Selection - Enhanced with calendar icon */}
               <div className="mb-6">
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-500 mb-2">
-                  <FaCalendarAlt className="text-blue-500" />
-                  Date {meetingDate && `- ${formatDisplayDate(meetingDate)}`}
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-500">
+                    Date - {formatDisplayDate(meetingDate)}
+                  </label>
+                </div>
                 <div className="relative">
                   <div className="flex items-center rounded-md p-2 bg-gray-100 hover:border-blue-400 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all duration-200">
                     <input
@@ -469,97 +527,109 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
                     />
                   </div>
                 </div>
+                {!selectedTeacher && (
+                  <p className="text-xs text-amber-600 mt-2">
+                    Please select a teacher first
+                  </p>
+                )}
               </div>
 
-              {/* Time Selection */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-500 mb-2">
-                    <FaClock className="text-blue-500" />
-                    Start Time
-                  </label>
-                  <div className="relative">
-                    <select
-                      className="w-full rounded-md p-2 pr-10 appearance-none bg-gray-100 text-gray-800 hover:border-blue-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-all duration-200"
-                      value={meetingTime}
-                      onChange={(e) => setMeetingTime(e.target.value)}
-                      required
-                      disabled={!selectedTeacher || !meetingDate}
-                    >
-                      <option value="">Select time</option>
-                      {timeSlots.map((time) => (
-                        <option key={`start-${time}`} value={time}>
-                          {formatDisplayTime(time)}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
+              {/* Time Selection - Enhanced with better layout */}
+              <div className="mb-6">
+                <h3 className="flex items-center gap-2 text-sm font-medium text-gray-500 mb-3">
+                  Meeting Time
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs text-gray-500 mb-1 block">
+                      Start Time
+                    </label>
+                    <div className="relative">
+                      <select
+                        className="w-full rounded-md p-2 pr-10 appearance-none bg-gray-100 text-gray-800 hover:border-blue-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-all duration-200"
+                        value={meetingTime}
+                        onChange={(e) => setMeetingTime(e.target.value)}
+                        required
+                        disabled={!selectedTeacher || !meetingDate}
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M19 9l-7 7-7-7"
-                        ></path>
-                      </svg>
+                        <option value="">Select time</option>
+                        {timeSlots.map((time) => (
+                          <option key={`start-${time}`} value={time}>
+                            {formatDisplayTime(time)}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M19 9l-7 7-7-7"
+                          ></path>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 mb-1 block">
+                      Duration
+                    </label>
+                    <div className="relative">
+                      <select
+                        className="w-full rounded-md p-2 pr-10 appearance-none bg-gray-100 text-gray-800 hover:border-blue-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-all duration-200"
+                        value={meetingDuration}
+                        onChange={(e) => setMeetingDuration(e.target.value)}
+                        required
+                        disabled={
+                          !selectedTeacher || !meetingDate || !meetingTime
+                        }
+                      >
+                        {durationOptions.map((duration) => (
+                          <option key={`duration-${duration}`} value={duration}>
+                            {duration} minutes
+                          </option>
+                        ))}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M19 9l-7 7-7-7"
+                          ></path>
+                        </svg>
+                      </div>
                     </div>
                   </div>
                 </div>
-                <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-500 mb-2">
-                    <FaClock className="text-blue-500" />
-                    Duration
-                  </label>
-                  <div className="relative">
-                    <select
-                      className="w-full rounded-md p-2 pr-10 appearance-none bg-gray-100 text-gray-800 hover:border-blue-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-all duration-200"
-                      value={meetingDuration}
-                      onChange={(e) => setMeetingDuration(e.target.value)}
-                      required
-                      disabled={
-                        !selectedTeacher || !meetingDate || !meetingTime
-                      }
-                    >
-                      {durationOptions.map((duration) => (
-                        <option key={`duration-${duration}`} value={duration}>
-                          {duration} minutes
-                        </option>
-                      ))}
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M19 9l-7 7-7-7"
-                        ></path>
-                      </svg>
-                    </div>
-                  </div>
-                </div>
               </div>
 
-              {/* Meeting Time Summary */}
+              {/* Meeting Time Summary - Enhanced with better styling */}
               {meetingTime && meetingDuration && (
-                <div className="mb-6 p-3 bg-gray-50 rounded-md border border-gray-200">
+                <div className="mb-6 p-3 bg-blue-50 rounded-md border border-blue-100">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                     <p className="text-sm text-gray-600">
-                      Meeting will end at{" "}
-                      <span className="font-medium">
+                      Meeting will be from{" "}
+                      <span className="font-medium text-blue-700">
+                        {formatDisplayTime(meetingTime)}
+                      </span>{" "}
+                      to{" "}
+                      <span className="font-medium text-blue-700">
                         {formatDisplayTime(
                           calculateEndTime(meetingTime, meetingDuration)
                         )}
@@ -569,7 +639,7 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
                 </div>
               )}
 
-              {/* Availability Status */}
+              {/* Availability Status - Enhanced with better styling */}
               {isCheckingAvailability && (
                 <div className="mb-6 text-sm text-gray-500 flex items-center p-3 bg-gray-50 rounded-md border border-gray-200">
                   <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mr-2"></div>
@@ -583,12 +653,19 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
                 !isCheckingAvailability &&
                 (isTeacherAvailable === true ? (
                   <div className="mb-6 text-sm text-green-600 p-3 bg-green-50 rounded-md border border-green-100 flex items-center">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                    <span>Teacher is available for this time slot!</span>
+                    <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                      <FaCheckCircle className="text-green-500" />
+                    </div>
+                    <span>
+                      <span className="font-medium">Good news!</span> Teacher is
+                      available for this time slot!
+                    </span>
                   </div>
                 ) : isTeacherAvailable === false ? (
                   <div className="mb-6 text-sm text-red-600 p-3 bg-red-50 rounded-md border border-red-100 flex items-center">
-                    <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
+                    <div className="flex-shrink-0 w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mr-3">
+                      <IoClose className="text-red-500 text-lg" />
+                    </div>
                     <span>
                       Teacher is not available at this time slot. Please select
                       a different time.
@@ -596,25 +673,29 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
                   </div>
                 ) : null)}
 
-              {/* Purpose */}
+              {/* Purpose - Enhanced with better styling */}
               <div className="mb-6">
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-500 mb-2">
-                  <FaClipboardList className="text-blue-500" />
                   Meeting Purpose
                 </label>
-                <textarea
-                  className="w-full rounded-md p-3 bg-gray-100 text-gray-800 min-h-[120px] hover:border-blue-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-all duration-200 resize-none"
-                  placeholder="Describe the purpose of your meeting with the teacher"
-                  value={meetingPurpose}
-                  onChange={(e) => setMeetingPurpose(e.target.value)}
-                  required
-                  disabled={
-                    !selectedTeacher ||
-                    !meetingDate ||
-                    !meetingTime ||
-                    isTeacherAvailable === false
-                  }
-                ></textarea>
+                <div className="relative">
+                  <textarea
+                    className="w-full rounded-md p-3 bg-gray-100 text-gray-800 min-h-[120px] hover:border-blue-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-all duration-200 resize-none"
+                    placeholder="Describe the purpose of your meeting with the teacher"
+                    value={meetingPurpose}
+                    onChange={(e) => setMeetingPurpose(e.target.value)}
+                    required
+                    disabled={
+                      !selectedTeacher ||
+                      !meetingDate ||
+                      !meetingTime ||
+                      isTeacherAvailable === false
+                    }
+                  ></textarea>
+                  <div className="absolute bottom-2 right-2 text-xs text-gray-400">
+                    {meetingPurpose.length} characters
+                  </div>
+                </div>
                 <p className="text-xs text-gray-500 mt-1">
                   Please provide enough details for the teacher to prepare for
                   the meeting.
@@ -663,18 +744,20 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
                   </div>
                 )}
 
-              {/* Submit Button */}
-              <div className="mt-8 flex gap-4">
-                <button
-                  type="button"
-                  onClick={handleClose}
-                  className="w-full bg-gray-400 text-white py-2.5 px-4 rounded-lg font-medium hover:bg-gray-500 active:bg-gray-300 transition-colors focus:outline-none shadow-md"
-                >
-                  Cancel
-                </button>
+              {/* Submit Button - Enhanced with better styling */}
+              <div className="mt-8">
                 <button
                   type="submit"
-                  className="w-full bg-blue-500 text-white py-2.5 px-4 rounded-lg font-medium hover:bg-blue-600 active:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-md"
+                  className={`w-full py-3 px-4 rounded-lg font-medium shadow-md flex items-center justify-center ${
+                    isSubmitting ||
+                    !selectedTeacher ||
+                    !meetingDate ||
+                    !meetingTime ||
+                    isCheckingAvailability ||
+                    isTeacherAvailable === false
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 active:from-blue-700 active:to-blue-800"
+                  } transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
                   disabled={
                     isSubmitting ||
                     !selectedTeacher ||
@@ -690,14 +773,17 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
                       <span>Scheduling...</span>
                     </div>
                   ) : (
-                    "Schedule Meeting"
+                    <>
+                      <FaCalendarAlt className="mr-2" />
+                      Schedule Meeting
+                    </>
                   )}
                 </button>
               </div>
             </form>
           </div>
 
-          <div className="mt-4 p-4 border-t border-gray-200">
+          <div className="p-4 border-t border-gray-200 bg-gray-50">
             <p className="text-xs text-gray-500 text-center">
               Meetings are subject to teacher availability and confirmation
             </p>
