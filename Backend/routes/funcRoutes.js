@@ -109,123 +109,6 @@ router.post("/fetch_schedule", (req, res) => {
   });
 });
 
-router.post("/update_schedule", (req, res) => {
-  const {
-    schedule_id,
-    group_id,
-    classroom_id,
-    course_id,
-    teacher_id,
-    day_of_week,
-    start_time,
-    end_time,
-  } = req.body;
-
-  // Validation: Ensure required fields are present
-  if (
-    !group_id ||
-    !classroom_id ||
-    !course_id ||
-    !teacher_id ||
-    !day_of_week ||
-    !start_time ||
-    !end_time
-  ) {
-    return res.status(400).json({ message: "All fields are required" });
-  }
-
-  // First, check for overlapping schedules
-  const overlapCheckQuery = `
-    SELECT id
-    FROM schedules
-    WHERE classroom_id = ?
-      AND day_of_week = ?
-      AND ((start_time < ? AND end_time > ?) 
-           OR (start_time < ? AND end_time > ?) 
-           OR (start_time >= ? AND end_time <= ?))
-      AND id != ?
-  `;
-
-  const overlapParams = [
-    classroom_id,
-    day_of_week,
-    end_time, // New start time before existing end time
-    start_time, // New end time after existing start time
-    end_time, // Same start/end times
-    start_time,
-    start_time, // New schedule completely contains existing one
-    end_time,
-    schedule_id || 0, // Skip current schedule when checking overlap
-  ];
-
-  connection.query(
-    overlapCheckQuery,
-    overlapParams,
-    (overlapErr, overlapResults) => {
-      if (overlapErr) {
-        console.error("Database error:", overlapErr.message);
-        return res.status(500).json({ message: "Database error" });
-      }
-
-      // If overlapping schedules found, return an error
-      if (overlapResults.length > 0) {
-        return res.status(409).json({
-          message:
-            "Cannot schedule: This classroom is already booked during this time period on the selected day.",
-        });
-      }
-
-      // If no overlap, proceed with update or insert
-      let query;
-      let queryParams;
-
-      if (schedule_id) {
-        query = `
-        UPDATE schedules
-        SET group_id = ?, classroom_id = ?, course_id = ?, teacher_id = ?, day_of_week = ?, start_time = ?, end_time = ?
-        WHERE id = ?
-      `;
-        queryParams = [
-          group_id,
-          classroom_id,
-          course_id,
-          teacher_id,
-          day_of_week,
-          start_time,
-          end_time,
-          schedule_id,
-        ];
-      } else {
-        query = `
-        INSERT INTO schedules (group_id, classroom_id, course_id, teacher_id, day_of_week, start_time, end_time)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `;
-        queryParams = [
-          group_id,
-          classroom_id,
-          course_id,
-          teacher_id,
-          day_of_week,
-          start_time,
-          end_time,
-        ];
-      }
-
-      // Execute query
-      connection.query(query, queryParams, (err, result) => {
-        if (err) {
-          console.error("Database error:", err.message);
-          return res.status(500).json({ message: "Database error" });
-        }
-        const message = schedule_id
-          ? "Schedule updated successfully"
-          : "New schedule inserted successfully";
-        return res.status(200).json({ message });
-      });
-    }
-  );
-});
-
 router.delete("/delete_schedule", (req, res) => {
   const { schedule_id } = req.body;
   if (!schedule_id) {
@@ -720,6 +603,317 @@ router.get("/check_reservation_conflicts", (req, res) => {
       hasConflicts: results.length > 0,
     });
   });
+});
+
+router.get("/check_teacher_availability", (req, res) => {
+  const { date, start_time, end_time } = req.query;
+
+  if (!date || !start_time || !end_time) {
+    return res.status(400).json({
+      success: false,
+      message: "Date, start time, and end time are required",
+    });
+  }
+
+  // Parse the date correctly regardless of format (DD/MM/YYYY or YYYY-MM-DD)
+  let dateObj;
+  if (date.includes("/")) {
+    // Handle DD/MM/YYYY format
+    const [day, month, year] = date.split("/");
+    dateObj = new Date(`${year}-${month}-${day}`);
+  } else {
+    // Handle YYYY-MM-DD format
+    dateObj = new Date(date);
+  }
+
+  // Check if date is valid
+  if (isNaN(dateObj.getTime())) {
+    console.error("Invalid date:", date);
+    return res.status(400).json({
+      success: false,
+      message: "Invalid date format",
+    });
+  }
+
+  const daysOfWeek = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+  const dayOfWeek = daysOfWeek[dateObj.getDay()];
+
+  console.log(
+    `Checking availability for ${dayOfWeek}, ${start_time}-${end_time}`
+  );
+
+  // Query to get all teachers
+  const teachersQuery = `
+    SELECT t.teacher_id, t.first_name, t.last_name, t.course
+    FROM teachers t
+    JOIN users u ON t.teacher_id = u.id
+    WHERE u.role_id = 3
+  `;
+
+  // Query to check which teachers have schedules that overlap with the requested time
+  const schedulesQuery = `
+    SELECT DISTINCT teacher_id
+    FROM schedules
+    WHERE day_of_week = ?
+    AND ((start_time < ? AND end_time > ?) 
+         OR (start_time < ? AND end_time > ?) 
+         OR (start_time >= ? AND end_time <= ?))
+  `;
+
+  const scheduleParams = [
+    dayOfWeek,
+    end_time,
+    start_time,
+    end_time,
+    start_time,
+    start_time,
+    end_time,
+  ];
+
+  // Execute queries
+  connection.query(teachersQuery, (teacherErr, teachers) => {
+    if (teacherErr) {
+      console.error("Database error:", teacherErr.message);
+      return res.status(500).json({
+        success: false,
+        message: "Database error",
+      });
+    }
+
+    console.log(`Found ${teachers.length} teachers in the system`);
+
+    // If no teachers found at all
+    if (teachers.length === 0) {
+      return res.status(200).json({
+        success: true,
+        availableTeachers: [],
+        allTeachers: [],
+        message: "No teachers found in the system",
+      });
+    }
+
+    connection.query(
+      schedulesQuery,
+      scheduleParams,
+      (scheduleErr, busyTeachers) => {
+        if (scheduleErr) {
+          console.error("Database error:", scheduleErr.message);
+          return res.status(500).json({
+            success: false,
+            message: "Database error",
+          });
+        }
+
+        console.log(
+          `Found ${busyTeachers.length} busy teachers for ${dayOfWeek} at ${start_time}-${end_time}`
+        );
+
+        // Create a set of busy teacher IDs
+        const busyTeacherIds = new Set(
+          busyTeachers.map((teacher) => teacher.teacher_id)
+        );
+
+        // Filter available teachers - include full teacher objects, not just IDs
+        const availableTeachers = teachers.filter(
+          (teacher) => !busyTeacherIds.has(teacher.teacher_id)
+        );
+
+        console.log(`Found ${availableTeachers.length} available teachers`);
+
+        return res.status(200).json({
+          success: true,
+          availableTeachers: availableTeachers,
+          busyTeacherIds: Array.from(busyTeacherIds),
+          dayOfWeek: dayOfWeek,
+          message:
+            availableTeachers.length > 0
+              ? "Available teachers found"
+              : "No teachers available at this time",
+        });
+      }
+    );
+  });
+});
+
+// Add endpoint to schedule a meeting with a teacher
+router.post("/schedule_meeting", (req, res) => {
+  const { teacher_id, user_id, meeting_date, start_time, end_time, purpose } =
+    req.body;
+
+  // Validate required fields
+  if (
+    !teacher_id ||
+    !user_id ||
+    !meeting_date ||
+    !start_time ||
+    !end_time ||
+    !purpose
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: "Missing required fields",
+    });
+  }
+
+  // Convert date string to Date object for validation
+  const meetingDateObj = new Date(meeting_date);
+  const currentDate = new Date();
+
+  // Set hours, minutes, seconds, and milliseconds to 0 for date comparison
+  currentDate.setHours(0, 0, 0, 0);
+
+  // Check if meeting date is in the past
+  if (meetingDateObj < currentDate) {
+    return res.status(400).json({
+      success: false,
+      message: "Cannot schedule meetings for past dates",
+    });
+  }
+
+  // Get day of week for the meeting date
+  const daysOfWeek = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+  const dayOfWeek = daysOfWeek[meetingDateObj.getDay()];
+
+  // First, check if the teacher is available at the requested time
+  const teacherAvailabilityQuery = `
+    SELECT id
+    FROM schedules
+    WHERE teacher_id = ?
+      AND day_of_week = ?
+      AND ((start_time < ? AND end_time > ?) 
+           OR (start_time < ? AND end_time > ?) 
+           OR (start_time >= ? AND end_time <= ?))
+  `;
+
+  const availabilityParams = [
+    teacher_id,
+    dayOfWeek,
+    end_time,
+    start_time,
+    end_time,
+    start_time,
+    start_time,
+    end_time,
+  ];
+
+  // Then, check for existing meetings
+  const existingMeetingsQuery = `
+    SELECT id
+    FROM teacher_meetings
+    WHERE teacher_id = ?
+      AND meeting_date = ?
+      AND status != 'cancelled'
+      AND ((start_time < ? AND end_time > ?) 
+           OR (start_time < ? AND end_time > ?) 
+           OR (start_time >= ? AND end_time <= ?))
+  `;
+
+  const meetingsParams = [
+    teacher_id,
+    meeting_date,
+    end_time,
+    start_time,
+    end_time,
+    start_time,
+    start_time,
+    end_time,
+  ];
+
+  // Check teacher's schedule first
+  connection.query(
+    teacherAvailabilityQuery,
+    availabilityParams,
+    (scheduleErr, scheduleResults) => {
+      if (scheduleErr) {
+        console.error("Database error:", scheduleErr.message);
+        return res.status(500).json({
+          success: false,
+          message: "Database error",
+        });
+      }
+
+      // If teacher has a class during this time, return error
+      if (scheduleResults.length > 0) {
+        return res.status(409).json({
+          success: false,
+          message:
+            "Cannot schedule: This teacher has a class during this time period.",
+        });
+      }
+
+      // If no schedule conflict, check for existing meetings
+      connection.query(
+        existingMeetingsQuery,
+        meetingsParams,
+        (meetingsErr, meetingsResults) => {
+          if (meetingsErr) {
+            console.error("Database error:", meetingsErr.message);
+            return res.status(500).json({
+              success: false,
+              message: "Database error",
+            });
+          }
+
+          // If teacher already has a meeting during this time, return error
+          if (meetingsResults.length > 0) {
+            return res.status(409).json({
+              success: false,
+              message:
+                "Cannot schedule: This teacher already has a meeting during this time period.",
+            });
+          }
+
+          // If no conflicts, proceed with scheduling the meeting
+          const insertQuery = `
+        INSERT INTO teacher_meetings 
+        (teacher_id, student_id, meeting_date, start_time, end_time, purpose, status, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, 'pending', NOW())
+      `;
+
+          const insertParams = [
+            teacher_id,
+            user_id,
+            meeting_date,
+            start_time,
+            end_time,
+            purpose,
+          ];
+
+          connection.query(insertQuery, insertParams, (insertErr, result) => {
+            if (insertErr) {
+              console.error("Database error:", insertErr.message);
+              return res.status(500).json({
+                success: false,
+                message: "Failed to schedule meeting",
+              });
+            }
+
+            return res.status(201).json({
+              success: true,
+              message: "Meeting scheduled successfully",
+              meeting_id: result.insertId,
+            });
+          });
+        }
+      );
+    }
+  );
 });
 
 module.exports = router;

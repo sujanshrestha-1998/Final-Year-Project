@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { IoSearch } from "react-icons/io5";
 import { IoMdInformationCircleOutline } from "react-icons/io";
+import { MdMeetingRoom } from "react-icons/md";
 import axios from "axios";
 import AcademicBlockPopup from "./AcademicBlockPopup";
+import TeacherMeetingPanel from "./TeacherMeetingPanel"; // Import the TeacherMeetingPanel component
 
 const Teacher = () => {
   // State for storing teachers grouped by academic block
@@ -19,6 +21,10 @@ const Teacher = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [selectedBlock, setSelectedBlock] = useState(null);
   const [blockInfo, setBlockInfo] = useState({});
+
+  // New state for meeting panel
+  const [isMeetingPanelOpen, setIsMeetingPanelOpen] = useState(false);
+  const [selectedTeachers, setSelectedTeachers] = useState([]);
 
   // Debounce function to prevent excessive API calls
   const debounce = (func, delay) => {
@@ -154,6 +160,45 @@ const Teacher = () => {
     setIsPopupOpen(true);
   };
 
+  // Function to open meeting panel with teachers from a specific block
+  const openMeetingPanel = (blockName) => {
+    // Fetch all teachers first to ensure we have the complete data
+    axios
+      .get("http://localhost:3000/api/teacher_details")
+      .then((response) => {
+        if (response.data && response.data.teachers) {
+          let teachersToShow = response.data.teachers;
+          
+          // Make sure we have the complete teacher objects with teacher_id
+          teachersToShow = teachersToShow.map(teacher => ({
+            teacher_id: teacher.teacher_id,
+            first_name: teacher.first_name,
+            last_name: teacher.last_name,
+            course: teacher.course,
+            // Include any other properties needed
+          }));
+  
+          // If a specific block is selected, filter teachers by that block
+          if (blockName && academicTeachers[blockName]) {
+            const blockTeacherNames = academicTeachers[blockName].map((t) =>
+              t.name.toLowerCase()
+            );
+            teachersToShow = teachersToShow.filter((teacher) =>
+              blockTeacherNames.includes(
+                `${teacher.first_name} ${teacher.last_name}`.toLowerCase()
+              )
+            );
+          }
+  
+          setSelectedTeachers(teachersToShow);
+          setIsMeetingPanelOpen(true);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching teachers:", error);
+      });
+  };
+
   // Function to close popup
   const handleClosePopup = () => {
     setIsPopupOpen(false);
@@ -164,22 +209,37 @@ const Teacher = () => {
     <div className="h-screen w-full overflow-hidden">
       <div className="mx-8 w-full overflow-auto">
         {/* Top Section */}
-        <div className="flex items-center gap-4 ">
-          <div className="flex items-center gap-2 py-5">
-            <h1 className="font-semibold text-2xl text-black">ACADEMICS MAP</h1>
-            <IoMdInformationCircleOutline className="text-2xl" />
+
+        <div className="flex items-center justify-between mr-20">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 py-5">
+              <h1 className="font-semibold text-2xl text-black">
+                ACADEMICS MAP
+              </h1>
+              <IoMdInformationCircleOutline className="text-2xl" />
+            </div>
+            <div className="relative w-80">
+              <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+              <input
+                type="text"
+                placeholder="Search teacher by name or email"
+                className="w-full pl-8 pr-4 py-1 bg-gray-200 rounded-md 
+                 text-[14px] border-none 
+                 transition-all duration-200 placeholder-gray-500"
+                value={searchQuery}
+                onChange={handleSearchChange}
+              />
+            </div>
           </div>
-          <div className="relative w-80">
-            <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-            <input
-              type="text"
-              placeholder="Search teacher by name or email"
-              className="w-full pl-8 pr-4 py-1 bg-gray-200 rounded-md 
-               text-[14px] border-none 
-               transition-all duration-200 placeholder-gray-500"
-              value={searchQuery}
-              onChange={handleSearchChange}
-            />
+          <div className="flex items-center gap-4">
+            {/* Schedule Meeting Button */}
+            <button
+              onClick={() => openMeetingPanel()}
+              className="flex items-center gap-2 bg-white/80 text-black px-4 py-1.5 rounded-xl shadow-md backdrop-blur-sm hover:bg-white/90 hover:shadow-lg transition-all duration-300 border border-gray-300"
+            >
+              <MdMeetingRoom className="text-gray-700 text-lg" />
+              <span className="font-medium text-sm">Schedule Meeting</span>
+            </button>
           </div>
         </div>
 
@@ -505,6 +565,13 @@ const Teacher = () => {
         blockName={selectedBlock}
         teachers={selectedBlock ? academicTeachers[selectedBlock] : []}
         blockInfo={blockInfo}
+      />
+
+      {/* Add the meeting panel component */}
+      <TeacherMeetingPanel
+        isOpen={isMeetingPanelOpen}
+        onClose={() => setIsMeetingPanelOpen(false)}
+        teachers={selectedTeachers}
       />
     </div>
   );

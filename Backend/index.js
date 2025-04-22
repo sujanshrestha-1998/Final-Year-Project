@@ -5,6 +5,7 @@ const authRoutes = require("./routes/authRoutes");
 const studRoutes = require("./routes/studRoutes");
 const teachRoutes = require("./routes/teacherRoutes");
 const funcRoute = require("./routes/funcRoutes");
+const moreRoutes = require("./routes/moreRoutes");
 
 const app = express();
 const PORT = 3000;
@@ -18,6 +19,7 @@ app.use("/api", authRoutes); // Auth routes (login, etc.)
 app.use("/api", studRoutes); // Student details route
 app.use("/api", teachRoutes); // Student details route
 app.use("/api", funcRoute); // Student details route
+app.use("/api", moreRoutes); // Student details route
 
 // Start the server
 app.listen(PORT, () => {
