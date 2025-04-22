@@ -53,6 +53,47 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
     }
   };
 
+  // Function to calculate end time based on start time and duration
+  const calculateEndTime = (startTime, duration = "30") => {
+    if (!startTime) return "";
+
+    const [hours, minutes] = startTime.split(":");
+    let endHour = parseInt(hours);
+    let endMinutes = parseInt(minutes) + parseInt(duration);
+
+    while (endMinutes >= 60) {
+      endHour += 1;
+      endMinutes -= 60;
+    }
+
+    // Format with leading zeros
+    return `${endHour.toString().padStart(2, "0")}:${endMinutes
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
+  // Format date for display (e.g., "Monday, April 24, 2025")
+  const formatDisplayDate = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  // Format time for display (e.g., "10:00 AM")
+  const formatDisplayTime = (timeString) => {
+    if (!timeString) return "";
+    const [hours, minutes] = timeString.split(":");
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const hour12 = hour % 12 || 12;
+    return `${hour12}:${minutes} ${ampm}`;
+  };
+
   // Check teacher availability when date or time changes
   useEffect(() => {
     if (meetingDate && meetingTime) {
@@ -63,25 +104,6 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
     }
   }, [meetingDate, meetingTime, meetingDuration]);
 
-  // Function to calculate end time based on start time and duration
-  // Add this function to calculate end time
-  const calculateEndTime = (startTime) => {
-    if (!startTime) return "";
-
-    const [hours, minutes] = startTime.split(":");
-    let endHour = parseInt(hours);
-    let endMinutes = parseInt(minutes) + 30; // Default to 30 minutes meeting
-
-    if (endMinutes >= 60) {
-      endHour += 1;
-      endMinutes -= 60;
-    }
-
-    return `${endHour.toString().padStart(2, "0")}:${endMinutes
-      .toString()
-      .padStart(2, "0")}`;
-  };
-
   // Function to check teacher availability
   const checkTeacherAvailability = async () => {
     if (!meetingDate || !meetingTime) return;
@@ -90,8 +112,8 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
     setErrorMessage("");
 
     try {
-      // Calculate end time (30 minutes after start time)
-      const endTime = calculateEndTime(meetingTime);
+      // Calculate end time based on selected duration
+      const endTime = calculateEndTime(meetingTime, meetingDuration);
 
       console.log(
         `Checking availability for ${meetingDate} from ${meetingTime} to ${endTime}`
@@ -252,191 +274,238 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6 flex-grow">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label
-                  className="block text-gray-700 text-sm font-medium mb-1"
-                  htmlFor="date"
-                >
-                  <div className="flex items-center gap-2">
-                    <FaCalendarAlt className="text-gray-400" size={14} />
-                    <span>Date</span>
-                  </div>
-                </label>
-                <input
-                  id="date"
-                  type="date"
-                  className="block w-full px-4 py-3 bg-gray-50/70 border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#92bd63] focus:border-transparent text-gray-700 transition-all duration-200"
-                  value={meetingDate}
-                  onChange={(e) => setMeetingDate(e.target.value)}
-                  min={new Date().toISOString().split("T")[0]} // Prevent selecting past dates
-                  required
-                />
+            {/* Date and Time Selection Section */}
+            <div className="bg-gray-50/80 p-4 rounded-lg border border-gray-200">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">
+                Meeting Details
+              </h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label
+                    className="block text-gray-700 text-sm font-medium mb-1"
+                    htmlFor="date"
+                  >
+                    <div className="flex items-center gap-2">
+                      <FaCalendarAlt className="text-gray-400" size={14} />
+                      <span>Date</span>
+                    </div>
+                  </label>
+                  <input
+                    id="date"
+                    type="date"
+                    className="block w-full px-4 py-3 bg-white border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#92bd63] focus:border-transparent text-gray-700 transition-all duration-200"
+                    value={meetingDate}
+                    onChange={(e) => setMeetingDate(e.target.value)}
+                    min={new Date().toISOString().split("T")[0]} // Prevent selecting past dates
+                    required
+                  />
+                  {meetingDate && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      {formatDisplayDate(meetingDate)}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <label
+                    className="block text-gray-700 text-sm font-medium mb-1"
+                    htmlFor="time"
+                  >
+                    <div className="flex items-center gap-2">
+                      <FaClock className="text-gray-400" size={14} />
+                      <span>Start Time</span>
+                    </div>
+                  </label>
+                  <select
+                    id="time"
+                    className="block w-full px-4 py-3 bg-white border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#92bd63] focus:border-transparent appearance-none text-gray-700 transition-all duration-200"
+                    value={meetingTime}
+                    onChange={(e) => setMeetingTime(e.target.value)}
+                    required
+                  >
+                    <option value="">Select time</option>
+                    {timeSlots.map((time) => (
+                      <option key={time} value={time}>
+                        {formatDisplayTime(time)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              <div className="space-y-1">
+              <div className="mt-4 space-y-1">
                 <label
                   className="block text-gray-700 text-sm font-medium mb-1"
-                  htmlFor="time"
+                  htmlFor="duration"
                 >
                   <div className="flex items-center gap-2">
                     <FaClock className="text-gray-400" size={14} />
-                    <span>Start Time</span>
+                    <span>Duration</span>
                   </div>
                 </label>
                 <select
-                  id="time"
-                  className="block w-full px-4 py-3 bg-gray-50/70 border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#92bd63] focus:border-transparent appearance-none text-gray-700 transition-all duration-200"
-                  value={meetingTime}
-                  onChange={(e) => setMeetingTime(e.target.value)}
+                  id="duration"
+                  className="block w-full px-4 py-3 bg-white border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#92bd63] focus:border-transparent appearance-none text-gray-700 transition-all duration-200"
+                  value={meetingDuration}
+                  onChange={(e) => setMeetingDuration(e.target.value)}
                   required
                 >
-                  <option value="">Select time</option>
-                  {timeSlots.map((time) => (
-                    <option key={time} value={time}>
-                      {time}
+                  {durationOptions.map((duration) => (
+                    <option key={duration} value={duration}>
+                      {duration} minutes
                     </option>
                   ))}
                 </select>
+                {meetingTime && meetingDuration && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className="w-2 h-2 bg-[#92bd63] rounded-full"></div>
+                    <p className="text-sm text-gray-600">
+                      Meeting will end at{" "}
+                      <span className="font-medium">
+                        {formatDisplayTime(
+                          calculateEndTime(meetingTime, meetingDuration)
+                        )}
+                      </span>
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="space-y-1">
-              <label
-                className="block text-gray-700 text-sm font-medium mb-1"
-                htmlFor="duration"
-              >
-                <div className="flex items-center gap-2">
-                  <FaClock className="text-gray-400" size={14} />
-                  <span>Duration (minutes)</span>
-                </div>
-              </label>
-              <select
-                id="duration"
-                className="block w-full px-4 py-3 bg-gray-50/70 border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#92bd63] focus:border-transparent appearance-none text-gray-700 transition-all duration-200"
-                value={meetingDuration}
-                onChange={(e) => setMeetingDuration(e.target.value)}
-                required
-              >
-                {durationOptions.map((duration) => (
-                  <option key={duration} value={duration}>
-                    {duration} minutes
-                  </option>
-                ))}
-              </select>
-              {meetingTime && meetingDuration && (
-                <p className="text-sm text-gray-600 mt-1">
-                  End time: {calculateEndTime(meetingTime, meetingDuration)}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-1">
-              <label
-                className="block text-gray-700 text-sm font-medium mb-1"
-                htmlFor="teacher"
-              >
-                <div className="flex items-center gap-2">
-                  <FaUser className="text-gray-400" size={14} />
-                  <span>Teacher</span>
-                </div>
-              </label>
-              <div className="relative group">
-                <select
-                  id="teacher"
-                  className="block w-full px-4 py-3 bg-gray-50/70 border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#92bd63] focus:border-transparent appearance-none text-gray-700 transition-all duration-200"
-                  value={selectedTeacher}
-                  onChange={(e) => setSelectedTeacher(e.target.value)}
-                  required
-                  disabled={
-                    !meetingDate ||
-                    !meetingTime ||
-                    isCheckingAvailability ||
-                    (meetingDate &&
-                      meetingTime &&
-                      availableTeachers.length === 0)
-                  }
+            {/* Teacher Selection Section */}
+            <div className="bg-gray-50/80 p-4 rounded-lg border border-gray-200">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">
+                Teacher Selection
+              </h3>
+              <div className="space-y-1">
+                <label
+                  className="block text-gray-700 text-sm font-medium mb-1"
+                  htmlFor="teacher"
                 >
-                  <option value="">Select a teacher</option>
-                  {availableTeachers.length > 0
-                    ? availableTeachers.map((teacher) => (
-                        <option
-                          key={teacher.teacher_id}
-                          value={teacher.teacher_id}
-                        >
-                          {teacher.first_name} {teacher.last_name} -{" "}
-                          {teacher.course}
-                        </option>
-                      ))
-                    : allTeachers.map((teacher) => (
-                        <option
-                          key={teacher.teacher_id}
-                          value={teacher.teacher_id}
-                          disabled={meetingDate && meetingTime}
-                        >
-                          {teacher.first_name} {teacher.last_name} -{" "}
-                          {teacher.course}
-                        </option>
-                      ))}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 group-hover:text-gray-500 transition-colors">
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
+                  <div className="flex items-center gap-2">
+                    <FaUser className="text-gray-400" size={14} />
+                    <span>Select Teacher</span>
+                  </div>
+                </label>
+                <div className="relative group">
+                  <select
+                    id="teacher"
+                    className="block w-full px-4 py-3 bg-white border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#92bd63] focus:border-transparent appearance-none text-gray-700 transition-all duration-200"
+                    value={selectedTeacher}
+                    onChange={(e) => setSelectedTeacher(e.target.value)}
+                    required
+                    disabled={
+                      !meetingDate ||
+                      !meetingTime ||
+                      isCheckingAvailability ||
+                      (meetingDate &&
+                        meetingTime &&
+                        availableTeachers.length === 0)
+                    }
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M19 9l-7 7-7-7"
-                    ></path>
-                  </svg>
+                    <option value="">Select a teacher</option>
+                    {availableTeachers.length > 0
+                      ? availableTeachers.map((teacher) => (
+                          <option
+                            key={teacher.teacher_id}
+                            value={teacher.teacher_id}
+                          >
+                            {teacher.first_name} {teacher.last_name} -{" "}
+                            {teacher.course}
+                          </option>
+                        ))
+                      : allTeachers.map((teacher) => (
+                          <option
+                            key={teacher.teacher_id}
+                            value={teacher.teacher_id}
+                            disabled={meetingDate && meetingTime}
+                          >
+                            {teacher.first_name} {teacher.last_name} -{" "}
+                            {teacher.course}
+                          </option>
+                        ))}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 group-hover:text-gray-500 transition-colors">
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M19 9l-7 7-7-7"
+                      ></path>
+                    </svg>
+                  </div>
                 </div>
+
+                {/* Availability Status */}
+                {isCheckingAvailability && (
+                  <div className="text-sm text-gray-500 mt-3 flex items-center p-2 bg-gray-100 rounded-md">
+                    <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mr-2"></div>
+                    <span>Checking teacher availability...</span>
+                  </div>
+                )}
+
+                {!meetingDate || !meetingTime ? (
+                  <div className="text-sm text-amber-600 mt-3 p-2 bg-amber-50 rounded-md border border-amber-100 flex items-center">
+                    <div className="w-2 h-2 bg-amber-500 rounded-full mr-2"></div>
+                    <span>Please select a date and time first</span>
+                  </div>
+                ) : isCheckingAvailability ? null : availableTeachers.length ===
+                  0 ? (
+                  <div className="text-sm text-red-600 mt-3 p-2 bg-red-50 rounded-md border border-red-100 flex items-center">
+                    <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
+                    <span>
+                      No teachers available at this time slot. Please select a
+                      different time.
+                    </span>
+                  </div>
+                ) : (
+                  <div className="text-sm text-green-600 mt-3 p-2 bg-green-50 rounded-md border border-green-100 flex items-center">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                    <span>
+                      {availableTeachers.length} teacher(s) available for this
+                      time slot
+                    </span>
+                  </div>
+                )}
               </div>
-              {isCheckingAvailability && (
-                <div className="text-sm text-gray-500 mt-1 flex items-center">
-                  <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mr-2"></div>
-                  Checking teacher availability...
-                </div>
-              )}
-              {!meetingDate || !meetingTime ? (
-                <p className="text-sm text-amber-600 mt-1">
-                  Please select a date and time first
-                </p>
-              ) : isCheckingAvailability ? null : availableTeachers.length ===
-                0 ? (
-                <p className="text-sm text-red-600 mt-1">
-                  No teachers available at this time slot. Please select a
-                  different time.
-                </p>
-              ) : (
-                <p className="text-sm text-green-600 mt-1">
-                  {availableTeachers.length} teacher(s) available
-                </p>
-              )}
             </div>
 
-            <div className="space-y-1">
-              <label
-                className="block text-gray-700 text-sm font-medium mb-1"
-                htmlFor="purpose"
-              >
-                Purpose
-              </label>
-              <textarea
-                id="purpose"
-                className="block w-full px-4 py-3 bg-gray-50/70 border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#92bd63] focus:border-transparent text-gray-700 transition-all duration-200 resize-none"
-                rows="4"
-                placeholder="What would you like to discuss?"
-                value={meetingPurpose}
-                onChange={(e) => setMeetingPurpose(e.target.value)}
-                required
-              ></textarea>
+            {/* Meeting Purpose Section */}
+            <div className="bg-gray-50/80 p-4 rounded-lg border border-gray-200">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">
+                Meeting Purpose
+              </h3>
+              <div className="space-y-1">
+                <label
+                  className="block text-gray-700 text-sm font-medium mb-1"
+                  htmlFor="purpose"
+                >
+                  Describe your reason for meeting
+                </label>
+                <textarea
+                  id="purpose"
+                  className="block w-full px-4 py-3 bg-white border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#92bd63] focus:border-transparent text-gray-700 transition-all duration-200 resize-none"
+                  rows="4"
+                  placeholder="What would you like to discuss with the teacher?"
+                  value={meetingPurpose}
+                  onChange={(e) => setMeetingPurpose(e.target.value)}
+                  required
+                ></textarea>
+                <p className="text-xs text-gray-500 mt-1">
+                  Please provide enough details for the teacher to prepare for
+                  the meeting.
+                </p>
+              </div>
             </div>
 
+            {/* Submit Button */}
             <div className="pt-4 mt-auto">
               <button
                 type="submit"
@@ -456,6 +525,53 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
               </button>
             </div>
           </form>
+
+          {/* Meeting Summary - Shows when a teacher is selected */}
+          {selectedTeacher && meetingDate && meetingTime && (
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">
+                Meeting Summary
+              </h3>
+              <div className="bg-[#92bd63]/10 p-3 rounded-md border border-[#92bd63]/20">
+                <p className="text-sm text-gray-700">
+                  <span className="font-medium">Date:</span>{" "}
+                  {formatDisplayDate(meetingDate)}
+                </p>
+                <p className="text-sm text-gray-700">
+                  <span className="font-medium">Time:</span>{" "}
+                  {formatDisplayTime(meetingTime)} -{" "}
+                  {formatDisplayTime(
+                    calculateEndTime(meetingTime, meetingDuration)
+                  )}
+                </p>
+                <p className="text-sm text-gray-700">
+                  <span className="font-medium">Duration:</span>{" "}
+                  {meetingDuration} minutes
+                </p>
+                <p className="text-sm text-gray-700">
+                  <span className="font-medium">Teacher:</span>{" "}
+                  {allTeachers.find(
+                    (t) =>
+                      t.teacher_id.toString() === selectedTeacher.toString()
+                  )
+                    ? `${
+                        allTeachers.find(
+                          (t) =>
+                            t.teacher_id.toString() ===
+                            selectedTeacher.toString()
+                        ).first_name
+                      } ${
+                        allTeachers.find(
+                          (t) =>
+                            t.teacher_id.toString() ===
+                            selectedTeacher.toString()
+                        ).last_name
+                      }`
+                    : "Selected Teacher"}
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="mt-8 pt-6 border-t border-gray-200">
             <p className="text-xs text-gray-500 text-center">
