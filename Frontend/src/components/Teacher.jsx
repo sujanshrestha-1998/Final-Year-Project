@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { IoSearch } from "react-icons/io5";
 import { IoMdInformationCircleOutline } from "react-icons/io";
-import { MdMeetingRoom } from "react-icons/md";
+import { TbCalendarUser } from "react-icons/tb";
+
 import axios from "axios";
 import AcademicBlockPopup from "./AcademicBlockPopup";
 import TeacherMeetingPanel from "./TeacherMeetingPanel"; // Import the TeacherMeetingPanel component
@@ -168,16 +169,16 @@ const Teacher = () => {
       .then((response) => {
         if (response.data && response.data.teachers) {
           let teachersToShow = response.data.teachers;
-          
+
           // Make sure we have the complete teacher objects with teacher_id
-          teachersToShow = teachersToShow.map(teacher => ({
+          teachersToShow = teachersToShow.map((teacher) => ({
             teacher_id: teacher.teacher_id,
             first_name: teacher.first_name,
             last_name: teacher.last_name,
             course: teacher.course,
             // Include any other properties needed
           }));
-  
+
           // If a specific block is selected, filter teachers by that block
           if (blockName && academicTeachers[blockName]) {
             const blockTeacherNames = academicTeachers[blockName].map((t) =>
@@ -189,7 +190,7 @@ const Teacher = () => {
               )
             );
           }
-  
+
           setSelectedTeachers(teachersToShow);
           setIsMeetingPanelOpen(true);
         }
@@ -237,7 +238,7 @@ const Teacher = () => {
               onClick={() => openMeetingPanel()}
               className="flex items-center gap-2 bg-white/80 text-black px-4 py-1.5 rounded-xl shadow-md backdrop-blur-sm hover:bg-white/90 hover:shadow-lg transition-all duration-300 border border-gray-300"
             >
-              <MdMeetingRoom className="text-gray-700 text-lg" />
+              <TbCalendarUser className="text-gray-700 text-lg" />
               <span className="font-medium text-sm">Schedule Meeting</span>
             </button>
           </div>

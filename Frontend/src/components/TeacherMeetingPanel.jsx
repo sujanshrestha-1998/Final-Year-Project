@@ -13,9 +13,10 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [animateIn, setAnimateIn] = useState(false);
-  const [availableTeachers, setAvailableTeachers] = useState([]);
+  const [isTeacherAvailable, setIsTeacherAvailable] = useState(null); // null = not checked, true/false = available/unavailable
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const [allTeachers, setAllTeachers] = useState([]);
+  const [isLoadingTeachers, setIsLoadingTeachers] = useState(false);
 
   // Generate time slots from 7am to 5pm in 30-minute intervals
   const timeSlots = [];
@@ -43,13 +44,23 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
 
   // Fetch all teachers from the API
   const fetchAllTeachers = async () => {
+    setIsLoadingTeachers(true);
     try {
-      const response = await axios.get("/api/teacher_details");
+      const response = await axios.get(
+        "http://localhost:3000/api/teacher_details"
+      );
+      console.log("Teacher response:", response.data);
+
       if (response.data && response.data.teachers) {
         setAllTeachers(response.data.teachers);
+      } else {
+        console.error("No teachers found in response:", response.data);
       }
     } catch (error) {
       console.error("Error fetching teachers:", error);
+      setErrorMessage("Failed to load teachers. Please try again.");
+    } finally {
+      setIsLoadingTeachers(false);
     }
   };
 
@@ -94,19 +105,19 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
     return `${hour12}:${minutes} ${ampm}`;
   };
 
-  // Check teacher availability when date or time changes
+  // Check teacher availability when date, time, or selected teacher changes
   useEffect(() => {
-    if (meetingDate && meetingTime) {
+    if (selectedTeacher && meetingDate && meetingTime) {
       checkTeacherAvailability();
     } else {
-      // Reset available teachers when date or time is cleared
-      setAvailableTeachers([]);
+      // Reset availability status when any required field is cleared
+      setIsTeacherAvailable(null);
     }
-  }, [meetingDate, meetingTime, meetingDuration]);
+  }, [selectedTeacher, meetingDate, meetingTime, meetingDuration]);
 
   // Function to check teacher availability
   const checkTeacherAvailability = async () => {
-    if (!meetingDate || !meetingTime) return;
+    if (!selectedTeacher || !meetingDate || !meetingTime) return;
 
     setIsCheckingAvailability(true);
     setErrorMessage("");
@@ -116,7 +127,7 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
       const endTime = calculateEndTime(meetingTime, meetingDuration);
 
       console.log(
-        `Checking availability for ${meetingDate} from ${meetingTime} to ${endTime}`
+        `Checking availability for teacher ${selectedTeacher} on ${meetingDate} from ${meetingTime} to ${endTime}`
       );
 
       // Make API call to check teacher availability
@@ -124,6 +135,7 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
         "http://localhost:3000/api/check_teacher_availability",
         {
           params: {
+            teacher_id: selectedTeacher,
             date: meetingDate,
             start_time: meetingTime,
             end_time: endTime,
@@ -134,25 +146,29 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
       console.log("Teacher availability response:", response.data);
 
       if (response.data.success) {
-        // Update the availableTeachers state with the full teacher objects
-        setAvailableTeachers(response.data.availableTeachers || []);
+        // Check if the selected teacher is in the available teachers list
+        const teacherIsAvailable = response.data.availableTeachers.some(
+          (teacher) =>
+            teacher.teacher_id.toString() === selectedTeacher.toString()
+        );
 
-        // If no teachers are available, show an error message
-        if (response.data.availableTeachers.length === 0) {
+        setIsTeacherAvailable(teacherIsAvailable);
+
+        if (!teacherIsAvailable) {
           setErrorMessage(
-            "No teachers available at this time slot. Please select a different time."
+            "The selected teacher is not available at this time slot. Please select a different time."
           );
         }
       } else {
         setErrorMessage(
           response.data.message || "Failed to check teacher availability"
         );
-        setAvailableTeachers([]);
+        setIsTeacherAvailable(false);
       }
     } catch (error) {
       console.error("Error checking teacher availability:", error);
       setErrorMessage("Error checking teacher availability. Please try again.");
-      setAvailableTeachers([]);
+      setIsTeacherAvailable(false);
     } finally {
       setIsCheckingAvailability(false);
     }
@@ -274,6 +290,82 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6 flex-grow">
+            {/* Teacher Selection Section - Moved to the top */}
+            <div className="bg-gray-50/80 p-4 rounded-lg border border-gray-200">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">
+                Teacher Selection
+              </h3>
+              <div className="space-y-1">
+                <label
+                  className="block text-gray-700 text-sm font-medium mb-1"
+                  htmlFor="teacher"
+                >
+                  <div className="flex items-center gap-2">
+                    <FaUser className="text-gray-400" size={14} />
+                    <span>Select Teacher</span>
+                  </div>
+                </label>
+                <div className="relative group">
+                  <select
+                    id="teacher"
+                    className="block w-full px-4 py-3 bg-white border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#92bd63] focus:border-transparent appearance-none text-gray-700 transition-all duration-200"
+                    value={selectedTeacher}
+                    onChange={(e) => setSelectedTeacher(e.target.value)}
+                    required
+                    disabled={isLoadingTeachers}
+                  >
+                    <option value="">
+                      {isLoadingTeachers
+                        ? "Loading teachers..."
+                        : "Select a teacher"}
+                    </option>
+                    {allTeachers && allTeachers.length > 0 ? (
+                      allTeachers.map((teacher) => (
+                        <option
+                          key={teacher.teacher_id}
+                          value={teacher.teacher_id}
+                        >
+                          {teacher.first_name} {teacher.last_name} -{" "}
+                          {teacher.course || "No course"}
+                        </option>
+                      ))
+                    ) : !isLoadingTeachers ? (
+                      <option value="" disabled>
+                        No teachers available
+                      </option>
+                    ) : null}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 group-hover:text-gray-500 transition-colors">
+                    {isLoadingTeachers ? (
+                      <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M19 9l-7 7-7-7"
+                        ></path>
+                      </svg>
+                    )}
+                  </div>
+                </div>
+
+                {!selectedTeacher && (
+                  <div className="text-sm text-amber-600 mt-3 p-2 bg-amber-50 rounded-md border border-amber-100 flex items-center">
+                    <div className="w-2 h-2 bg-amber-500 rounded-full mr-2"></div>
+                    <span>Please select a teacher first</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Date and Time Selection Section */}
             <div className="bg-gray-50/80 p-4 rounded-lg border border-gray-200">
               <h3 className="text-sm font-semibold text-gray-700 mb-3">
@@ -298,6 +390,7 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
                     onChange={(e) => setMeetingDate(e.target.value)}
                     min={new Date().toISOString().split("T")[0]} // Prevent selecting past dates
                     required
+                    disabled={!selectedTeacher}
                   />
                   {meetingDate && (
                     <p className="text-xs text-gray-500 mt-1">
@@ -322,6 +415,7 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
                     value={meetingTime}
                     onChange={(e) => setMeetingTime(e.target.value)}
                     required
+                    disabled={!selectedTeacher || !meetingDate}
                   >
                     <option value="">Select time</option>
                     {timeSlots.map((time) => (
@@ -349,6 +443,7 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
                   value={meetingDuration}
                   onChange={(e) => setMeetingDuration(e.target.value)}
                   required
+                  disabled={!selectedTeacher || !meetingDate || !meetingTime}
                 >
                   {durationOptions.map((duration) => (
                     <option key={duration} value={duration}>
@@ -370,111 +465,33 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
                   </div>
                 )}
               </div>
-            </div>
 
-            {/* Teacher Selection Section */}
-            <div className="bg-gray-50/80 p-4 rounded-lg border border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">
-                Teacher Selection
-              </h3>
-              <div className="space-y-1">
-                <label
-                  className="block text-gray-700 text-sm font-medium mb-1"
-                  htmlFor="teacher"
-                >
-                  <div className="flex items-center gap-2">
-                    <FaUser className="text-gray-400" size={14} />
-                    <span>Select Teacher</span>
-                  </div>
-                </label>
-                <div className="relative group">
-                  <select
-                    id="teacher"
-                    className="block w-full px-4 py-3 bg-white border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#92bd63] focus:border-transparent appearance-none text-gray-700 transition-all duration-200"
-                    value={selectedTeacher}
-                    onChange={(e) => setSelectedTeacher(e.target.value)}
-                    required
-                    disabled={
-                      !meetingDate ||
-                      !meetingTime ||
-                      isCheckingAvailability ||
-                      (meetingDate &&
-                        meetingTime &&
-                        availableTeachers.length === 0)
-                    }
-                  >
-                    <option value="">Select a teacher</option>
-                    {availableTeachers.length > 0
-                      ? availableTeachers.map((teacher) => (
-                          <option
-                            key={teacher.teacher_id}
-                            value={teacher.teacher_id}
-                          >
-                            {teacher.first_name} {teacher.last_name} -{" "}
-                            {teacher.course}
-                          </option>
-                        ))
-                      : allTeachers.map((teacher) => (
-                          <option
-                            key={teacher.teacher_id}
-                            value={teacher.teacher_id}
-                            disabled={meetingDate && meetingTime}
-                          >
-                            {teacher.first_name} {teacher.last_name} -{" "}
-                            {teacher.course}
-                          </option>
-                        ))}
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 group-hover:text-gray-500 transition-colors">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M19 9l-7 7-7-7"
-                      ></path>
-                    </svg>
-                  </div>
+              {/* Availability Status */}
+              {isCheckingAvailability && (
+                <div className="text-sm text-gray-500 mt-3 flex items-center p-2 bg-gray-100 rounded-md">
+                  <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mr-2"></div>
+                  <span>Checking teacher availability...</span>
                 </div>
+              )}
 
-                {/* Availability Status */}
-                {isCheckingAvailability && (
-                  <div className="text-sm text-gray-500 mt-3 flex items-center p-2 bg-gray-100 rounded-md">
-                    <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mr-2"></div>
-                    <span>Checking teacher availability...</span>
+              {selectedTeacher &&
+                meetingDate &&
+                meetingTime &&
+                !isCheckingAvailability &&
+                (isTeacherAvailable === true ? (
+                  <div className="text-sm text-green-600 mt-3 p-2 bg-green-50 rounded-md border border-green-100 flex items-center">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                    <span>Teacher is available for this time slot!</span>
                   </div>
-                )}
-
-                {!meetingDate || !meetingTime ? (
-                  <div className="text-sm text-amber-600 mt-3 p-2 bg-amber-50 rounded-md border border-amber-100 flex items-center">
-                    <div className="w-2 h-2 bg-amber-500 rounded-full mr-2"></div>
-                    <span>Please select a date and time first</span>
-                  </div>
-                ) : isCheckingAvailability ? null : availableTeachers.length ===
-                  0 ? (
+                ) : isTeacherAvailable === false ? (
                   <div className="text-sm text-red-600 mt-3 p-2 bg-red-50 rounded-md border border-red-100 flex items-center">
                     <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
                     <span>
-                      No teachers available at this time slot. Please select a
-                      different time.
+                      Teacher is not available at this time slot. Please select
+                      a different time.
                     </span>
                   </div>
-                ) : (
-                  <div className="text-sm text-green-600 mt-3 p-2 bg-green-50 rounded-md border border-green-100 flex items-center">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                    <span>
-                      {availableTeachers.length} teacher(s) available for this
-                      time slot
-                    </span>
-                  </div>
-                )}
-              </div>
+                ) : null)}
             </div>
 
             {/* Meeting Purpose Section */}
@@ -497,6 +514,12 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
                   value={meetingPurpose}
                   onChange={(e) => setMeetingPurpose(e.target.value)}
                   required
+                  disabled={
+                    !selectedTeacher ||
+                    !meetingDate ||
+                    !meetingTime ||
+                    isTeacherAvailable === false
+                  }
                 ></textarea>
                 <p className="text-xs text-gray-500 mt-1">
                   Please provide enough details for the teacher to prepare for
@@ -511,7 +534,12 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
                 type="submit"
                 className="w-full py-3.5 px-4 bg-[#92bd63] hover:bg-[#7da952] text-white font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#92bd63] focus:ring-offset-2 transition-all duration-200 transform hover:scale-[1.01] active:scale-[0.99]"
                 disabled={
-                  isSubmitting || !selectedTeacher || isCheckingAvailability
+                  isSubmitting ||
+                  !selectedTeacher ||
+                  !meetingDate ||
+                  !meetingTime ||
+                  isCheckingAvailability ||
+                  isTeacherAvailable === false
                 }
               >
                 {isSubmitting ? (
@@ -526,52 +554,55 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
             </div>
           </form>
 
-          {/* Meeting Summary - Shows when a teacher is selected */}
-          {selectedTeacher && meetingDate && meetingTime && (
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">
-                Meeting Summary
-              </h3>
-              <div className="bg-[#92bd63]/10 p-3 rounded-md border border-[#92bd63]/20">
-                <p className="text-sm text-gray-700">
-                  <span className="font-medium">Date:</span>{" "}
-                  {formatDisplayDate(meetingDate)}
-                </p>
-                <p className="text-sm text-gray-700">
-                  <span className="font-medium">Time:</span>{" "}
-                  {formatDisplayTime(meetingTime)} -{" "}
-                  {formatDisplayTime(
-                    calculateEndTime(meetingTime, meetingDuration)
-                  )}
-                </p>
-                <p className="text-sm text-gray-700">
-                  <span className="font-medium">Duration:</span>{" "}
-                  {meetingDuration} minutes
-                </p>
-                <p className="text-sm text-gray-700">
-                  <span className="font-medium">Teacher:</span>{" "}
-                  {allTeachers.find(
-                    (t) =>
-                      t.teacher_id.toString() === selectedTeacher.toString()
-                  )
-                    ? `${
-                        allTeachers.find(
-                          (t) =>
-                            t.teacher_id.toString() ===
-                            selectedTeacher.toString()
-                        ).first_name
-                      } ${
-                        allTeachers.find(
-                          (t) =>
-                            t.teacher_id.toString() ===
-                            selectedTeacher.toString()
-                        ).last_name
-                      }`
-                    : "Selected Teacher"}
-                </p>
+          {/* Meeting Summary - Shows when a teacher is selected and available */}
+          {selectedTeacher &&
+            meetingDate &&
+            meetingTime &&
+            isTeacherAvailable === true && (
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">
+                  Meeting Summary
+                </h3>
+                <div className="bg-[#92bd63]/10 p-3 rounded-md border border-[#92bd63]/20">
+                  <p className="text-sm text-gray-700">
+                    <span className="font-medium">Date:</span>{" "}
+                    {formatDisplayDate(meetingDate)}
+                  </p>
+                  <p className="text-sm text-gray-700">
+                    <span className="font-medium">Time:</span>{" "}
+                    {formatDisplayTime(meetingTime)} -{" "}
+                    {formatDisplayTime(
+                      calculateEndTime(meetingTime, meetingDuration)
+                    )}
+                  </p>
+                  <p className="text-sm text-gray-700">
+                    <span className="font-medium">Duration:</span>{" "}
+                    {meetingDuration} minutes
+                  </p>
+                  <p className="text-sm text-gray-700">
+                    <span className="font-medium">Teacher:</span>{" "}
+                    {allTeachers.find(
+                      (t) =>
+                        t.teacher_id.toString() === selectedTeacher.toString()
+                    )
+                      ? `${
+                          allTeachers.find(
+                            (t) =>
+                              t.teacher_id.toString() ===
+                              selectedTeacher.toString()
+                          ).first_name
+                        } ${
+                          allTeachers.find(
+                            (t) =>
+                              t.teacher_id.toString() ===
+                              selectedTeacher.toString()
+                          ).last_name
+                        }`
+                      : "Selected Teacher"}
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           <div className="mt-8 pt-6 border-t border-gray-200">
             <p className="text-xs text-gray-500 text-center">
