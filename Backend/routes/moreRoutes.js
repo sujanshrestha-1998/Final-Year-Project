@@ -353,4 +353,150 @@ router.get("/get_user_by_email", (req, res) => {
   });
 });
 
+// Add an endpoint to get teacher meeting requests by teacher ID
+router.get("/get_teacher_meeting_requests", (req, res) => {
+  const { teacher_id } = req.query;
+
+  // Validation: Ensure teacher_id is provided
+  if (!teacher_id) {
+    return res.status(400).json({
+      success: false,
+      message: "Teacher ID is required",
+    });
+  }
+
+  // First, check if the teacher_meetings table exists
+  connection.query(
+    "SHOW TABLES LIKE 'teacher_meetings'",
+    (tableErr, tableResults) => {
+      if (tableErr) {
+        console.error("Database error checking tables:", tableErr);
+        return res.status(500).json({
+          success: false,
+          message: "Database error while checking tables",
+          error: tableErr.message,
+        });
+      }
+
+      // If the table doesn't exist, create it
+      if (tableResults.length === 0) {
+        console.log("Creating teacher_meetings table...");
+        const createTableQuery = `
+          CREATE TABLE teacher_meetings (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            teacher_id INT NOT NULL,
+            student_id INT NOT NULL,
+            meeting_date DATE NOT NULL,
+            start_time TIME NOT NULL,
+            end_time TIME NOT NULL,
+            purpose TEXT NOT NULL,
+            status ENUM('pending', 'approved', 'rejected', 'cancelled') DEFAULT 'pending',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX (teacher_id),
+            INDEX (student_id)
+          )
+        `;
+
+        connection.query(createTableQuery, (createErr) => {
+          if (createErr) {
+            console.error("Error creating table:", createErr);
+            return res.status(500).json({
+              success: false,
+              message: "Failed to create teacher_meetings table",
+              error: createErr.message,
+            });
+          }
+
+          // Return empty array since the table was just created
+          return res.status(200).json({
+            success: true,
+            meeting_requests: [],
+            message: "Table created successfully, no meeting requests yet",
+          });
+        });
+      } else {
+        // Table exists, proceed with the query
+        // Query to fetch meeting requests for the specified teacher
+        const query = `
+  SELECT tm.*, 
+         s.first_name AS student_first_name, 
+         s.last_name AS student_last_name
+  FROM teacher_meetings tm
+  LEFT JOIN students s ON tm.student_id = s.stud_id
+  WHERE tm.teacher_id = ?
+  ORDER BY tm.meeting_date ASC, tm.start_time ASC
+`;
+
+        connection.query(query, [teacher_id], (err, results) => {
+          if (err) {
+            console.error("Database error:", err);
+            return res.status(500).json({
+              success: false,
+              message: "Database error while fetching meeting requests",
+              error: err.message,
+            });
+          }
+
+          return res.status(200).json({
+            success: true,
+            meeting_requests: results || [],
+          });
+        });
+      }
+    }
+  );
+});
+
+// Add an endpoint to update meeting request status
+router.post("/update_meeting_request_status", (req, res) => {
+  const { meeting_id, status } = req.body;
+
+  // Validation: Ensure required fields are present
+  if (!meeting_id || !status) {
+    return res.status(400).json({
+      success: false,
+      message: "Meeting ID and status are required",
+    });
+  }
+
+  // Validate status value
+  const validStatuses = ["approved", "rejected", "cancelled", "pending"];
+  if (!validStatuses.includes(status)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid status value",
+    });
+  }
+
+  // Update the meeting request status
+  const query = `
+    UPDATE teacher_meetings
+    SET status = ?, updated_at = NOW()
+    WHERE id = ?
+  `;
+
+  connection.query(query, [status, meeting_id], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({
+        success: false,
+        message: "Database error while updating meeting request",
+      });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Meeting request not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Meeting request ${status} successfully`,
+    });
+  });
+});
+
 module.exports = router;

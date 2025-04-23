@@ -6,7 +6,7 @@ import { PiChalkboardTeacherDuotone } from "react-icons/pi";
 import { LiaChalkboardTeacherSolid } from "react-icons/lia";
 import { GrSchedules, GrGroup } from "react-icons/gr";
 import { PiProjectorScreenDuotone, PiClockUserDuotone } from "react-icons/pi";
-
+import { PiClockDuotone } from "react-icons/pi";
 import { BiCollection } from "react-icons/bi";
 import {
   MdClass,
@@ -492,7 +492,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
               onClick={toggleMeetingRequestsMenu}
             >
               <div className="flex items-center gap-3">
-                <IoTime
+                <PiClockDuotone
                   className={
                     isActive("/meeting-requests")
                       ? "text-blue-600"
@@ -534,16 +534,6 @@ const DashboardMenu = ({ onStudentSelect }) => {
                   onClick={() => navigate("/meeting-requests/view")}
                 >
                   View Requests
-                </div>
-                <div
-                  className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
-                    location.pathname === "/meeting-requests/history"
-                      ? "text-blue-600 font-medium"
-                      : "text-gray-600 hover:text-blue-500"
-                  }`}
-                  onClick={() => navigate("/meeting-requests/history")}
-                >
-                  Request History
                 </div>
               </div>
             )}

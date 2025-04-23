@@ -18,6 +18,7 @@ import AddClassroomDashboard from "./pages/AddClassroomDashboard";
 import ProfilePage from "./pages/ProfilePage";
 import ClassroomRequests from "./pages/ClassroomRequests";
 import TeacherDataDashboard from "./pages/TeacherDataDashboard";
+import MeetingRequest from "./components/MeetingRequest";
 
 const AppRoutes = () => {
   const location = useLocation();
@@ -94,6 +95,14 @@ const AppRoutes = () => {
         element={
           <PrivateRoute>
             <ProfilePage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/meeting-requests/view"
+        element={
+          <PrivateRoute>
+            <MeetingRequest />
           </PrivateRoute>
         }
       />
