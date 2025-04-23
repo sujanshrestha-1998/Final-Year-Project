@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FaRegIdBadge } from "react-icons/fa";
 import { TbUserScreen } from "react-icons/tb";
-import { PiClockUser } from "react-icons/pi";
+import { PiChalkboardTeacherDuotone } from "react-icons/pi";
+import { LiaChalkboardTeacherSolid } from "react-icons/lia";
 import { GrSchedules, GrGroup } from "react-icons/gr";
 import { PiProjectorScreenDuotone, PiClockUserDuotone } from "react-icons/pi";
 
@@ -229,7 +230,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
             onClick={toggleTeacherMenu}
           >
             <div className="flex items-center gap-3">
-              <TbUserScreen
+              <LiaChalkboardTeacherSolid
                 className={
                   isActive("/teachers") ? "text-blue-600" : "text-gray-600"
                 }
