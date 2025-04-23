@@ -31,6 +31,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
   const [isClassroomOpen, setIsClassroomOpen] = useState(false);
   const [isRequestsOpen, setIsRequestsOpen] = useState(false);
+  const [isMeetingRequestsOpen, setIsMeetingRequestsOpen] = useState(false);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0); // Add this new state
 
   // Automatically open the dropdown that matches the current path
@@ -45,6 +46,8 @@ const DashboardMenu = ({ onStudentSelect }) => {
       setIsClassroomOpen(true);
     } else if (location.pathname.includes("/requests")) {
       setIsRequestsOpen(true);
+    } else if (location.pathname.includes("/meeting-requests")) {
+      setIsMeetingRequestsOpen(true);
     }
   }, [location.pathname]);
 
@@ -131,6 +134,8 @@ const DashboardMenu = ({ onStudentSelect }) => {
   const toggleStudentMenu = () => setIsStudentOpen((prev) => !prev);
   const toggleScheduleMenu = () => setIsScheduleOpen((prev) => !prev);
   const toggleClassroomMenu = () => setIsClassroomOpen((prev) => !prev);
+  const toggleMeetingRequestsMenu = () =>
+    setIsMeetingRequestsOpen((prev) => !prev);
   const openProfile = () => setIsProfileOpen(true);
   const closeProfile = () => setIsProfileOpen(false);
 
@@ -469,6 +474,76 @@ const DashboardMenu = ({ onStudentSelect }) => {
                   onClick={() => navigate("/requests/classroom")}
                 >
                   Classroom Requests
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Meeting Requests Dropdown - Only visible for Teachers (role_id = 3) */}
+        {roleId === 3 && (
+          <div className="mb-1">
+            <button
+              className={`flex items-center justify-between w-full px-6 py-3 transition-colors ${
+                isActive("/meeting-requests")
+                  ? "text-blue-600 bg-blue-50 border-r-4 border-blue-600"
+                  : "text-gray-700 hover:bg-gray-100"
+              }`}
+              onClick={toggleMeetingRequestsMenu}
+            >
+              <div className="flex items-center gap-3">
+                <IoTime
+                  className={
+                    isActive("/meeting-requests")
+                      ? "text-blue-600"
+                      : "text-gray-600"
+                  }
+                  size={20}
+                />
+                <span className="font-medium">Meeting Requests</span>
+              </div>
+              <span>
+                {isMeetingRequestsOpen ? (
+                  <MdOutlineKeyboardArrowDown
+                    className={
+                      isActive("/meeting-requests")
+                        ? "text-blue-600"
+                        : "text-gray-600"
+                    }
+                  />
+                ) : (
+                  <MdOutlineKeyboardArrowRight
+                    className={
+                      isActive("/meeting-requests")
+                        ? "text-blue-600"
+                        : "text-gray-600"
+                    }
+                  />
+                )}
+              </span>
+            </button>
+
+            {isMeetingRequestsOpen && (
+              <div className="bg-gray-50 py-1">
+                <div
+                  className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
+                    location.pathname === "/meeting-requests/view"
+                      ? "text-blue-600 font-medium"
+                      : "text-gray-600 hover:text-blue-500"
+                  }`}
+                  onClick={() => navigate("/meeting-requests/view")}
+                >
+                  View Requests
+                </div>
+                <div
+                  className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
+                    location.pathname === "/meeting-requests/history"
+                      ? "text-blue-600 font-medium"
+                      : "text-gray-600 hover:text-blue-500"
+                  }`}
+                  onClick={() => navigate("/meeting-requests/history")}
+                >
+                  Request History
                 </div>
               </div>
             )}

@@ -41,7 +41,8 @@ const Teacher = () => {
   // Function to fetch teachers data from API
   const fetchTeachers = async (query = "") => {
     try {
-      if (!isSearching) setLoading(true);
+      // Only show loading indicator for initial load, not during search
+      if (!query.trim() && !isSearching) setLoading(true);
 
       // Determine the API endpoint based on whether there's a search query
       const endpoint = query.trim()
@@ -108,7 +109,12 @@ const Teacher = () => {
   const handleSearchChange = (e) => {
     const query = e.target.value;
     setSearchQuery(query);
-    setIsSearching(true);
+
+    // Only set isSearching to true if we're not already searching
+    if (!isSearching) {
+      setIsSearching(true);
+    }
+
     debouncedSearch(query);
   };
 
@@ -230,6 +236,11 @@ const Teacher = () => {
                 value={searchQuery}
                 onChange={handleSearchChange}
               />
+              {isSearching && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-700"></div>
+                </div>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -244,15 +255,15 @@ const Teacher = () => {
           </div>
         </div>
 
-        {/* Loading indicator */}
-        {loading && (
+        {/* Loading indicator - only show on initial load, not during search */}
+        {loading && !isSearching && (
           <div className="flex justify-center items-center py-10">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900"></div>
           </div>
         )}
 
         {/* Bottom Section - Using Flexbox to position sections side by side */}
-        {!loading && (
+        {(!loading || isSearching) && (
           <div className="flex gap-8">
             {/* Left Section */}
             <div>

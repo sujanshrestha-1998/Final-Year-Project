@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { MdOutlineSchedule } from "react-icons/md";
 import { IoChevronBack, IoClose } from "react-icons/io5";
 import {
   FaCalendarAlt,
@@ -745,10 +746,10 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
                 )}
 
               {/* Submit Button - Enhanced with better styling */}
-              <div className="mt-8">
+              <div className="mt-8 ">
                 <button
                   type="submit"
-                  className={`w-full py-3 px-4 rounded-lg font-medium shadow-md flex items-center justify-center ${
+                  className={`w-full py-1.5 px-3  rounded-lg font-medium shadow-md flex items-center justify-center ${
                     isSubmitting ||
                     !selectedTeacher ||
                     !meetingDate ||
@@ -769,12 +770,12 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
                 >
                   {isSubmitting ? (
                     <div className="flex items-center justify-center">
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      <div className="w-3 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                       <span>Scheduling...</span>
                     </div>
                   ) : (
                     <>
-                      <FaCalendarAlt className="mr-2" />
+                      <MdOutlineSchedule className="mr-2" />
                       Schedule Meeting
                     </>
                   )}
