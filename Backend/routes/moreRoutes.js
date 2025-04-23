@@ -419,14 +419,14 @@ router.get("/get_teacher_meeting_requests", (req, res) => {
         // Table exists, proceed with the query
         // Query to fetch meeting requests for the specified teacher
         const query = `
-  SELECT tm.*, 
-         s.first_name AS student_first_name, 
-         s.last_name AS student_last_name
-  FROM teacher_meetings tm
-  LEFT JOIN students s ON tm.student_id = s.stud_id
-  WHERE tm.teacher_id = ?
-  ORDER BY tm.meeting_date ASC, tm.start_time ASC
-`;
+        SELECT tm.*, 
+               s.first_name AS student_first_name, 
+               s.last_name AS student_last_name
+        FROM teacher_meetings tm
+        LEFT JOIN students s ON tm.student_id = s.stud_id
+        WHERE tm.teacher_id = ?
+        ORDER BY tm.meeting_date ASC, tm.start_time ASC
+      `;
 
         connection.query(query, [teacher_id], (err, results) => {
           if (err) {
