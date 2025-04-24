@@ -85,7 +85,6 @@ const Classroom = () => {
       const response = await axios.get(
         "http://localhost:3000/api/get_approved_reservations"
       );
-      console.log("Approved reservations:", response.data);
       return response.data.reservations || [];
     } catch (err) {
       console.error("Error fetching approved reservations:", err);
@@ -120,10 +119,6 @@ const Classroom = () => {
 
         // Fetch approved reservations and add them to schedules
         const approvedReservations = await fetchApprovedReservations();
-        console.log(
-          "Number of approved reservations:",
-          approvedReservations.length
-        );
 
         // Format reservations to match schedule structure
         const formattedReservations = approvedReservations.map(
@@ -133,11 +128,6 @@ const Classroom = () => {
             const dayOfWeek = reservationDate.toLocaleDateString("en-US", {
               weekday: "long",
             });
-
-            console.log(
-              "Processing reservation with username:",
-              reservation.user_name
-            );
 
             return {
               id: reservation.id,
@@ -161,7 +151,6 @@ const Classroom = () => {
           ...allGroupSchedules,
           ...formattedReservations,
         ];
-        console.log("Combined schedules:", combinedSchedules.length);
         setAllSchedules(combinedSchedules);
         setLoading(false);
       } catch (err) {
@@ -280,9 +269,6 @@ const Classroom = () => {
 
   // Filter schedules based on active tab and selected day
   const getFilteredSchedules = () => {
-    console.log("All schedules:", allSchedules.length);
-    console.log("Selected date:", selectedDate);
-
     // First filter by date
     let dateSchedules = allSchedules.filter((schedule) => {
       // For regular schedules (not reservations), filter by day of week
@@ -298,12 +284,6 @@ const Classroom = () => {
         reservationDate.getDate() === selectedDate.getDate()
       );
     });
-
-    console.log("Schedules for selected date:", dateSchedules.length);
-    console.log(
-      "Approved reservations for date:",
-      dateSchedules.filter((s) => s.status === "approved").length
-    );
 
     // Then filter by group if a specific group is selected
     if (activeTab !== "all") {
