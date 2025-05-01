@@ -306,7 +306,7 @@ router.get("/check_teacher_availability", (req, res) => {
           availableTeachers: isAvailable ? teacherResults : [],
           message: isAvailable
             ? "Teacher is available at the requested time"
-            : "Teacher is not available at the requested time",
+            : "Teacher is not available at this time slot. Please select a different time.",
         });
       }
     );

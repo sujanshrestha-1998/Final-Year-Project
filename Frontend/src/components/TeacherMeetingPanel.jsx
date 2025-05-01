@@ -171,6 +171,11 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
         setIsTeacherAvailable(teacherIsAvailable);
 
         if (!teacherIsAvailable) {
+          // Display the error message from the API
+          setErrorMessage(
+            response.data.message ||
+              "Teacher is not available at this time slot. Please select a different time."
+          );
         }
       } else {
         setErrorMessage(
