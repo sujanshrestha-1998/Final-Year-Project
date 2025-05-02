@@ -169,21 +169,21 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
         );
 
         // Check if there are any conflicting meetings for this teacher
+        // Only approved meetings will be considered conflicts now
         const hasConflictingMeetings =
           response.data.conflictingMeetings &&
-          response.data.conflictingMeetings.some(
-            (meeting) =>
-              meeting.teacher_id.toString() === selectedTeacher.toString()
-          );
+          response.data.conflictingMeetings.length > 0;
 
         // Teacher is only available if they're in the available list AND don't have conflicting meetings
         setIsTeacherAvailable(teacherIsAvailable && !hasConflictingMeetings);
 
         if (!teacherIsAvailable || hasConflictingMeetings) {
-          // setErrorMessage(
-          //   response.data.message ||
-          //     "Teacher is not available at the selected time. They may have a class or another meeting scheduled."
-          // );
+          // Only show error message if there are approved conflicting meetings
+          if (hasConflictingMeetings) {
+            setErrorMessage(
+              "Teacher is not available at the selected time due to an approved meeting."
+            );
+          }
         }
       } else {
         setErrorMessage(
