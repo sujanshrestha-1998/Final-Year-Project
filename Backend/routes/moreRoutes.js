@@ -163,7 +163,7 @@ router.post("/schedule_teacher_meeting", (req, res) => {
       AND ((start_time < ? AND end_time > ?) 
            OR (start_time < ? AND end_time > ?) 
            OR (start_time >= ? AND end_time <= ?))
-      AND status != 'cancelled' AND status != 'rejected'
+      AND status != 'cancelled'
   `;
 
   const availabilityParams = [
@@ -238,7 +238,7 @@ router.post("/schedule_teacher_meeting", (req, res) => {
 router.get("/check_teacher_availability", (req, res) => {
   const { teacher_id, date, start_time, end_time } = req.query;
 
-  // Validation: Ensure required parameters are present
+  // Validate required parameters
   if (!teacher_id || !date || !start_time || !end_time) {
     return res.status(400).json({
       success: false,
@@ -246,70 +246,111 @@ router.get("/check_teacher_availability", (req, res) => {
     });
   }
 
-  // Query to check if the teacher has any conflicting meetings
-  const query = `
+  // Convert date to day of week for schedule check
+  const dayOfWeek = new Date(date).toLocaleDateString('en-US', { weekday: 'long' });
+  
+  // First, check if the teacher has a class scheduled at this time
+  const scheduleQuery = `
+    SELECT id 
+    FROM schedules
+    WHERE teacher_id = ?
+      AND day_of_week = ?
+      AND ((start_time < ? AND end_time > ?) 
+           OR (start_time < ? AND end_time > ?) 
+           OR (start_time >= ? AND end_time <= ?))
+  `;
+
+  const scheduleParams = [
+    teacher_id,
+    dayOfWeek,
+    end_time,
+    start_time,
+    end_time,
+    start_time,
+    start_time,
+    end_time
+  ];
+
+  // Second, check if the teacher has an approved meeting at this time
+  const meetingQuery = `
     SELECT id 
     FROM teacher_meetings
     WHERE teacher_id = ?
       AND meeting_date = ?
+      AND status = 'approved'
       AND ((start_time < ? AND end_time > ?) 
            OR (start_time < ? AND end_time > ?) 
            OR (start_time >= ? AND end_time <= ?))
-      AND status != 'cancelled' AND status != 'rejected'
   `;
 
-  const params = [
+  const meetingParams = [
     teacher_id,
     date,
-    end_time, // New start time before existing end time
-    start_time, // New end time after existing start time
-    end_time, // Same start/end times
-    start_time,
-    start_time, // New meeting completely contains existing one
     end_time,
+    start_time,
+    end_time,
+    start_time,
+    start_time,
+    end_time
   ];
 
-  connection.query(query, params, (err, results) => {
-    if (err) {
-      console.error("Database error:", err.message);
-      return res.status(500).json({
-        success: false,
-        message: "Database error while checking availability",
+  // Execute both queries in parallel
+  connection.query(scheduleQuery, scheduleParams, (scheduleErr, scheduleResults) => {
+    if (scheduleErr) {
+      console.error("Database error (schedule check):", scheduleErr.message);
+      return res.status(500).json({ 
+        success: false, 
+        message: "Database error during schedule check" 
       });
     }
 
-    // If no conflicting meetings found, the teacher is available
-    const isAvailable = results.length === 0;
+    connection.query(meetingQuery, meetingParams, (meetingErr, meetingResults) => {
+      if (meetingErr) {
+        console.error("Database error (meeting check):", meetingErr.message);
+        return res.status(500).json({ 
+          success: false, 
+          message: "Database error during meeting check" 
+        });
+      }
 
-    // Get teacher details for the response
-    const teacherQuery = `
-      SELECT teacher_id, first_name, last_name
-      FROM teachers
-      WHERE teacher_id = ?
-    `;
+      // Teacher is unavailable if they have either a class or an approved meeting
+      const isUnavailable = scheduleResults.length > 0 || meetingResults.length > 0;
 
-    connection.query(
-      teacherQuery,
-      [teacher_id],
-      (teacherErr, teacherResults) => {
+      // If the teacher is unavailable, return appropriate message
+      if (isUnavailable) {
+        return res.status(200).json({
+          success: true,
+          availableTeachers: [],
+          message: scheduleResults.length > 0 
+            ? "Teacher has a class scheduled at this time" 
+            : "Teacher has an approved meeting at this time"
+        });
+      }
+
+      // If we get here, the teacher is available
+      // Fetch teacher details to return in the response
+      const teacherQuery = `
+        SELECT teacher_id, first_name, last_name
+        FROM teachers
+        WHERE teacher_id = ?
+      `;
+
+      connection.query(teacherQuery, [teacher_id], (teacherErr, teacherResults) => {
         if (teacherErr) {
-          console.error("Database error:", teacherErr.message);
-          return res.status(500).json({
-            success: false,
-            message: "Database error while fetching teacher details",
+          console.error("Database error (teacher fetch):", teacherErr.message);
+          return res.status(500).json({ 
+            success: false, 
+            message: "Database error while fetching teacher details" 
           });
         }
 
         return res.status(200).json({
           success: true,
-          isAvailable,
-          availableTeachers: isAvailable ? teacherResults : [],
-          message: isAvailable
-            ? "Teacher is available at the requested time"
-            : "Teacher is not available at this time slot. Please select a different time.",
+          availableTeachers: teacherResults,
+          message: "Teacher is available at the requested time"
         });
-      }
-    );
+      });
+    });
   });
 });
 

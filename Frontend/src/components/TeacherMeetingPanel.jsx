@@ -168,14 +168,22 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
             teacher.teacher_id.toString() === selectedTeacher.toString()
         );
 
-        setIsTeacherAvailable(teacherIsAvailable);
-
-        if (!teacherIsAvailable) {
-          // Display the error message from the API
-          setErrorMessage(
-            response.data.message ||
-              "Teacher is not available at this time slot. Please select a different time."
+        // Check if there are any conflicting meetings for this teacher
+        const hasConflictingMeetings =
+          response.data.conflictingMeetings &&
+          response.data.conflictingMeetings.some(
+            (meeting) =>
+              meeting.teacher_id.toString() === selectedTeacher.toString()
           );
+
+        // Teacher is only available if they're in the available list AND don't have conflicting meetings
+        setIsTeacherAvailable(teacherIsAvailable && !hasConflictingMeetings);
+
+        if (!teacherIsAvailable || hasConflictingMeetings) {
+          // setErrorMessage(
+          //   response.data.message ||
+          //     "Teacher is not available at the selected time. They may have a class or another meeting scheduled."
+          // );
         }
       } else {
         setErrorMessage(

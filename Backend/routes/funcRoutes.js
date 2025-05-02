@@ -605,70 +605,33 @@ router.get("/check_reservation_conflicts", (req, res) => {
   });
 });
 
+// Add this endpoint to check teacher availability
 router.get("/check_teacher_availability", (req, res) => {
-  const { date, start_time, end_time } = req.query;
+  const { teacher_id, date, start_time, end_time } = req.query;
 
-  if (!date || !start_time || !end_time) {
+  if (!teacher_id || !date || !start_time || !end_time) {
     return res.status(400).json({
       success: false,
-      message: "Date, start time, and end time are required",
+      message: "Missing required parameters",
     });
   }
 
-  // Parse the date correctly regardless of format (DD/MM/YYYY or YYYY-MM-DD)
-  let dateObj;
-  if (date.includes("/")) {
-    // Handle DD/MM/YYYY format
-    const [day, month, year] = date.split("/");
-    dateObj = new Date(`${year}-${month}-${day}`);
-  } else {
-    // Handle YYYY-MM-DD format
-    dateObj = new Date(date);
-  }
+  // First, check if the teacher has any scheduled classes at this time
+  const dayOfWeek = new Date(date).toLocaleDateString("en-US", {
+    weekday: "long",
+  });
 
-  // Check if date is valid
-  if (isNaN(dateObj.getTime())) {
-    console.error("Invalid date:", date);
-    return res.status(400).json({
-      success: false,
-      message: "Invalid date format",
-    });
-  }
-
-  const daysOfWeek = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ];
-  const dayOfWeek = daysOfWeek[dateObj.getDay()];
-
-  console.log(
-    `Checking availability for ${dayOfWeek}, ${start_time}-${end_time}`
-  );
-
-  // Query to get all teachers
-  const teachersQuery = `
-    SELECT t.teacher_id, t.first_name, t.last_name, t.course
-    FROM teachers t
-    JOIN users u ON t.teacher_id = u.id
-    WHERE u.role_id = 3
-  `;
-
-  // Query to check which teachers have schedules that overlap with the requested time
-  const schedulesQuery = `
-    SELECT DISTINCT teacher_id
-    FROM schedules
-    WHERE day_of_week = ?
+  const scheduleQuery = `
+    SELECT * FROM schedules 
+    WHERE teacher_id = ? 
+    AND day_of_week = ?
     AND ((start_time < ? AND end_time > ?) 
          OR (start_time < ? AND end_time > ?) 
          OR (start_time >= ? AND end_time <= ?))
   `;
 
   const scheduleParams = [
+    teacher_id,
     dayOfWeek,
     end_time,
     start_time,
@@ -678,69 +641,100 @@ router.get("/check_teacher_availability", (req, res) => {
     end_time,
   ];
 
-  // Execute queries
-  connection.query(teachersQuery, (teacherErr, teachers) => {
-    if (teacherErr) {
-      console.error("Database error:", teacherErr.message);
-      return res.status(500).json({
-        success: false,
-        message: "Database error",
-      });
-    }
+  // Then, check if the teacher has any meetings at this time
+  const meetingQuery = `
+    SELECT * FROM teacher_meetings
+    WHERE teacher_id = ?
+    AND meeting_date = ?
+    AND ((start_time < ? AND end_time > ?) 
+         OR (start_time < ? AND end_time > ?) 
+         OR (start_time >= ? AND end_time <= ?))
+    AND status != 'cancelled'
+  `;
 
-    console.log(`Found ${teachers.length} teachers in the system`);
+  const meetingParams = [
+    teacher_id,
+    date,
+    end_time,
+    start_time,
+    end_time,
+    start_time,
+    start_time,
+    end_time,
+  ];
 
-    // If no teachers found at all
-    if (teachers.length === 0) {
-      return res.status(200).json({
-        success: true,
-        availableTeachers: [],
-        allTeachers: [],
-        message: "No teachers found in the system",
-      });
-    }
-
-    connection.query(
-      schedulesQuery,
-      scheduleParams,
-      (scheduleErr, busyTeachers) => {
-        if (scheduleErr) {
-          console.error("Database error:", scheduleErr.message);
-          return res.status(500).json({
-            success: false,
-            message: "Database error",
-          });
-        }
-
-        console.log(
-          `Found ${busyTeachers.length} busy teachers for ${dayOfWeek} at ${start_time}-${end_time}`
-        );
-
-        // Create a set of busy teacher IDs
-        const busyTeacherIds = new Set(
-          busyTeachers.map((teacher) => teacher.teacher_id)
-        );
-
-        // Filter available teachers - include full teacher objects, not just IDs
-        const availableTeachers = teachers.filter(
-          (teacher) => !busyTeacherIds.has(teacher.teacher_id)
-        );
-
-        console.log(`Found ${availableTeachers.length} available teachers`);
-
-        return res.status(200).json({
-          success: true,
-          availableTeachers: availableTeachers,
-          busyTeacherIds: Array.from(busyTeacherIds),
-          dayOfWeek: dayOfWeek,
-          message:
-            availableTeachers.length > 0
-              ? "Available teachers found"
-              : "No teachers available at this time",
+  // Execute both queries
+  connection.query(
+    scheduleQuery,
+    scheduleParams,
+    (scheduleErr, scheduleResults) => {
+      if (scheduleErr) {
+        console.error("Database error:", scheduleErr.message);
+        return res.status(500).json({
+          success: false,
+          message: "Database error while checking schedule availability",
         });
       }
-    );
-  });
+
+      connection.query(
+        meetingQuery,
+        meetingParams,
+        (meetingErr, meetingResults) => {
+          if (meetingErr) {
+            console.error("Database error:", meetingErr.message);
+            return res.status(500).json({
+              success: false,
+              message: "Database error while checking meeting availability",
+            });
+          }
+
+          // Get all teachers
+          connection.query(
+            "SELECT * FROM teachers",
+            (teacherErr, allTeachers) => {
+              if (teacherErr) {
+                console.error("Database error:", teacherErr.message);
+                return res.status(500).json({
+                  success: false,
+                  message: "Database error while fetching teachers",
+                });
+              }
+
+              // Filter out teachers who have schedule conflicts
+              const teachersWithScheduleConflicts = scheduleResults.map(
+                (schedule) => schedule.teacher_id
+              );
+
+              // Filter out teachers who have meeting conflicts
+              const teachersWithMeetingConflicts = meetingResults.map(
+                (meeting) => meeting.teacher_id
+              );
+
+              // Combine all conflicts
+              const allConflictingTeacherIds = [
+                ...teachersWithScheduleConflicts,
+                ...teachersWithMeetingConflicts,
+              ];
+
+              // Filter available teachers (those without conflicts)
+              const availableTeachers = allTeachers.filter(
+                (teacher) =>
+                  !allConflictingTeacherIds.includes(teacher.teacher_id)
+              );
+
+              return res.status(200).json({
+                success: true,
+
+                availableTeachers: availableTeachers,
+                conflictingMeetings: meetingResults, // Include conflicting meetings in the response
+                conflictingSchedules: scheduleResults, // Include conflicting schedules in the response
+              });
+            }
+          );
+        }
+      );
+    }
+  );
 });
 
 // Add endpoint to schedule a meeting with a teacher
