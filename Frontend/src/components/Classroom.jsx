@@ -102,9 +102,15 @@ const Classroom = () => {
         const classroomData = classroomsResponse.data.data || [];
         setClassrooms(classroomData);
 
-        // For this example, let's assume we have group IDs 1-5
-        const groupIds = [1, 2, 3, 4, 5];
-        setGroups(groupIds.map((id) => ({ id, name: `Group ${id}` })));
+        // Fetch all groups instead of hardcoding them
+        const groupsResponse = await axios.get(
+          "http://localhost:3000/api/groups"
+        );
+        const fetchedGroups = groupsResponse.data.groups || [];
+        setGroups(fetchedGroups);
+
+        // Get group IDs from the fetched groups
+        const groupIds = fetchedGroups.map((group) => group.id);
 
         // Fetch schedules for all groups and combine them
         let allGroupSchedules = [];

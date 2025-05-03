@@ -8,6 +8,7 @@ import {
   FaFilter,
   FaChalkboardTeacher,
 } from "react-icons/fa";
+import { MdMeetingRoom } from "react-icons/md";
 import { TbCalendarUser } from "react-icons/tb";
 import { MdLocationOn, MdAccessTime } from "react-icons/md";
 import TeacherMeetingPanel from "./TeacherMeetingPanel";
@@ -367,7 +368,7 @@ const TeacherView = () => {
 
                   <div className="space-y-3 mb-6">
                     <div className="flex items-center gap-2 text-sm">
-                      <MdLocationOn className="text-gray-400" />
+                      <MdMeetingRoom className="text-gray-400" />
                       <span className="text-gray-600">{status.location}</span>
                     </div>
 
@@ -393,14 +394,14 @@ const TeacherView = () => {
                           : "Available for meetings"}
                       </span>
                     </div>
-                    <div
+                    {/* <div
                       className={`px-3 w-20 py-1 rounded-full text-xs font-medium ${getStatusColor(
                         status.status
                       )}`}
                     >
                       {status.status.charAt(0).toUpperCase() +
                         status.status.slice(1)}
-                    </div>
+                    </div> */}
                   </div>
 
                   <button

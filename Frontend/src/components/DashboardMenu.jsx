@@ -13,6 +13,7 @@ import {
   MdOutlineKeyboardArrowRight,
   MdOutlineKeyboardArrowDown,
 } from "react-icons/md";
+import { LiaPersonBoothSolid } from "react-icons/lia";
 import { IoTime } from "react-icons/io5";
 import Profile from "./Profile";
 import axios from "axios";
@@ -502,7 +503,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
               onClick={toggleMeetingRequestsMenu}
             >
               <div className="flex items-center gap-3">
-                <PiClockDuotone
+                <LiaPersonBoothSolid
                   className={
                     isActive("/meeting-requests")
                       ? "text-blue-600"
