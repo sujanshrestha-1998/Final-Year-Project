@@ -612,79 +612,108 @@ router.get("/check_teacher_availability", (req, res) => {
   if (!teacher_id || !date || !start_time || !end_time) {
     return res.status(400).json({
       success: false,
-      message: "Missing required parameters",
+      message: "Teacher ID, date, start time, and end time are required",
     });
   }
 
-  // First check if the teacher has any approved meetings at this time
-  const meetingQuery = `
+  // Convert date string to Date object to get day of week
+  const meetingDate = new Date(date);
+  const dayOfWeek = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ][meetingDate.getDay()];
+
+  // First check if teacher has a class scheduled at this time
+  const classScheduleQuery = `
     SELECT id 
-    FROM teacher_meetings
+    FROM schedules
     WHERE teacher_id = ?
-      AND meeting_date = ?
+      AND day_of_week = ?
       AND ((start_time < ? AND end_time > ?) 
            OR (start_time < ? AND end_time > ?) 
            OR (start_time >= ? AND end_time <= ?))
-      AND status = 'approved'  
   `;
 
-  const meetingParams = [
+  const scheduleParams = [
     teacher_id,
-    date,
-    end_time,
+    dayOfWeek,
+    end_time,   // New start time before existing end time
+    start_time, // New end time after existing start time
+    end_time,   // Same start/end times
     start_time,
-    end_time,
-    start_time,
-    start_time,
+    start_time, // New schedule completely contains existing one
     end_time,
   ];
 
-  connection.query(meetingQuery, meetingParams, (err, meetings) => {
-    if (err) {
-      console.error("Database error:", err.message);
+  connection.query(classScheduleQuery, scheduleParams, (scheduleErr, scheduleResults) => {
+    if (scheduleErr) {
+      console.error("Database error:", scheduleErr.message);
       return res.status(500).json({
         success: false,
-        message: "Database error while checking availability",
+        message: "Database error while checking class schedule",
       });
     }
 
-    // If there are approved meetings at this time, the teacher is not available
-    if (meetings.length > 0) {
+    // If teacher has a class at this time, they're not available
+    if (scheduleResults.length > 0) {
       return res.status(200).json({
-        success: true,
-        isAvailable: false,
-        availableTeachers: [],
-        conflictingMeetings: meetings,
-        message: "Teacher has approved meetings during this time slot",
+        success: false,
+        available: false,
+        message: "Teacher is not available at this time due to a scheduled class.",
       });
     }
 
-    // If no approved meetings, check if the teacher exists
-    const teacherQuery = `SELECT teacher_id, first_name, last_name FROM teachers WHERE teacher_id = ?`;
+    // Next, check if teacher has an approved meeting at this time
+    const meetingQuery = `
+      SELECT id 
+      FROM teacher_meetings
+      WHERE teacher_id = ?
+        AND meeting_date = ?
+        AND ((start_time < ? AND end_time > ?) 
+             OR (start_time < ? AND end_time > ?) 
+             OR (start_time >= ? AND end_time <= ?))
+        AND status = 'approved'
+    `;
 
-    connection.query(teacherQuery, [teacher_id], (err, teachers) => {
-      if (err) {
-        console.error("Database error:", err.message);
+    const meetingParams = [
+      teacher_id,
+      date,
+      end_time,   // New start time before existing end time
+      start_time, // New end time after existing start time
+      end_time,   // Same start/end times
+      start_time,
+      start_time, // New meeting completely contains existing one
+      end_time,
+    ];
+
+    connection.query(meetingQuery, meetingParams, (meetingErr, meetingResults) => {
+      if (meetingErr) {
+        console.error("Database error:", meetingErr.message);
         return res.status(500).json({
           success: false,
-          message: "Database error while checking teacher",
+          message: "Database error while checking meeting schedule",
         });
       }
 
-      if (teachers.length === 0) {
-        return res.status(404).json({
+      // If teacher has an approved meeting at this time, they're not available
+      if (meetingResults.length > 0) {
+        return res.status(200).json({
           success: false,
-          message: "Teacher not found",
+          available: false,
+          message: "Teacher is not available at this time due to another meeting.",
         });
       }
 
-      // Teacher exists and has no approved meetings at this time
+      // If no conflicts found, teacher is available
       return res.status(200).json({
         success: true,
-        isAvailable: true,
-        availableTeachers: teachers,
-        conflictingMeetings: [],
-        message: "Teacher is available during this time slot",
+        available: true,
+        message: "Teacher is available at the requested time.",
       });
     });
   });

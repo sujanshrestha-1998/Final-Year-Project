@@ -154,85 +154,136 @@ router.post("/schedule_teacher_meeting", (req, res) => {
     });
   }
 
-  // First, check if the teacher is available at the requested time
-  // Only consider approved meetings as conflicts
-  const availabilityCheckQuery = `
+  // Convert date string to Date object to get day of week
+  const meetingDateObj = new Date(meeting_date);
+  const dayOfWeek = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ][meetingDateObj.getDay()];
+
+  // First check if teacher has a class scheduled at this time
+  const classScheduleQuery = `
     SELECT id 
-    FROM teacher_meetings
+    FROM schedules
     WHERE teacher_id = ?
-      AND meeting_date = ?
+      AND day_of_week = ?
       AND ((start_time < ? AND end_time > ?) 
            OR (start_time < ? AND end_time > ?) 
            OR (start_time >= ? AND end_time <= ?))
-      AND status = 'approved'
   `;
 
-  const availabilityParams = [
+  const scheduleParams = [
     teacher_id,
-    meeting_date,
-    end_time, // New start time before existing end time
+    dayOfWeek,
+    end_time,   // New start time before existing end time
     start_time, // New end time after existing start time
-    end_time, // Same start/end times
+    end_time,   // Same start/end times
     start_time,
-    start_time, // New meeting completely contains existing one
+    start_time, // New schedule completely contains existing one
     end_time,
   ];
 
-  connection.query(
-    availabilityCheckQuery,
-    availabilityParams,
-    (availabilityErr, availabilityResults) => {
-      if (availabilityErr) {
-        console.error("Database error:", availabilityErr.message);
-        return res.status(500).json({
-          success: false,
-          message: "Database error while checking availability",
-        });
-      }
+  connection.query(classScheduleQuery, scheduleParams, (scheduleErr, scheduleResults) => {
+    if (scheduleErr) {
+      console.error("Database error:", scheduleErr.message);
+      return res.status(500).json({
+        success: false,
+        message: "Database error while checking class schedule",
+      });
+    }
 
-      // If overlapping approved meetings found, return an error
-      if (availabilityResults.length > 0) {
-        return res.status(409).json({
-          success: false,
-          message:
-            "Teacher is not available during this time slot due to an approved meeting. Please select a different time.",
-        });
-      }
+    // If teacher has a class at this time, they're not available
+    if (scheduleResults.length > 0) {
+      return res.status(409).json({
+        success: false,
+        message: "Teacher is not available at this time due to a scheduled class.",
+      });
+    }
 
-      // If teacher is available, proceed with inserting the meeting
-      const insertQuery = `
-        INSERT INTO teacher_meetings 
-        (teacher_id, student_id, meeting_date, start_time, end_time, purpose, status, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
-      `;
+    // Next, check if teacher has an approved meeting at this time
+    const availabilityCheckQuery = `
+      SELECT id 
+      FROM teacher_meetings
+      WHERE teacher_id = ?
+        AND meeting_date = ?
+        AND ((start_time < ? AND end_time > ?) 
+             OR (start_time < ? AND end_time > ?) 
+             OR (start_time >= ? AND end_time <= ?))
+        AND status = 'approved'
+    `;
 
-      const insertParams = [
-        teacher_id,
-        student_id,
-        meeting_date,
-        start_time,
-        end_time,
-        purpose,
-        status,
-      ];
+    const availabilityParams = [
+      teacher_id,
+      meeting_date,
+      end_time,   // New start time before existing end time
+      start_time, // New end time after existing start time
+      end_time,   // Same start/end times
+      start_time,
+      start_time, // New meeting completely contains existing one
+      end_time,
+    ];
 
-      connection.query(insertQuery, insertParams, (insertErr, insertResult) => {
-        if (insertErr) {
-          console.error("Database error:", insertErr.message);
+    connection.query(
+      availabilityCheckQuery,
+      availabilityParams,
+      (availabilityErr, availabilityResults) => {
+        if (availabilityErr) {
+          console.error("Database error:", availabilityErr.message);
           return res.status(500).json({
             success: false,
-            message: "Failed to schedule meeting",
+            message: "Database error while checking availability",
           });
         }
 
-        return res.status(201).json({
-          success: true,
-          message: "Meeting scheduled successfully",
-          meeting_id: insertResult.insertId,
+        // If overlapping approved meetings found, return an error
+        if (availabilityResults.length > 0) {
+          return res.status(409).json({
+            success: false,
+            message:
+              "Teacher is not available during this time slot due to an approved meeting. Please select a different time.",
+          });
+        }
+
+        // If no conflicts, proceed with inserting the meeting
+        const insertQuery = `
+          INSERT INTO teacher_meetings 
+          (teacher_id, student_id, meeting_date, start_time, end_time, purpose, status, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+        `;
+
+        const insertParams = [
+          teacher_id,
+          student_id,
+          meeting_date,
+          start_time,
+          end_time,
+          purpose,
+          status,
+        ];
+
+        connection.query(insertQuery, insertParams, (insertErr, insertResult) => {
+          if (insertErr) {
+            console.error("Database error:", insertErr.message);
+            return res.status(500).json({
+              success: false,
+              message: "Failed to schedule meeting",
+            });
+          }
+
+          return res.status(201).json({
+            success: true,
+            message: "Meeting scheduled successfully",
+            meeting_id: insertResult.insertId,
+          });
         });
-      });
-    }
-  );
+      }
+    );
+  });
 });
 
 // Add an endpoint to check teacher availability

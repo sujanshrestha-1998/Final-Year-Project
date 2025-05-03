@@ -161,40 +161,18 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
 
       console.log("Teacher availability response:", response.data);
 
-      if (response.data.success) {
-        // Check if the selected teacher is in the available teachers list
-        const teacherIsAvailable = response.data.availableTeachers.some(
-          (teacher) =>
-            teacher.teacher_id.toString() === selectedTeacher.toString()
-        );
-
-        // Check if there are any conflicting meetings for this teacher
-        // Only approved meetings will be considered conflicts now
-        const hasConflictingMeetings =
-          response.data.conflictingMeetings &&
-          response.data.conflictingMeetings.length > 0;
-
-        // Teacher is only available if they're in the available list AND don't have conflicting meetings
-        setIsTeacherAvailable(teacherIsAvailable && !hasConflictingMeetings);
-
-        if (!teacherIsAvailable || hasConflictingMeetings) {
-          // Only show error message if there are approved conflicting meetings
-          if (hasConflictingMeetings) {
-            setErrorMessage(
-              "Teacher is not available at the selected time due to an approved meeting."
-            );
-          }
-        }
+      // Update availability state based on response
+      if (response.data.success && response.data.available) {
+        setIsTeacherAvailable(true);
+        setErrorMessage("");
       } else {
-        setErrorMessage(
-          response.data.message || "Failed to check teacher availability"
-        );
         setIsTeacherAvailable(false);
+        setErrorMessage(response.data.message || "Teacher is not available at this time.");
       }
     } catch (error) {
       console.error("Error checking teacher availability:", error);
-      setErrorMessage("Error checking teacher availability. Please try again.");
       setIsTeacherAvailable(false);
+      setErrorMessage("Failed to check teacher availability. Please try again.");
     } finally {
       setIsCheckingAvailability(false);
     }
@@ -203,7 +181,13 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
   // Function to handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    
+    if (!isTeacherAvailable) {
+      setErrorMessage("Cannot schedule meeting: Teacher is not available at this time.");
+      return;
+    }
+    
+    // Continue with the rest of your submission logic
     // Validate form data
     if (!selectedTeacher || !meetingDate || !meetingTime || !meetingPurpose) {
       setErrorMessage("Please fill in all required fields");
