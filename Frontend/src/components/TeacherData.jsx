@@ -381,15 +381,13 @@ const TeacherData = () => {
         </div>
       </div>
 
-      {/* Add the TeacherEdit component here, inside the main component return */}
-      {selectedTeacher && (
-        <TeacherEdit
-          isOpen={isEditPanelOpen}
-          onClose={handleCloseEditPanel}
-          teacherData={selectedTeacher}
-          onTeacherUpdated={handleTeacherUpdated}
-        />
-      )}
+      {/* Add the TeacherEdit component */}
+      <TeacherEdit
+        isOpen={isEditPanelOpen}
+        onClose={handleCloseEditPanel}
+        teacherData={selectedTeacher}
+        onTeacherUpdated={handleTeacherUpdated}
+      />
     </div>
   );
 };

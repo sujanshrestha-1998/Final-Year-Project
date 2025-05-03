@@ -407,4 +407,76 @@ router.post("/auto_allocate_groups", async (req, res) => {
   }
 });
 
+// Make sure you have a route like this in your studRoutes.js file:
+
+router.delete("/students/:id", (req, res) => {
+  const studentId = req.params.id;
+
+  // Validate the student ID
+  if (!studentId) {
+    return res.status(400).json({ message: "Student ID is required" });
+  }
+
+  // Begin transaction to delete from both tables
+  connection.beginTransaction((err) => {
+    if (err) {
+      console.error("Error starting transaction:", err);
+      return res.status(500).json({ message: "Transaction start error" });
+    }
+
+    // First delete from students table
+    const deleteStudentQuery = "DELETE FROM students WHERE stud_id = ?";
+
+    connection.query(deleteStudentQuery, [studentId], (err, studentResults) => {
+      if (err) {
+        return connection.rollback(() => {
+          console.error("Error deleting student:", err);
+          res.status(500).json({
+            message: "Error deleting student",
+            error: err.message,
+          });
+        });
+      }
+
+      if (studentResults.affectedRows === 0) {
+        return connection.rollback(() => {
+          res.status(404).json({ message: "Student not found" });
+        });
+      }
+
+      // Then delete from users table
+      const deleteUserQuery = "DELETE FROM users WHERE id = ?";
+
+      connection.query(deleteUserQuery, [studentId], (err, userResults) => {
+        if (err) {
+          return connection.rollback(() => {
+            console.error("Error deleting user:", err);
+            res.status(500).json({
+              message: "Error deleting user",
+              error: err.message,
+            });
+          });
+        }
+
+        // Commit the transaction
+        connection.commit((err) => {
+          if (err) {
+            return connection.rollback(() => {
+              console.error("Error committing transaction:", err);
+              res.status(500).json({
+                message: "Error committing transaction",
+                error: err.message,
+              });
+            });
+          }
+
+          return res.status(200).json({
+            message: "Student deleted successfully",
+          });
+        });
+      });
+    });
+  });
+});
+
 module.exports = router;

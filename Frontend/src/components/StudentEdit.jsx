@@ -2,57 +2,59 @@ import React, { useState, useEffect } from "react";
 import { IoChevronBackOutline } from "react-icons/io5";
 import axios from "axios";
 
-const TeacherEdit = ({ isOpen, onClose, teacherData, onTeacherUpdated }) => {
+const StudentEdit = ({ isOpen, onClose, studentData, onStudentUpdated }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [groups, setGroups] = useState([]);
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
-    email: "",
-    course: "",
-    assigned_academics: "",
+    student_email: "",
+    grade_level: "",
+    stud_group: "",
     date_of_birth: "",
+    enrollment_date: "",
   });
 
-  // Initialize form data when teacher data changes
+  // Fetch groups for dropdown
   useEffect(() => {
-    if (teacherData) {
-      // Convert assigned academics back to number
-      let assignedAcademicsValue = "";
-      if (teacherData.assignedAcademics) {
-        const academicsMap = {
-          "Academics A": "1",
-          "Academics B": "2",
-          "Academics C": "3",
-          "Academics D": "4",
-          "Academics E": "5",
-        };
-
-        // Extract the number if it's in the format "Academics X"
-        if (teacherData.assignedAcademics.startsWith("Academics ")) {
-          assignedAcademicsValue =
-            academicsMap[teacherData.assignedAcademics] ||
-            teacherData.assignedAcademics.replace("Academics ", "");
-        }
+    const fetchGroups = async () => {
+      try {
+        const response = await axios.get("http://localhost:3000/api/groups");
+        setGroups(response.data.groups || []);
+      } catch (err) {
+        console.error("Error fetching groups:", err);
       }
+    };
 
+    if (isOpen) {
+      fetchGroups();
+    }
+  }, [isOpen]);
+
+  // Initialize form data when student data changes
+  useEffect(() => {
+    if (studentData) {
       // Split the name into first and last name
-      const nameParts = teacherData.name.split(" ");
+      const nameParts = studentData.name.split(" ");
       const firstName = nameParts[0] || "";
       const lastName = nameParts.slice(1).join(" ") || "";
 
       setFormData({
         first_name: firstName,
         last_name: lastName,
-        email: teacherData.email,
-        course: teacherData.course,
-        assigned_academics: assignedAcademicsValue,
-        date_of_birth: teacherData.dob
-          ? new Date(teacherData.dob).toISOString().split("T")[0]
+        student_email: studentData.email,
+        grade_level: studentData.course,
+        stud_group: studentData.groupId || "",
+        date_of_birth: studentData.dob
+          ? new Date(studentData.dob).toISOString().split("T")[0]
+          : "",
+        enrollment_date: studentData.enrollmentDate
+          ? new Date(studentData.enrollmentDate).toISOString().split("T")[0]
           : "",
       });
     }
-  }, [teacherData]);
+  }, [studentData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -66,47 +68,51 @@ const TeacherEdit = ({ isOpen, onClose, teacherData, onTeacherUpdated }) => {
     e.preventDefault();
     try {
       setIsLoading(true);
+      setError(null);
 
-      // Make API call to update teacher
-      await axios.put(
-        `http://localhost:3000/api/teacher_details/${teacherData.id}`,
-        formData
-      );
+      // Make API call to update student
+      await axios.put("http://localhost:3000/api/update_student", {
+        stud_id: studentData.id,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        grade_level: formData.grade_level,
+        stud_group: formData.stud_group,
+        date_of_birth: formData.date_of_birth,
+        enrollment_date: formData.enrollment_date,
+        student_email: formData.student_email,
+      });
 
-      // Convert assigned academics back to display format
-      let academicsName = "Not Assigned";
-      if (formData.assigned_academics) {
-        const academicsMap = {
-          1: "Academics A",
-          2: "Academics B",
-          3: "Academics C",
-          4: "Academics D",
-          5: "Academics E",
-        };
-        academicsName =
-          academicsMap[formData.assigned_academics] ||
-          `Academics ${formData.assigned_academics}`;
-      }
+      // Find group name if student has a group
+      const groupInfo = formData.stud_group
+        ? groups.find((g) => g.id === parseInt(formData.stud_group))
+        : null;
 
-      // Create updated teacher object
-      const updatedTeacher = {
-        ...teacherData,
+      // Create updated student object
+      const updatedStudent = {
+        ...studentData,
         name: `${formData.first_name} ${formData.last_name}`,
-        email: formData.email,
-        course: formData.course,
-        assignedAcademics: academicsName,
+        email: formData.student_email,
+        course: formData.grade_level,
+        year: formData.stud_group
+          ? groupInfo
+            ? groupInfo.name
+            : `Group ${formData.stud_group}`
+          : "Not Assigned",
+        groupId: formData.stud_group ? parseInt(formData.stud_group) : null,
         dob: formData.date_of_birth,
+        enrollmentDate: formData.enrollment_date,
       };
 
       // Call the callback to update parent component
-      onTeacherUpdated(updatedTeacher);
+      onStudentUpdated(updatedStudent);
 
       // Close the panel
       onClose();
     } catch (err) {
-      console.error("Error updating teacher:", err);
+      console.error("Error updating student:", err);
       setError(
-        err.response?.data?.message || "An error occurred while updating teacher"
+        err.response?.data?.message ||
+          "An error occurred while updating student"
       );
     } finally {
       setIsLoading(false);
@@ -126,7 +132,7 @@ const TeacherEdit = ({ isOpen, onClose, teacherData, onTeacherUpdated }) => {
           >
             <IoChevronBackOutline className="text-xl" />
           </button>
-          <h2 className="text-xl font-semibold">Edit Teacher</h2>
+          <h2 className="text-xl font-semibold">Edit Student</h2>
           <div className="w-5"></div> {/* Spacer for alignment */}
         </div>
 
@@ -172,8 +178,8 @@ const TeacherEdit = ({ isOpen, onClose, teacherData, onTeacherUpdated }) => {
             </label>
             <input
               type="email"
-              name="email"
-              value={formData.email}
+              name="student_email"
+              value={formData.student_email}
               onChange={handleChange}
               className="w-full p-2 border border-gray-300 rounded-md"
               required
@@ -182,12 +188,12 @@ const TeacherEdit = ({ isOpen, onClose, teacherData, onTeacherUpdated }) => {
 
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Course
+              Grade Level
             </label>
             <input
               type="text"
-              name="course"
-              value={formData.course}
+              name="grade_level"
+              value={formData.grade_level}
               onChange={handleChange}
               className="w-full p-2 border border-gray-300 rounded-md"
               required
@@ -196,24 +202,24 @@ const TeacherEdit = ({ isOpen, onClose, teacherData, onTeacherUpdated }) => {
 
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Assigned Academics
+              Group
             </label>
             <select
-              name="assigned_academics"
-              value={formData.assigned_academics}
+              name="stud_group"
+              value={formData.stud_group}
               onChange={handleChange}
               className="w-full p-2 border border-gray-300 rounded-md"
             >
               <option value="">Not Assigned</option>
-              <option value="1">Academics A</option>
-              <option value="2">Academics B</option>
-              <option value="3">Academics C</option>
-              <option value="4">Academics D</option>
-              <option value="5">Academics E</option>
+              {groups.map((group) => (
+                <option key={group.id} value={group.id}>
+                  {group.name}
+                </option>
+              ))}
             </select>
           </div>
 
-          <div className="mb-6">
+          <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Date of Birth
             </label>
@@ -221,6 +227,20 @@ const TeacherEdit = ({ isOpen, onClose, teacherData, onTeacherUpdated }) => {
               type="date"
               name="date_of_birth"
               value={formData.date_of_birth}
+              onChange={handleChange}
+              className="w-full p-2 border border-gray-300 rounded-md"
+              required
+            />
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Enrollment Date
+            </label>
+            <input
+              type="date"
+              name="enrollment_date"
+              value={formData.enrollment_date}
               onChange={handleChange}
               className="w-full p-2 border border-gray-300 rounded-md"
               required
@@ -249,4 +269,4 @@ const TeacherEdit = ({ isOpen, onClose, teacherData, onTeacherUpdated }) => {
   );
 };
 
-export default TeacherEdit;
+export default StudentEdit;

@@ -195,11 +195,156 @@ router.get("/get_all_teacher_meetings", (req, res) => {
       return res.status(500).json({ message: "Database error" });
     }
 
-    return res.status(200).json({ 
+    return res.status(200).json({
       success: true,
-      message: "Teacher meetings fetched successfully", 
-      meetings: results 
+      message: "Teacher meetings fetched successfully",
+      meetings: results,
     });
+  });
+});
+
+// Add this new route for updating teacher information
+router.put("/teacher_details/:id", (req, res) => {
+  const teacherId = req.params.id;
+  const {
+    first_name,
+    last_name,
+    email,
+    course,
+    assigned_academics,
+    date_of_birth
+  } = req.body;
+
+  // Start a transaction to update both tables
+  connection.beginTransaction((err) => {
+    if (err) {
+      return res.status(500).json({ message: "Transaction start error" });
+    }
+
+    // Update the users table first
+    const updateUserQuery = `
+      UPDATE users
+      SET email = ?, username = ?
+      WHERE id = ?
+    `;
+    const userValues = [email, `${first_name} ${last_name}`, teacherId];
+
+    connection.query(updateUserQuery, userValues, (err, userResults) => {
+      if (err) {
+        return connection.rollback(() => {
+          res.status(500).json({ 
+            message: "Error updating user", 
+            error: err.message 
+          });
+        });
+      }
+
+      // Then update the teachers table
+      const updateTeacherQuery = `
+        UPDATE teachers
+        SET first_name = ?, last_name = ?, email = ?, 
+            course = ?, assigned_academics = ?, date_of_birth = ?
+        WHERE teacher_id = ?
+      `;
+      const teacherValues = [
+        first_name,
+        last_name,
+        email,
+        course,
+        assigned_academics,
+        date_of_birth,
+        teacherId
+      ];
+
+      connection.query(updateTeacherQuery, teacherValues, (err, teacherResults) => {
+        if (err) {
+          return connection.rollback(() => {
+            res.status(500).json({ 
+              message: "Error updating teacher", 
+              error: err.message 
+            });
+          });
+        }
+
+        // Commit the transaction if both updates are successful
+        connection.commit((err) => {
+          if (err) {
+            return connection.rollback(() => {
+              res.status(500).json({
+                message: "Error committing transaction",
+                error: err.message
+              });
+            });
+          }
+
+          return res.status(200).json({ 
+            message: "Teacher data updated successfully" 
+          });
+        });
+      });
+    });
+  });
+});
+
+// Add a new route to update teacher status
+router.put("/update_teacher_status", (req, res) => {
+  const { teacherId, isActive } = req.body;
+
+  if (!teacherId) {
+    return res.status(400).json({ message: "Teacher ID is required" });
+  }
+
+  const query = `
+    UPDATE teachers 
+    SET status = ? 
+    WHERE teacher_id = ?
+  `;
+
+  const status = isActive ? "active" : "inactive";
+
+  connection.query(query, [status, teacherId], (err, results) => {
+    if (err) {
+      console.error("Database error:", err.message);
+      return res
+        .status(500)
+        .json({ message: "Database error", error: err.message });
+    }
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    return res.status(200).json({
+      message: `Teacher status updated to ${status}`,
+      teacherId,
+      status,
+    });
+  });
+});
+
+// Modify the teacher_details route to include status
+router.get("/teacher_details", (req, res) => {
+  const query = `
+    SELECT t.teacher_id, t.first_name, t.last_name, t.enrolled_date, t.date_of_birth, 
+           t.course, t.assigned_academics, t.status, u.email 
+    FROM teachers t
+    JOIN users u ON t.teacher_id = u.id
+    WHERE u.role_id = 3
+  `;
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error("Database error:", err.message);
+      return res.status(500).json({ message: "Database error" });
+    }
+
+    if (results.length > 0) {
+      return res
+        .status(200)
+        .json({ message: "Teachers found", teachers: results });
+    } else {
+      return res.status(404).json({ message: "No teachers found" });
+    }
   });
 });
 
