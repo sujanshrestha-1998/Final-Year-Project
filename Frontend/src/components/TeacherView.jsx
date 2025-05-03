@@ -283,27 +283,31 @@ const TeacherView = () => {
         </div>
 
         <div className="flex items-center gap-4">
-          {/* Circular toggle button for Available Only */}
-          <button
-            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 shadow-sm hover:shadow
-              ${
-                statusFilter === "available"
-                  ? "bg-green-500 text-white"
-                  : "bg-white text-gray-500 border border-gray-200"
+          <div className="flex items-center gap-2">
+            <div
+              className={`relative w-11 h-6 rounded-full cursor-pointer transition-colors duration-300 ease-in-out ${
+                statusFilter === "available" ? "bg-blue-500" : "bg-gray-200"
               }`}
-            onClick={() =>
-              setStatusFilter(
-                statusFilter === "available" ? "all" : "available"
-              )
-            }
-            title={
-              statusFilter === "available"
-                ? "Show All Teachers"
-                : "Show Available Only"
-            }
-          >
-            <FaUserCheck className="text-lg" />
-          </button>
+              onClick={() =>
+                setStatusFilter(
+                  statusFilter === "available" ? "all" : "available"
+                )
+              }
+            >
+              <div
+                className="absolute w-5 h-5 rounded-full shadow-md transition-transform duration-300 ease-in-out bg-white top-0.5 left-0.5"
+                style={{
+                  transform:
+                    statusFilter === "available"
+                      ? "translateX(20px)"
+                      : "translateX(0)",
+                }}
+              />
+            </div>
+          </div>
+          <span className="text-sm text-gray-600 font-medium">
+            Available Only
+          </span>
         </div>
       </div>
 
