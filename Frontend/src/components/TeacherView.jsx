@@ -11,6 +11,7 @@ import {
 import { TbCalendarUser } from "react-icons/tb";
 import { MdLocationOn, MdAccessTime } from "react-icons/md";
 import TeacherMeetingPanel from "./TeacherMeetingPanel";
+import ProfileImage from "../assets/Profile.png";
 
 const TeacherView = () => {
   const [teachers, setTeachers] = useState([]);
@@ -18,7 +19,7 @@ const TeacherView = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [teacherStatus, setTeacherStatus] = useState({});
   const [schedules, setSchedules] = useState([]);
-  const [statusFilter, setStatusFilter] = useState("all"); // "all", "available", "busy"
+  const [statusFilter, setStatusFilter] = useState("all");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [isMeetingPanelOpen, setIsMeetingPanelOpen] = useState(false);
@@ -311,60 +312,6 @@ const TeacherView = () => {
         </div>
       </div>
 
-      {/* Status summary cards - Apple-style */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Total Teachers</p>
-              <p className="text-3xl font-medium text-gray-900">
-                {teachers.length}
-              </p>
-            </div>
-            <div className="p-4 bg-blue-50 rounded-full">
-              <FaChalkboardTeacher className="text-blue-500 text-xl" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Available</p>
-              <p className="text-3xl font-medium text-gray-900">
-                {
-                  Object.values(teacherStatus).filter(
-                    (s) => s.status === "available"
-                  ).length
-                }
-              </p>
-            </div>
-            <div className="p-4 bg-green-50 rounded-full">
-              <FaUserCheck className="text-green-500 text-xl" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Busy</p>
-              <p className="text-3xl font-medium text-gray-900">
-                {
-                  Object.values(teacherStatus).filter(
-                    (s) => s.status === "busy"
-                  ).length
-                }
-              </p>
-            </div>
-            <div className="p-4 bg-red-50 rounded-full">
-              <FaUserTimes className="text-red-500 text-xl" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Teacher cards grid - Apple-style */}
       {loading ? (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
@@ -382,7 +329,7 @@ const TeacherView = () => {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="mx-10 flex flex-wrap gap-4">
           {filteredTeachers.map((teacher) => {
             const status = teacherStatus[teacher.teacher_id] || {
               status: "unknown",
@@ -395,31 +342,26 @@ const TeacherView = () => {
             return (
               <div
                 key={teacher.teacher_id}
-                className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition-all duration-300 group"
+                className="bg-white/80 w-[300px] backdrop-blur-sm rounded-lg shadow-md overflow-hidden border border-gray-100 hover:shadow-md transition-all duration-300 group"
               >
                 <div className="p-6">
                   <div className="flex justify-between items-start mb-5">
                     <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 font-medium text-lg shadow-sm group-hover:shadow transition-all">
-                        {teacher.first_name.charAt(0)}
-                        {teacher.last_name.charAt(0)}
+                      <div className="w-14 h-14 rounded-full flex items-center justify-center overflow-hidden shadow-sm group-hover:shadow transition-all">
+                        <img
+                          src={ProfileImage}
+                          alt={`${teacher.first_name} ${teacher.last_name}`}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                       <div>
                         <h3 className="font-medium text-lg text-gray-900">
-                          {teacher.first_name} {teacher.last_name}
+                          {teacher.first_name} <br /> {teacher.last_name}
                         </h3>
                         <p className="text-sm text-gray-500">
                           {teacher.course || "No course assigned"}
                         </p>
                       </div>
-                    </div>
-                    <div
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                        status.status
-                      )}`}
-                    >
-                      {status.status.charAt(0).toUpperCase() +
-                        status.status.slice(1)}
                     </div>
                   </div>
 
@@ -451,11 +393,19 @@ const TeacherView = () => {
                           : "Available for meetings"}
                       </span>
                     </div>
+                    <div
+                      className={`px-3 w-20 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                        status.status
+                      )}`}
+                    >
+                      {status.status.charAt(0).toUpperCase() +
+                        status.status.slice(1)}
+                    </div>
                   </div>
 
                   <button
                     onClick={() => handleScheduleMeeting(teacher)}
-                    className={`w-full py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-sm font-medium transition-all duration-200
+                    className={`w-full py-1.5 px-4 rounded-md flex items-center justify-center gap-2 text-sm font-medium transition-all duration-200
                       ${
                         status.status === "available"
                           ? "bg-blue-500 text-white hover:bg-blue-600 shadow-sm hover:shadow"
