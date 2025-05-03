@@ -448,7 +448,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
         )}
 
         {/* Requests Dropdown - Only visible for RTE Officer (role_id = 2) */}
-        {roleId === 2 && (
+        {(roleId === 2 || roleId === 1) && (
           <div className="mb-1">
             <button
               className={`flex items-center justify-between w-full px-6 py-3 transition-colors ${
