@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { IoChevronBackOutline } from "react-icons/io5";
+import { IoClose } from "react-icons/io5";
 import axios from "axios";
 
 const StudentEdit = ({ isOpen, onClose, studentData, onStudentUpdated }) => {
@@ -111,8 +112,7 @@ const StudentEdit = ({ isOpen, onClose, studentData, onStudentUpdated }) => {
     } catch (err) {
       console.error("Error updating student:", err);
       setError(
-        err.response?.data?.message ||
-          "An error occurred while updating student"
+        err.response?.data?.message || "An error occurred while updating student"
       );
     } finally {
       setIsLoading(false);
@@ -122,148 +122,185 @@ const StudentEdit = ({ isOpen, onClose, studentData, onStudentUpdated }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black opacity-50"></div>
-      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-auto p-6 z-10">
-        <div className="flex justify-between items-center mb-4">
+    <div 
+      className={`fixed top-0 right-0 h-full w-[450px] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${
+        isOpen ? 'translate-x-0' : 'translate-x-full'
+      }`}
+    >
+      <div className="h-full flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="bg-blue-600 text-white p-6 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onClose}
+              className="text-white hover:text-gray-200 transition-colors"
+            >
+              <IoChevronBackOutline className="text-xl" />
+            </button>
+            <h2 className="text-xl font-semibold">Edit Student</h2>
+          </div>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-white hover:text-gray-200 transition-colors"
           >
-            <IoChevronBackOutline className="text-xl" />
+            <IoClose className="text-xl" />
           </button>
-          <h2 className="text-xl font-semibold">Edit Student</h2>
-          <div className="w-5"></div> {/* Spacer for alignment */}
         </div>
 
+        {/* Error message */}
         {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
+          <div className="mx-6 mt-4 p-3 bg-red-100 text-red-700 rounded-md">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                First Name
-              </label>
-              <input
-                type="text"
-                name="first_name"
-                value={formData.first_name}
-                onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded-md"
-                required
-              />
+        {/* Form */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-700 border-b pb-2">Personal Information</h3>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    name="first_name"
+                    value={formData.first_name}
+                    onChange={handleChange}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    name="last_name"
+                    value={formData.last_name}
+                    onChange={handleChange}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="student_email"
+                  value={formData.student_email}
+                  onChange={handleChange}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Date of Birth
+                </label>
+                <input
+                  type="date"
+                  name="date_of_birth"
+                  value={formData.date_of_birth}
+                  onChange={handleChange}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  required
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Last Name
-              </label>
-              <input
-                type="text"
-                name="last_name"
-                value={formData.last_name}
-                onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded-md"
-                required
-              />
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-700 border-b pb-2">Academic Information</h3>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Grade Level
+                </label>
+                <input
+                  type="text"
+                  name="grade_level"
+                  value={formData.grade_level}
+                  onChange={handleChange}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Group
+                </label>
+                <select
+                  name="stud_group"
+                  value={formData.stud_group}
+                  onChange={handleChange}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                >
+                  <option value="">Not Assigned</option>
+                  {groups.map((group) => (
+                    <option key={group.id} value={group.id}>
+                      {group.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Enrollment Date
+                </label>
+                <input
+                  type="date"
+                  name="enrollment_date"
+                  value={formData.enrollment_date}
+                  onChange={handleChange}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  required
+                />
+              </div>
             </div>
-          </div>
+          </form>
+        </div>
 
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              name="student_email"
-              value={formData.student_email}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded-md"
-              required
-            />
-          </div>
-
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Grade Level
-            </label>
-            <input
-              type="text"
-              name="grade_level"
-              value={formData.grade_level}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded-md"
-              required
-            />
-          </div>
-
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Group
-            </label>
-            <select
-              name="stud_group"
-              value={formData.stud_group}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            >
-              <option value="">Not Assigned</option>
-              {groups.map((group) => (
-                <option key={group.id} value={group.id}>
-                  {group.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Date of Birth
-            </label>
-            <input
-              type="date"
-              name="date_of_birth"
-              value={formData.date_of_birth}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded-md"
-              required
-            />
-          </div>
-
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Enrollment Date
-            </label>
-            <input
-              type="date"
-              name="enrollment_date"
-              value={formData.enrollment_date}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded-md"
-              required
-            />
-          </div>
-
-          <div className="flex justify-end">
+        {/* Footer with buttons */}
+        <div className="border-t p-6 bg-gray-50">
+          <div className="flex justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="mr-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+              onClick={handleSubmit}
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
               disabled={isLoading}
             >
-              {isLoading ? "Saving..." : "Save Changes"}
+              {isLoading ? (
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Saving...
+                </span>
+              ) : (
+                "Save Changes"
+              )}
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
