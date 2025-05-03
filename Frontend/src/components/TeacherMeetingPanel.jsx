@@ -167,12 +167,13 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
         setErrorMessage("");
       } else {
         setIsTeacherAvailable(false);
-        setErrorMessage(response.data.message || "Teacher is not available at this time.");
       }
     } catch (error) {
       console.error("Error checking teacher availability:", error);
       setIsTeacherAvailable(false);
-      setErrorMessage("Failed to check teacher availability. Please try again.");
+      setErrorMessage(
+        "Failed to check teacher availability. Please try again."
+      );
     } finally {
       setIsCheckingAvailability(false);
     }
@@ -181,12 +182,14 @@ const TeacherMeetingPanel = ({ isOpen, onClose, teachers = [] }) => {
   // Function to handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!isTeacherAvailable) {
-      setErrorMessage("Cannot schedule meeting: Teacher is not available at this time.");
+      setErrorMessage(
+        "Cannot schedule meeting: Teacher is not available at this time."
+      );
       return;
     }
-    
+
     // Continue with the rest of your submission logic
     // Validate form data
     if (!selectedTeacher || !meetingDate || !meetingTime || !meetingPurpose) {
