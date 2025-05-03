@@ -2,11 +2,11 @@ import React, { useState, useEffect, useCallback } from "react";
 import { IoSearch } from "react-icons/io5";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { TbCalendarUser } from "react-icons/tb";
-import { FaMapMarkedAlt, FaTable } from "react-icons/fa";
+import { FaMapMarkedAlt } from "react-icons/fa";
 
 import axios from "axios";
 import AcademicBlockPopup from "./AcademicBlockPopup";
-import TeacherMeetingPanel from "./TeacherMeetingPanel"; // Import the TeacherMeetingPanel component
+import TeacherMeetingPanel from "./TeacherMeetingPanel";
 
 const Teacher = () => {
   // State for storing teachers grouped by academic block
@@ -19,12 +19,11 @@ const Teacher = () => {
   const [hoveredBlock, setHoveredBlock] = useState(null);
   // State to track if search is in progress
   const [isSearching, setIsSearching] = useState(false);
-  // New state for popup
+  // State for popup
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [selectedBlock, setSelectedBlock] = useState(null);
   const [blockInfo, setBlockInfo] = useState({});
-
-  // New state for meeting panel
+  // State for meeting panel
   const [isMeetingPanelOpen, setIsMeetingPanelOpen] = useState(false);
   const [selectedTeachers, setSelectedTeachers] = useState([]);
 
@@ -86,7 +85,7 @@ const Teacher = () => {
         }
       }
     } catch (error) {
-      console.error("Error fetching teachers:", error);
+      // Removed console.log for optimization
     } finally {
       setLoading(false);
       setIsSearching(false);
@@ -203,7 +202,7 @@ const Teacher = () => {
         }
       })
       .catch((error) => {
-        console.error("Error fetching teachers:", error);
+        // Removed console.log for optimization
       });
   };
 
@@ -213,19 +212,15 @@ const Teacher = () => {
     setSelectedBlock(null);
   };
 
-  // Add new state for view toggle
-  const [viewMode, setViewMode] = useState("map"); // "map" or "dashboard"
-
   return (
     <div className="h-screen w-full overflow-hidden">
       <div className="mx-8 w-full overflow-auto">
         {/* Top Section */}
-
         <div className="flex items-center justify-between mr-20">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 py-5">
               <h1 className="font-semibold text-2xl text-black">
-                {viewMode === "map" ? "ACADEMICS MAP" : "TEACHER DASHBOARD"}
+                ACADEMICS MAP
               </h1>
               <IoMdInformationCircleOutline className="text-2xl" />
             </div>
@@ -248,36 +243,6 @@ const Teacher = () => {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            {/* Add View Toggle Button */}
-            <div className="flex bg-gray-100 rounded-lg p-1">
-              <button
-                className={`px-3 py-1.5 rounded-md text-sm font-medium ${
-                  viewMode === "map"
-                    ? "bg-white text-blue-600 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-                onClick={() => setViewMode("map")}
-              >
-                <div className="flex items-center gap-1.5">
-                  <FaMapMarkedAlt />
-                  <span>Map</span>
-                </div>
-              </button>
-              <button
-                className={`px-3 py-1.5 rounded-md text-sm font-medium ${
-                  viewMode === "dashboard"
-                    ? "bg-white text-blue-600 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-                onClick={() => setViewMode("dashboard")}
-              >
-                <div className="flex items-center gap-1.5">
-                  <FaTable />
-                  <span>Dashboard</span>
-                </div>
-              </button>
-            </div>
-
             {/* Schedule Meeting Button */}
             <button
               onClick={() => openMeetingPanel()}

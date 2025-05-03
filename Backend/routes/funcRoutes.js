@@ -189,18 +189,18 @@ router.delete("/delete_classroom/:id", (req, res) => {
 router.get("/get_all_schedules", (req, res) => {
   const query = `
     SELECT
-    schedules.id,
-    schedules.group_id,
-    schedules.classroom_id,
-    schedules.course_id,
-    schedules.teacher_id,
-    schedules.day_of_week,
-    schedules.start_time,
-    schedules.end_time,
-    \`group\`.name AS group_name,
-    classrooms.name AS classroom_name,
-    courses.name AS course_name,
-    CONCAT(teachers.first_name, ' ', teachers.last_name) AS teacher_name
+      schedules.id AS schedule_id,
+      schedules.group_id,
+      schedules.classroom_id,
+      schedules.course_id,
+      schedules.teacher_id,
+      schedules.day_of_week,
+      schedules.start_time,
+      schedules.end_time,
+      \`group\`.name AS group_name,
+      classrooms.name AS classroom_name,
+      courses.name AS course_name,
+      CONCAT(teachers.first_name, ' ', teachers.last_name) AS teacher_name
     FROM schedules
     JOIN \`group\` ON schedules.group_id = \`group\`.id
     LEFT JOIN classrooms ON schedules.classroom_id = classrooms.id
@@ -661,7 +661,7 @@ router.get("/check_teacher_availability", (req, res) => {
 
     // If no approved meetings, check if the teacher exists
     const teacherQuery = `SELECT teacher_id, first_name, last_name FROM teachers WHERE teacher_id = ?`;
-    
+
     connection.query(teacherQuery, [teacher_id], (err, teachers) => {
       if (err) {
         console.error("Database error:", err.message);

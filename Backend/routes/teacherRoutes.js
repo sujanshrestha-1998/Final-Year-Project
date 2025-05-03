@@ -178,4 +178,29 @@ router.get("/search_teachers", (req, res) => {
   });
 });
 
+// New route to get all teacher meetings:
+router.get("/get_all_teacher_meetings", (req, res) => {
+  const query = `
+    SELECT tm.*, 
+           CONCAT(s.first_name, ' ', s.last_name) as student_name,
+           CONCAT(t.first_name, ' ', t.last_name) as teacher_name
+    FROM teacher_meetings tm
+    JOIN students s ON tm.student_id = s.stud_id
+    JOIN teachers t ON tm.teacher_id = t.teacher_id
+  `;
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error("Database error:", err.message);
+      return res.status(500).json({ message: "Database error" });
+    }
+
+    return res.status(200).json({ 
+      success: true,
+      message: "Teacher meetings fetched successfully", 
+      meetings: results 
+    });
+  });
+});
+
 module.exports = router;

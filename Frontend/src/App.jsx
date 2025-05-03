@@ -20,6 +20,7 @@ import ClassroomRequests from "./pages/ClassroomRequests";
 import TeacherDataDashboard from "./pages/TeacherDataDashboard";
 import MeetingRequest from "./components/MeetingRequest";
 import TeacherViewToggle from "./components/TeacherViewToggle";
+import TeacherViewDashboard from "./pages/TeacherViewDashboard";
 
 const AppRoutes = () => {
   const location = useLocation();
@@ -41,6 +42,14 @@ const AppRoutes = () => {
         element={
           <PrivateRoute>
             <TeacherDashboard />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/teachers/list"
+        element={
+          <PrivateRoute>
+            <TeacherViewDashboard />
           </PrivateRoute>
         }
       />

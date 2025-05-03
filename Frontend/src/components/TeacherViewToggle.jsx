@@ -16,7 +16,9 @@ const TeacherViewToggle = () => {
     const fetchTeachers = async () => {
       setLoading(true);
       try {
-        const response = await axios.get("http://localhost:3000/api/teacher_details");
+        const response = await axios.get(
+          "http://localhost:3000/api/teacher_details"
+        );
         if (response.data && response.data.teachers) {
           setTeachers(response.data.teachers);
         }
@@ -41,13 +43,15 @@ const TeacherViewToggle = () => {
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
-            <h1 className="text-2xl font-bold text-gray-900">Teacher Locator</h1>
-            
+            <h1 className="text-2xl font-bold text-gray-900">
+              Teacher Locator
+            </h1>
+
             <div className="flex bg-gray-100 rounded-lg p-1">
               <button
                 className={`px-4 py-2 rounded-md text-sm font-medium ${
-                  viewMode === "map" 
-                    ? "bg-white text-blue-600 shadow-sm" 
+                  viewMode === "map"
+                    ? "bg-white text-blue-600 shadow-sm"
                     : "text-gray-500 hover:text-gray-700"
                 }`}
                 onClick={() => setViewMode("map")}
@@ -59,8 +63,8 @@ const TeacherViewToggle = () => {
               </button>
               <button
                 className={`px-4 py-2 rounded-md text-sm font-medium ${
-                  viewMode === "dashboard" 
-                    ? "bg-white text-blue-600 shadow-sm" 
+                  viewMode === "dashboard"
+                    ? "bg-white text-blue-600 shadow-sm"
                     : "text-gray-500 hover:text-gray-700"
                 }`}
                 onClick={() => setViewMode("dashboard")}
@@ -78,17 +82,17 @@ const TeacherViewToggle = () => {
       {/* Main content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {viewMode === "map" ? (
-          <Teacher 
-            onScheduleMeeting={handleScheduleMeeting} 
+          <Teacher
+            onScheduleMeeting={handleScheduleMeeting}
             isMeetingPanelOpen={isMeetingPanelOpen}
             setIsMeetingPanelOpen={setIsMeetingPanelOpen}
             selectedTeacher={selectedTeacher}
           />
         ) : (
-          <TeacherDashboardView 
-            teachers={teachers} 
-            loading={loading} 
-            onScheduleMeeting={handleScheduleMeeting} 
+          <TeacherDashboardView
+            teachers={teachers}
+            loading={loading}
+            onScheduleMeeting={handleScheduleMeeting}
           />
         )}
       </div>

@@ -284,6 +284,16 @@ const DashboardMenu = ({ onStudentSelect }) => {
               </div>
               <div
                 className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
+                  location.pathname === "/teachers/list"
+                    ? "text-blue-600 font-medium"
+                    : "text-gray-600 hover:text-blue-500"
+                }`}
+                onClick={() => navigate("/teachers/list")}
+              >
+                Teachers
+              </div>
+              <div
+                className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
                   location.pathname === "/teachers/register"
                     ? "text-blue-600 font-medium"
                     : "text-gray-600 hover:text-blue-500"
