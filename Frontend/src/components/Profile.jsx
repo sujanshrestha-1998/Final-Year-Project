@@ -35,7 +35,7 @@ const Profile = ({ userData, onClose }) => {
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 bg-black transition-opacity duration-200 ease-in-out ${
+        className={`fixed inset-0 bg-black transition-opacity duration-200 ease-in-out z-50 ${
           isVisible ? "opacity-50" : "opacity-0"
         }`}
         onClick={handleClose}
@@ -43,7 +43,7 @@ const Profile = ({ userData, onClose }) => {
 
       {/* Profile Menu */}
       <div
-        className={`absolute left-4 bottom-24 w-[250px] bg-white rounded-lg shadow-xl transition-all duration-200 ease-in-out ${
+        className={`absolute left-4 bottom-24 w-[250px] bg-white rounded-lg shadow-xl transition-all duration-200 ease-in-out z-50 ${
           isVisible
             ? "opacity-100 transform translate-y-0"
             : "opacity-0 transform translate-y-4"

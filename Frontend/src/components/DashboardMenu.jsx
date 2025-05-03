@@ -33,7 +33,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
   const [isClassroomOpen, setIsClassroomOpen] = useState(false);
   const [isRequestsOpen, setIsRequestsOpen] = useState(false);
   const [isMeetingRequestsOpen, setIsMeetingRequestsOpen] = useState(false);
-  const [pendingRequestsCount, setPendingRequestsCount] = useState(0); // Add this new state
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
 
   // Automatically open the dropdown that matches the current path
   useEffect(() => {
@@ -211,16 +211,19 @@ const DashboardMenu = ({ onStudentSelect }) => {
               >
                 View Classrooms
               </div>
-              <div
-                className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
-                  location.pathname === "/dashboard/addclassroom"
-                    ? "text-blue-600 font-medium"
-                    : "text-gray-600 hover:text-blue-500"
-                }`}
-                onClick={() => navigate("/dashboard/addclassroom")}
-              >
-                Add Classroom
-              </div>
+              {/* Only Admin and RTE can add classrooms */}
+              {(roleId === 1 || roleId === 2) && (
+                <div
+                  className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
+                    location.pathname === "/dashboard/addclassroom"
+                      ? "text-blue-600 font-medium"
+                      : "text-gray-600 hover:text-blue-500"
+                  }`}
+                  onClick={() => navigate("/dashboard/addclassroom")}
+                >
+                  Add Classroom
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -273,16 +276,19 @@ const DashboardMenu = ({ onStudentSelect }) => {
               >
                 Academics Map
               </div>
-              <div
-                className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
-                  location.pathname === "/teachers/details"
-                    ? "text-blue-600 font-medium"
-                    : "text-gray-600 hover:text-blue-500"
-                }`}
-                onClick={() => navigate("/teachers/details")}
-              >
-                Teacher Details
-              </div>
+              {/* Teacher Details - Only for Admin and RTE */}
+              {(roleId === 1 || roleId === 2) && (
+                <div
+                  className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
+                    location.pathname === "/teachers/details"
+                      ? "text-blue-600 font-medium"
+                      : "text-gray-600 hover:text-blue-500"
+                  }`}
+                  onClick={() => navigate("/teachers/details")}
+                >
+                  Teacher Details
+                </div>
+              )}
               <div
                 className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
                   location.pathname === "/teachers/list"
@@ -293,21 +299,24 @@ const DashboardMenu = ({ onStudentSelect }) => {
               >
                 Teachers Directory
               </div>
-              <div
-                className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
-                  location.pathname === "/teachers/register"
-                    ? "text-blue-600 font-medium"
-                    : "text-gray-600 hover:text-blue-500"
-                }`}
-                onClick={() => navigate("/teachers/register")}
-              >
-                Register Teacher
-              </div>
+              {/* Register Teacher - Only for Admin and RTE */}
+              {(roleId === 1 || roleId === 2) && (
+                <div
+                  className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
+                    location.pathname === "/teachers/register"
+                      ? "text-blue-600 font-medium"
+                      : "text-gray-600 hover:text-blue-500"
+                  }`}
+                  onClick={() => navigate("/teachers/register")}
+                >
+                  Register Teacher
+                </div>
+              )}
             </div>
           )}
         </div>
 
-        {/* Students Dropdown */}
+        {/* Students Dropdown - Not visible for Students (role_id = 4) */}
         {roleId !== 4 && (
           <div className="mb-1">
             <button
@@ -356,82 +365,88 @@ const DashboardMenu = ({ onStudentSelect }) => {
                 >
                   Student Details
                 </div>
+                {/* Register Student - Only for Admin and RTE */}
+                {(roleId === 1 || roleId === 2) && (
+                  <div
+                    className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
+                      location.pathname === "/students/register"
+                        ? "text-blue-600 font-medium"
+                        : "text-gray-600 hover:text-blue-500"
+                    }`}
+                    onClick={() => navigate("/students/register")}
+                  >
+                    Register Student
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Schedule Dropdown - Only visible for Admin and RTE */}
+        {(roleId === 1 || roleId === 2) && (
+          <div className="mb-1">
+            <button
+              className={`flex items-center justify-between w-full px-6 py-3 transition-colors ${
+                isActive("/schedule")
+                  ? "text-blue-600 bg-blue-50 border-r-4 border-blue-600"
+                  : "text-gray-700 hover:bg-gray-100"
+              }`}
+              onClick={toggleScheduleMenu}
+            >
+              <div className="flex items-center gap-3">
+                <GrSchedules
+                  className={
+                    isActive("/schedule") ? "text-blue-600" : "text-gray-600"
+                  }
+                  size={20}
+                />
+                <span className="font-medium">Schedule</span>
+              </div>
+              <span>
+                {isScheduleOpen ? (
+                  <MdOutlineKeyboardArrowDown
+                    className={
+                      isActive("/schedule") ? "text-blue-600" : "text-gray-600"
+                    }
+                  />
+                ) : (
+                  <MdOutlineKeyboardArrowRight
+                    className={
+                      isActive("/schedule") ? "text-blue-600" : "text-gray-600"
+                    }
+                  />
+                )}
+              </span>
+            </button>
+
+            {isScheduleOpen && (
+              <div className="bg-gray-50 py-1">
                 <div
                   className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
-                    location.pathname === "/students/register"
+                    location.pathname === "/schedule/allocate-groups"
                       ? "text-blue-600 font-medium"
                       : "text-gray-600 hover:text-blue-500"
                   }`}
-                  onClick={() => navigate("/students/register")}
+                  onClick={() => navigate("/schedule/allocate-groups")}
                 >
-                  Register Student
+                  Allocate Group
+                </div>
+                <div
+                  className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
+                    location.pathname === "/schedule/allocate-time"
+                      ? "text-blue-600 font-medium"
+                      : "text-gray-600 hover:text-blue-500"
+                  }`}
+                  onClick={() => navigate("/schedule/allocate-time")}
+                >
+                  Allocate Time
                 </div>
               </div>
             )}
           </div>
         )}
 
-        {/* Schedule Dropdown */}
-        <div className="mb-1">
-          <button
-            className={`flex items-center justify-between w-full px-6 py-3 transition-colors ${
-              isActive("/schedule")
-                ? "text-blue-600 bg-blue-50 border-r-4 border-blue-600"
-                : "text-gray-700 hover:bg-gray-100"
-            }`}
-            onClick={toggleScheduleMenu}
-          >
-            <div className="flex items-center gap-3">
-              <GrSchedules
-                className={
-                  isActive("/schedule") ? "text-blue-600" : "text-gray-600"
-                }
-                size={20}
-              />
-              <span className="font-medium">Schedule</span>
-            </div>
-            <span>
-              {isScheduleOpen ? (
-                <MdOutlineKeyboardArrowDown
-                  className={
-                    isActive("/schedule") ? "text-blue-600" : "text-gray-600"
-                  }
-                />
-              ) : (
-                <MdOutlineKeyboardArrowRight
-                  className={
-                    isActive("/schedule") ? "text-blue-600" : "text-gray-600"
-                  }
-                />
-              )}
-            </span>
-          </button>
-
-          {isScheduleOpen && (
-            <div className="bg-gray-50 py-1">
-              <div
-                className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
-                  location.pathname === "/schedule/allocate-groups"
-                    ? "text-blue-600 font-medium"
-                    : "text-gray-600 hover:text-blue-500"
-                }`}
-                onClick={() => navigate("/schedule/allocate-groups")}
-              >
-                Allocate Group
-              </div>
-              <div
-                className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
-                  location.pathname === "/schedule/allocate-time"
-                    ? "text-blue-600 font-medium"
-                    : "text-gray-600 hover:text-blue-500"
-                }`}
-                onClick={() => navigate("/schedule/allocate-time")}
-              >
-                Allocate Time
-              </div>
-            </div>
-          )}
-        </div>
         {/* Requests Dropdown - Only visible for RTE Officer (role_id = 2) */}
         {roleId === 2 && (
           <div className="mb-1">
@@ -491,8 +506,8 @@ const DashboardMenu = ({ onStudentSelect }) => {
           </div>
         )}
 
-        {/* Meeting Requests Dropdown - Only visible for Teachers (role_id = 3) */}
-        {roleId === 3 && (
+        {/* Meeting Requests Dropdown - Only visible for Teachers (role_id = 3) and Admin (role_id = 1) */}
+        {(roleId === 1 || roleId === 3) && (
           <div className="mb-1">
             <button
               className={`flex items-center justify-between w-full px-6 py-3 transition-colors ${
@@ -550,52 +565,38 @@ const DashboardMenu = ({ onStudentSelect }) => {
             )}
           </div>
         )}
-      </div>
 
-      {/* User profile section */}
-      <div className="border-t border-gray-200 p-4 mt-auto">
-        {isProfileDataReady && (
-          <div
-            className="flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+        {/* Profile section at the bottom - Visible for all users */}
+        <div className="mt-auto border-t border-gray-200">
+          <button
             onClick={openProfile}
+            className="flex items-center w-full p-4 hover:bg-blue-50 transition-colors"
           >
             <div className="relative">
-              <img
-                src="/src/assets/Profile.png"
-                alt="Profile"
-                className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
-              />
-              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+              {userData?.profile_image ? (
+                <img
+                  src={userData.profile_image}
+                  alt="Profile"
+                  className="w-12 h-12 rounded-full object-cover border-2 border-blue-500"
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-full bg-grey-100 flex items-center justify-center text-white font-bold text-lg shadow-md">
+                  <img src="/src/assets/Profile.png" alt="" />
+                </div>
+              )}
+              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border border-white"></div>
             </div>
-            <div>
-              <h1 className="font-semibold text-gray-800">
-                {userData?.username}
-              </h1>
-              <p className="text-xs text-gray-500">
-                {userData?.role_id &&
-                  (() => {
-                    switch (userData.role_id) {
-                      case 1:
-                        return "Administrator";
-                      case 2:
-                        return "RTE Officer";
-                      case 3:
-                        return "Teacher";
-                      case 4:
-                        return "Student";
-                      default:
-                        return "";
-                    }
-                  })()}
-              </p>
+            <div className="ml-3 text-left">
+              <p className="font-medium text-gray-800">{userData?.username}</p>
             </div>
-          </div>
+          </button>
+        </div>
+
+        {/* Profile Modal */}
+        {isProfileOpen && isProfileDataReady && (
+          <Profile userData={userData} onClose={closeProfile} />
         )}
       </div>
-
-      {isProfileOpen && isProfileDataReady && (
-        <Profile userData={userData} onClose={closeProfile} />
-      )}
     </div>
   );
 };
