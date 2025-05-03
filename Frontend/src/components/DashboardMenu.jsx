@@ -290,7 +290,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
                 }`}
                 onClick={() => navigate("/teachers/list")}
               >
-                Teachers
+                Teachers Directory
               </div>
               <div
                 className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
