@@ -21,6 +21,7 @@ import TeacherDataDashboard from "./pages/TeacherDataDashboard";
 import MeetingRequest from "./components/MeetingRequest";
 import TeacherViewToggle from "./components/TeacherViewToggle";
 import TeacherViewDashboard from "./pages/TeacherViewDashboard";
+import RegisterRTE from "./pages/RegisterRTE";
 
 const AppRoutes = () => {
   const location = useLocation();
@@ -94,6 +95,7 @@ const AppRoutes = () => {
         }
       />
       <Route path="/schedule/allocate-groups" element={<ScheduleDashboard />} />
+      <Route path="/users/register-rte" element={<RegisterRTE />} />
       <Route path="/schedule/allocate-time" element={<TimeDashboard />} />
       <Route path="/requests/classroom" element={<ClassroomRequests />} />
       <Route path="/teacher-locator" element={<TeacherViewToggle />} />

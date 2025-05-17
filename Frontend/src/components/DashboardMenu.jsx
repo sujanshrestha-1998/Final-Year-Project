@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { FaRegIdBadge } from "react-icons/fa";
-import { TbUserScreen } from "react-icons/tb";
+import { FaRegIdBadge, FaUserPlus } from "react-icons/fa"; // Added FaUserPlus
+import { TbUserScreen, TbUsersGroup } from "react-icons/tb"; // Added TbUsersGroup
 import { PiChalkboardTeacherDuotone } from "react-icons/pi";
 import { LiaChalkboardTeacherSolid } from "react-icons/lia";
 import { GrSchedules, GrGroup } from "react-icons/gr";
@@ -34,6 +34,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
   const [isRequestsOpen, setIsRequestsOpen] = useState(false);
   const [isMeetingRequestsOpen, setIsMeetingRequestsOpen] = useState(false);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
+  const [isAddUsersOpen, setIsAddUsersOpen] = useState(false); // New state for "Add Additional Users"
 
   // Automatically open the dropdown that matches the current path
   useEffect(() => {
@@ -49,6 +50,9 @@ const DashboardMenu = ({ onStudentSelect }) => {
       setIsRequestsOpen(true);
     } else if (location.pathname.includes("/meeting-requests")) {
       setIsMeetingRequestsOpen(true);
+    } else if (location.pathname.includes("/users")) {
+      // For "Add Additional Users"
+      setIsAddUsersOpen(true);
     }
   }, [location.pathname]);
 
@@ -139,6 +143,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
     setIsMeetingRequestsOpen((prev) => !prev);
   const openProfile = () => setIsProfileOpen(true);
   const closeProfile = () => setIsProfileOpen(false);
+  const toggleAddUsersMenu = () => setIsAddUsersOpen((prev) => !prev); // New toggle function
 
   // Helper function to determine if a menu item is active
   const isActive = (path) => {
@@ -383,69 +388,131 @@ const DashboardMenu = ({ onStudentSelect }) => {
           </div>
         )}
 
-        {/* Schedule Dropdown - Only visible for Admin and RTE */}
+        {/* Add Additional Users Dropdown - Only for Admin and RTE */}
         {(roleId === 1 || roleId === 2) && (
           <div className="mb-1">
             <button
               className={`flex items-center justify-between w-full px-6 py-3 transition-colors ${
-                isActive("/schedule")
+                isActive("/users") // Matches base path for this section
                   ? "text-blue-600 bg-blue-50 border-r-4 border-blue-600"
                   : "text-gray-700 hover:bg-gray-100"
               }`}
-              onClick={toggleScheduleMenu}
+              onClick={toggleAddUsersMenu}
             >
               <div className="flex items-center gap-3">
-                <GrSchedules
+                <TbUsersGroup // Using TbUsersGroup icon
                   className={
-                    isActive("/schedule") ? "text-blue-600" : "text-gray-600"
+                    isActive("/users") ? "text-blue-600" : "text-gray-600"
                   }
                   size={20}
                 />
-                <span className="font-medium">Schedule</span>
+                <span className="font-medium">Additional Users</span>
               </div>
               <span>
-                {isScheduleOpen ? (
+                {isAddUsersOpen ? (
                   <MdOutlineKeyboardArrowDown
                     className={
-                      isActive("/schedule") ? "text-blue-600" : "text-gray-600"
+                      isActive("/users") ? "text-blue-600" : "text-gray-600"
                     }
                   />
                 ) : (
                   <MdOutlineKeyboardArrowRight
                     className={
-                      isActive("/schedule") ? "text-blue-600" : "text-gray-600"
+                      isActive("/users") ? "text-blue-600" : "text-gray-600"
                     }
                   />
                 )}
               </span>
             </button>
 
-            {isScheduleOpen && (
+            {isAddUsersOpen && (
               <div className="bg-gray-50 py-1">
                 <div
                   className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
-                    location.pathname === "/schedule/allocate-groups"
+                    location.pathname === "/users/register-rte"
                       ? "text-blue-600 font-medium"
                       : "text-gray-600 hover:text-blue-500"
                   }`}
-                  onClick={() => navigate("/schedule/allocate-groups")}
+                  onClick={() => navigate("/users/register-rte")}
                 >
-                  Allocate Group
+                  Register RTE User
                 </div>
                 <div
                   className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
-                    location.pathname === "/schedule/allocate-time"
+                    location.pathname === "/users/rte-details"
                       ? "text-blue-600 font-medium"
                       : "text-gray-600 hover:text-blue-500"
                   }`}
-                  onClick={() => navigate("/schedule/allocate-time")}
+                  onClick={() => navigate("/users/rte-details")}
                 >
-                  Allocate Time
+                  RTE Details
                 </div>
               </div>
             )}
           </div>
         )}
+
+        {/* Schedule Dropdown */}
+        <div className="mb-1">
+          <button
+            className={`flex items-center justify-between w-full px-6 py-3 transition-colors ${
+              isActive("/schedule")
+                ? "text-blue-600 bg-blue-50 border-r-4 border-blue-600"
+                : "text-gray-700 hover:bg-gray-100"
+            }`}
+            onClick={toggleScheduleMenu}
+          >
+            <div className="flex items-center gap-3">
+              <GrSchedules
+                className={
+                  isActive("/schedule") ? "text-blue-600" : "text-gray-600"
+                }
+                size={20}
+              />
+              <span className="font-medium">Schedule</span>
+            </div>
+            <span>
+              {isScheduleOpen ? (
+                <MdOutlineKeyboardArrowDown
+                  className={
+                    isActive("/schedule") ? "text-blue-600" : "text-gray-600"
+                  }
+                />
+              ) : (
+                <MdOutlineKeyboardArrowRight
+                  className={
+                    isActive("/schedule") ? "text-blue-600" : "text-gray-600"
+                  }
+                />
+              )}
+            </span>
+          </button>
+
+          {isScheduleOpen && (
+            <div className="bg-gray-50 py-1">
+              <div
+                className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
+                  location.pathname === "/schedule/allocate-groups"
+                    ? "text-blue-600 font-medium"
+                    : "text-gray-600 hover:text-blue-500"
+                }`}
+                onClick={() => navigate("/schedule/allocate-groups")}
+              >
+                Allocate Group
+              </div>
+              <div
+                className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
+                  location.pathname === "/schedule/allocate-time"
+                    ? "text-blue-600 font-medium"
+                    : "text-gray-600 hover:text-blue-500"
+                }`}
+                onClick={() => navigate("/schedule/allocate-time")}
+              >
+                Allocate Time
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Requests Dropdown - Only visible for RTE Officer (role_id = 2) */}
         {(roleId === 2 || roleId === 1) && (
