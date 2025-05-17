@@ -25,7 +25,7 @@ const RTEDetails = () => {
     try {
       const response = await fetch("http://localhost:3000/api/rte_get_all");
       const data = await response.json();
-      
+
       if (response.ok) {
         setRTEOfficers(data);
       } else {
@@ -83,22 +83,29 @@ const RTEDetails = () => {
   // Handle form submission for editing
   const handleEditSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       const updatedData = {
         ...formData,
-        date_of_birth: formData.date_of_birth ? formData.date_of_birth.toISOString().split("T")[0] : null,
-        hire_date: formData.hire_date ? formData.hire_date.toISOString().split("T")[0] : null,
+        date_of_birth: formData.date_of_birth
+          ? formData.date_of_birth.toISOString().split("T")[0]
+          : null,
+        hire_date: formData.hire_date
+          ? formData.hire_date.toISOString().split("T")[0]
+          : null,
       };
-      
-      const response = await fetch(`http://localhost:3000/api/rte_update/${selectedRTE.rte_officer_id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedData),
-      });
-      
+
+      const response = await fetch(
+        `http://localhost:3000/api/rte_update/${selectedRTE.rte_officer_id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedData),
+        }
+      );
+
       if (response.ok) {
         toast.success("RTE officer updated successfully");
         setShowEditModal(false);
@@ -116,10 +123,13 @@ const RTEDetails = () => {
   // Handle delete confirmation
   const handleDeleteConfirm = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/api/rte_delete/${selectedRTE.rte_officer_id}`, {
-        method: "DELETE",
-      });
-      
+      const response = await fetch(
+        `http://localhost:3000/api/rte_delete/${selectedRTE.rte_officer_id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
       if (response.ok) {
         toast.success("RTE officer deleted successfully");
         setShowDeleteModal(false);
@@ -137,9 +147,9 @@ const RTEDetails = () => {
   return (
     <div className="container mx-auto p-4">
       <ToastContainer position="top-right" autoClose={3000} />
-      
+
       <h1 className="text-2xl font-bold mb-6">RTE Officers Management</h1>
-      
+
       {loading ? (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
@@ -161,16 +171,23 @@ const RTEDetails = () => {
             <tbody>
               {rteOfficers.length > 0 ? (
                 rteOfficers.map((rte) => (
-                  <tr key={rte.rte_officer_id} className="border-t border-gray-300 hover:bg-gray-50">
+                  <tr
+                    key={rte.rte_officer_id}
+                    className="border-t border-gray-300 hover:bg-gray-50"
+                  >
                     <td className="py-3 px-4">{rte.rte_officer_id}</td>
                     <td className="py-3 px-4">{`${rte.first_name} ${rte.last_name}`}</td>
                     <td className="py-3 px-4">{rte.email}</td>
                     <td className="py-3 px-4">{rte.date_of_birth || "N/A"}</td>
                     <td className="py-3 px-4">{rte.hire_date || "N/A"}</td>
                     <td className="py-3 px-4">
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        rte.status === "active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                      }`}>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs ${
+                          rte.status === "active"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
                         {rte.status || "active"}
                       </span>
                     </td>
@@ -194,7 +211,10 @@ const RTEDetails = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="7" className="py-4 px-4 text-center text-gray-500">
+                  <td
+                    colSpan="7"
+                    className="py-4 px-4 text-center text-gray-500"
+                  >
                     No RTE officers found
                   </td>
                 </tr>
@@ -244,7 +264,9 @@ const RTEDetails = () => {
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-gray-700 mb-2">Date of Birth</label>
+                <label className="block text-gray-700 mb-2">
+                  Date of Birth
+                </label>
                 <DatePicker
                   selected={formData.date_of_birth}
                   onChange={(date) => handleDateChange(date, "date_of_birth")}
@@ -299,7 +321,8 @@ const RTEDetails = () => {
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Confirm Delete</h2>
             <p className="mb-6">
-              Are you sure you want to delete {selectedRTE.first_name} {selectedRTE.last_name}? This action cannot be undone.
+              Are you sure you want to delete {selectedRTE.first_name}{" "}
+              {selectedRTE.last_name}? This action cannot be undone.
             </p>
             <div className="flex justify-end space-x-2">
               <button

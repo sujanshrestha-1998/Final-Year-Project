@@ -12,7 +12,7 @@ const RTEEdit = ({ isOpen, onClose, rteData, onRTEUpdated }) => {
     email: "",
     date_of_birth: null,
     hire_date: null,
-    status: "active"
+    status: "active",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -27,7 +27,7 @@ const RTEEdit = ({ isOpen, onClose, rteData, onRTEUpdated }) => {
         email: rteData.email,
         date_of_birth: rteData.dob ? new Date(rteData.dob) : null,
         hire_date: rteData.hireDate ? new Date(rteData.hireDate) : null,
-        status: rteData.status || "active"
+        status: rteData.status || "active",
       });
     }
   }, [rteData]);
@@ -80,7 +80,7 @@ const RTEEdit = ({ isOpen, onClose, rteData, onRTEUpdated }) => {
         dob: formData.date_of_birth,
         age: calculateAge(formData.date_of_birth),
         hireDate: formData.hire_date,
-        status: formData.status
+        status: formData.status,
       };
 
       // Notify parent component of the update
@@ -89,7 +89,8 @@ const RTEEdit = ({ isOpen, onClose, rteData, onRTEUpdated }) => {
     } catch (err) {
       console.error("Error updating RTE:", err);
       setError(
-        err.response?.data?.message || "An error occurred while updating RTE officer"
+        err.response?.data?.message ||
+          "An error occurred while updating RTE officer"
       );
     } finally {
       setIsSubmitting(false);
@@ -99,16 +100,19 @@ const RTEEdit = ({ isOpen, onClose, rteData, onRTEUpdated }) => {
   // Helper function to calculate age
   const calculateAge = (birthDate) => {
     if (!birthDate) return 0;
-    
+
     const today = new Date();
     const birth = new Date(birthDate);
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
       age--;
     }
-    
+
     return age;
   };
 
