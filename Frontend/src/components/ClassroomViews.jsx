@@ -178,6 +178,7 @@ export const CardView = ({
                     {classroom.type}
                   </p>
                 </div>
+                // Inside the CardView component
                 <div
                   className={`px-2 py-1 rounded-full text-xs font-medium ${
                     classroom.isCurrentlyOccupied
@@ -196,6 +197,7 @@ export const CardView = ({
                         key={idx}
                         className="p-3 rounded-lg bg-blue-50 border-0 transition-all duration-200 hover:bg-blue-100"
                       >
+                        // In the schedule display section
                         <div className="flex justify-between items-start mb-1">
                           <span className="font-medium text-gray-800 truncate max-w-xs">
                             {schedule.isApproved
@@ -204,7 +206,9 @@ export const CardView = ({
                           </span>
                           <span className="text-xs px-2.5 py-1 bg-white rounded-full text-blue-600 whitespace-nowrap ml-1 shadow-sm">
                             {schedule.isApproved
-                              ? "Approved"
+                              ? schedule.status === "pending"
+                                ? "Pending"
+                                : "Approved"
                               : schedule.group_name}
                           </span>
                         </div>

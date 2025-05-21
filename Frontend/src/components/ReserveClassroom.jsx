@@ -372,26 +372,30 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
       }
 
       // Parse schedule times
-      const [schStartHour, schStartMinute] = schedule.start_time
+      const [scheduleStartHour, scheduleStartMinute] = schedule.start_time
         .split(":")
         .map(Number);
-      const [schEndHour, schEndMinute] = schedule.end_time
+      const [scheduleEndHour, scheduleEndMinute] = schedule.end_time
         .split(":")
         .map(Number);
 
-      const scheduleStartMinutes = schStartHour * 60 + schStartMinute;
-      const scheduleEndMinutes = schEndHour * 60 + schEndMinute;
+      const scheduleStartMinutes = scheduleStartHour * 60 + scheduleStartMinute;
+      const scheduleEndMinutes = scheduleEndHour * 60 + scheduleEndMinute;
 
-      // Check for overlap
+      // Check for time overlap
       return (
-        selectedStartMinutes < scheduleEndMinutes &&
-        selectedEndMinutes > scheduleStartMinutes
+        (selectedStartMinutes < scheduleEndMinutes &&
+          selectedEndMinutes > scheduleStartMinutes)
       );
     });
 
-    // Use the reservationConflicts state that's now at component level
-    // If there are any conflicts (either from schedules or reservations), return false
-    return !hasScheduleConflict && reservationConflicts.length === 0;
+    // Check if there are any approved reservations that conflict with the selected time
+    const hasApprovedReservationConflict = reservationConflicts.some(
+      (reservation) => reservation.status === "approved"
+    );
+
+    // Only consider conflicts with regular schedules or approved reservations
+    return !hasScheduleConflict && !hasApprovedReservationConflict;
   };
 
   const formatDate = (date) => {

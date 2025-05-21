@@ -299,11 +299,11 @@ router.post("/reserve_classroom", (req, res) => {
 
   // Then, check for overlapping reservations
   const reservationOverlapQuery = `
-    SELECT id
+    SELECT id, status
     FROM classroom_reservations
     WHERE classroom_id = ?
       AND reservation_date = ?
-      AND status != 'rejected'
+      AND status = 'approved'
       AND ((start_time < ? AND end_time > ?) 
            OR (start_time < ? AND end_time > ?) 
            OR (start_time >= ? AND end_time <= ?))
@@ -553,11 +553,10 @@ router.get("/get_approved_reservations", (req, res) => {
   });
 });
 
-// Add this new endpoint to check for reservation conflicts
+// Add or update this endpoint
 router.get("/check_reservation_conflicts", (req, res) => {
   const { classroom_id, date, start_time, end_time } = req.query;
 
-  // Validate required parameters
   if (!classroom_id || !date || !start_time || !end_time) {
     return res.status(400).json({
       success: false,
@@ -565,13 +564,12 @@ router.get("/check_reservation_conflicts", (req, res) => {
     });
   }
 
-  // Query to check for overlapping reservations
+  // Query to find all reservations for this classroom on this date
   const query = `
-    SELECT id, purpose, start_time, end_time, status
+    SELECT id, user_id, purpose, start_time, end_time, status
     FROM classroom_reservations
     WHERE classroom_id = ?
       AND reservation_date = ?
-      AND status IN ('approved', 'pending')
       AND ((start_time < ? AND end_time > ?) 
            OR (start_time < ? AND end_time > ?) 
            OR (start_time >= ? AND end_time <= ?))
@@ -580,11 +578,11 @@ router.get("/check_reservation_conflicts", (req, res) => {
   const params = [
     classroom_id,
     date,
-    end_time, // New start time before existing end time
-    start_time, // New end time after existing start time
-    end_time, // Same start/end times
+    end_time,
     start_time,
-    start_time, // New schedule completely contains existing one
+    end_time,
+    start_time,
+    start_time,
     end_time,
   ];
 
@@ -597,10 +595,11 @@ router.get("/check_reservation_conflicts", (req, res) => {
       });
     }
 
+    // Return all conflicts, including their status
     return res.status(200).json({
       success: true,
       conflicts: results,
-      hasConflicts: results.length > 0,
+      hasApprovedConflict: results.some(r => r.status === 'approved')
     });
   });
 });
