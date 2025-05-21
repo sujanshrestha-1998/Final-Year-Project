@@ -161,14 +161,71 @@ const Requests = () => {
           return;
         }
 
-        // Then, automatically decline all conflicting requests
-        const declinePromises = conflictingIds.map((conflictId) =>
-          axios.post("http://localhost:3000/api/update_reservation_status", {
-            reservation_id: conflictId,
-            status: "rejected",
-            auto_rejected: true, // Optional flag to indicate this was auto-rejected
-          })
+        // Create notification for the approved request
+        const approvedRequest = reservations.find(
+          (req) => req.id === reservationId
         );
+        if (approvedRequest) {
+          try {
+            const notificationResponse = await axios.post(
+              "http://localhost:3000/api/user_notifications",
+              {
+                user_id: approvedRequest.user_id,
+                title: "Classroom Reservation Approved",
+                message: `Your reservation for ${
+                  approvedRequest.classroom_name
+                } on ${formatDate(
+                  approvedRequest.reservation_date
+                )} has been approved.`,
+                related_id: reservationId,
+                notification_type: "reservation_approved",
+              }
+            );
+
+            console.log("Notification created:", notificationResponse.data);
+          } catch (notificationError) {
+            console.error("Error creating notification:", notificationError);
+          }
+        }
+
+        // Then, automatically decline all conflicting requests
+        const declinePromises = conflictingIds.map(async (conflictId) => {
+          const response = await axios.post(
+            "http://localhost:3000/api/update_reservation_status",
+            {
+              reservation_id: conflictId,
+              status: "rejected",
+              auto_rejected: true, // Optional flag to indicate this was auto-rejected
+            }
+          );
+
+          // Create notification for each rejected request
+          const rejectedRequest = reservations.find(
+            (req) => req.id === conflictId
+          );
+          if (rejectedRequest) {
+            try {
+              await axios.post("http://localhost:3000/api/user_notifications", {
+                user_id: rejectedRequest.user_id,
+                title: "Classroom Reservation Rejected",
+                message: `Your reservation for ${
+                  rejectedRequest.classroom_name
+                } on ${formatDate(
+                  rejectedRequest.reservation_date
+                )} has been rejected due to a scheduling conflict.`,
+                related_id: conflictId,
+                notification_type: "reservation_rejected",
+              });
+            } catch (notificationError) {
+              console.error(
+                "Error creating rejection notification:",
+                notificationError
+              );
+            }
+          }
+
+          return response;
+        });
 
         // Wait for all decline operations to complete
         await Promise.all(declinePromises);
@@ -191,6 +248,44 @@ const Requests = () => {
         );
 
         if (response.data.success) {
+          // Create notification for the user
+          const updatedRequest = reservations.find(
+            (req) => req.id === reservationId
+          );
+          if (updatedRequest) {
+            try {
+              const notificationResponse = await axios.post(
+                "http://localhost:3000/api/user_notifications",
+                {
+                  user_id: updatedRequest.user_id,
+                  title: `Classroom Reservation ${
+                    status.charAt(0).toUpperCase() + status.slice(1)
+                  }`,
+                  message: `Your reservation for ${
+                    updatedRequest.classroom_name
+                  } on ${formatDate(
+                    updatedRequest.reservation_date
+                  )} has been ${status}.`,
+                  related_id: reservationId,
+                  notification_type: `reservation_${status}`,
+                }
+              );
+
+              console.log(
+                `${status} notification created:`,
+                notificationResponse.data
+              );
+            } catch (notificationError) {
+              console.error(
+                `Error creating ${status} notification:`,
+                notificationError
+              );
+            }
+          }
+
+          // Show success message
+          alert(`Reservation ${status} successfully.`);
+
           // Refresh the list after successful update
           setRefreshTrigger((prev) => prev + 1);
         } else {

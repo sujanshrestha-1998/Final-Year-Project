@@ -599,7 +599,7 @@ router.get("/check_reservation_conflicts", (req, res) => {
     return res.status(200).json({
       success: true,
       conflicts: results,
-      hasApprovedConflict: results.some(r => r.status === 'approved')
+      hasApprovedConflict: results.some((r) => r.status === "approved"),
     });
   });
 });
@@ -922,4 +922,262 @@ router.get("/get_all_reservations", (req, res) => {
       reservations: results,
     });
   });
+});
+
+// Update meeting request status
+router.post("/update_meeting_request_status", (req, res) => {
+  const { meeting_id, status, auto_rejected } = req.body;
+
+  if (!meeting_id || !status) {
+    return res.status(400).json({
+      success: false,
+      message: "Meeting ID and status are required",
+    });
+  }
+
+  // First, get the meeting request details to know which student to notify
+  const getMeetingQuery = `
+    SELECT m.*, s.email as student_email, s.stud_id, 
+           CONCAT(s.first_name, ' ', s.last_name) as student_name,
+           t.email as teacher_email, t.teacher_id,
+           CONCAT(t.first_name, ' ', t.last_name) as teacher_name
+    FROM meeting_requests m
+    JOIN students s ON m.student_id = s.stud_id
+    JOIN teachers t ON m.teacher_id = t.teacher_id
+    WHERE m.id = ?
+  `;
+
+  connection.query(getMeetingQuery, [meeting_id], (err, meetingResults) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch meeting details",
+      });
+    }
+
+    if (meetingResults.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Meeting request not found",
+      });
+    }
+
+    const meetingDetails = meetingResults[0];
+
+    // Update the meeting status
+    const updateQuery = `
+      UPDATE meeting_requests
+      SET status = ?
+      WHERE id = ?
+    `;
+
+    connection.query(
+      updateQuery,
+      [status, meeting_id],
+      (updateErr, updateResult) => {
+        if (updateErr) {
+          console.error("Database error:", updateErr);
+          return res.status(500).json({
+            success: false,
+            message: "Failed to update meeting status",
+          });
+        }
+
+        // Get the student's user ID to create a notification
+        const getUserQuery = `
+        SELECT id FROM users WHERE email = ?
+      `;
+
+        connection.query(
+          getUserQuery,
+          [meetingDetails.student_email],
+          (userErr, userResults) => {
+            if (!userErr && userResults.length > 0) {
+              const userId = userResults[0].id;
+
+              // Create notification for the student
+              let title, message;
+
+              if (status === "approved") {
+                title = "Meeting Request Approved";
+                message = `Your meeting request with ${
+                  meetingDetails.teacher_name
+                } on ${new Date(
+                  meetingDetails.meeting_date
+                ).toLocaleDateString()} at ${
+                  meetingDetails.start_time
+                } has been approved.`;
+              } else if (status === "rejected") {
+                title = "Meeting Request Rejected";
+                if (auto_rejected) {
+                  message = `Your meeting request with ${
+                    meetingDetails.teacher_name
+                  } on ${new Date(
+                    meetingDetails.meeting_date
+                  ).toLocaleDateString()} at ${
+                    meetingDetails.start_time
+                  } was automatically rejected due to a scheduling conflict.`;
+                } else {
+                  message = `Your meeting request with ${
+                    meetingDetails.teacher_name
+                  } on ${new Date(
+                    meetingDetails.meeting_date
+                  ).toLocaleDateString()} at ${
+                    meetingDetails.start_time
+                  } has been rejected.`;
+                }
+              }
+
+              const notificationQuery = `
+            INSERT INTO user_notifications 
+            (user_id, title, message, related_id, notification_type, read, created_at) 
+            VALUES (?, ?, ?, ?, 'meeting_request', false, NOW())
+          `;
+
+              connection.query(
+                notificationQuery,
+                [userId, title, message, meeting_id],
+                (notifErr) => {
+                  if (notifErr) {
+                    console.error("Error creating notification:", notifErr);
+                  }
+                }
+              );
+            }
+          }
+        );
+
+        return res.status(200).json({
+          success: true,
+          message: `Meeting request ${status} successfully`,
+        });
+      }
+    );
+  });
+});
+
+// Update reservation status
+router.post("/update_reservation_status", (req, res) => {
+  const { reservation_id, status, auto_rejected } = req.body;
+
+  if (!reservation_id || !status) {
+    return res.status(400).json({
+      success: false,
+      message: "Reservation ID and status are required",
+    });
+  }
+
+  // First, get the reservation details to know which user to notify
+  const getReservationQuery = `
+    SELECT r.*, c.name as classroom_name, u.id as user_id
+    FROM classroom_reservations r
+    JOIN classrooms c ON r.classroom_id = c.id
+    JOIN users u ON r.user_id = u.id
+    WHERE r.id = ?
+  `;
+
+  connection.query(
+    getReservationQuery,
+    [reservation_id],
+    (err, reservations) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({
+          success: false,
+          message: "Failed to fetch reservation details",
+        });
+      }
+
+      if (reservations.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "Reservation not found",
+        });
+      }
+
+      const reservation = reservations[0];
+
+      // Update the reservation status
+      const updateQuery = `
+      UPDATE classroom_reservations
+      SET status = ?, updated_at = NOW()
+      WHERE id = ?
+    `;
+
+      connection.query(
+        updateQuery,
+        [status, reservation_id],
+        (updateErr, updateResult) => {
+          if (updateErr) {
+            console.error("Database error:", updateErr);
+            return res.status(500).json({
+              success: false,
+              message: "Failed to update reservation status",
+            });
+          }
+
+          // Create notification for the user
+          const notificationTitle =
+            status === "approved"
+              ? "Classroom Reservation Approved"
+              : status === "rejected"
+              ? "Classroom Reservation Rejected"
+              : "Classroom Reservation Status Updated";
+
+          const notificationMessage =
+            status === "approved"
+              ? `Your reservation for ${
+                  reservation.classroom_name
+                } on ${new Date(
+                  reservation.reservation_date
+                ).toLocaleDateString()} from ${reservation.start_time} to ${
+                  reservation.end_time
+                } has been approved.`
+              : status === "rejected"
+              ? `Your reservation for ${
+                  reservation.classroom_name
+                } on ${new Date(
+                  reservation.reservation_date
+                ).toLocaleDateString()} from ${reservation.start_time} to ${
+                  reservation.end_time
+                } has been ${
+                  auto_rejected
+                    ? "automatically rejected due to a conflict"
+                    : "rejected"
+                }.`
+              : `The status of your reservation for ${reservation.classroom_name} has been updated to ${status}.`;
+
+          // Create notification
+          const notificationQuery = `
+        INSERT INTO user_notifications 
+        (user_id, title, message, related_id, notification_type, read, created_at) 
+        VALUES (?, ?, ?, ?, ?, false, NOW())
+      `;
+
+          connection.query(
+            notificationQuery,
+            [
+              reservation.user_id,
+              notificationTitle,
+              notificationMessage,
+              reservation_id,
+              "reservation_status",
+            ],
+            (notifyErr, notifyResult) => {
+              if (notifyErr) {
+                console.error("Error creating notification:", notifyErr);
+                // Still return success for the status update even if notification fails
+              }
+
+              return res.status(200).json({
+                success: true,
+                message: `Reservation ${status} successfully`,
+              });
+            }
+          );
+        }
+      );
+    }
+  );
 });

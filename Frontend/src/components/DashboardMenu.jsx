@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { FaRegIdBadge, FaUserPlus } from "react-icons/fa"; // Added FaUserPlus
-import { TbUserScreen, TbUsersGroup } from "react-icons/tb"; // Added TbUsersGroup
+import { FaRegIdBadge, FaUserPlus } from "react-icons/fa";
+import { TbUserScreen, TbUsersGroup } from "react-icons/tb";
 import { PiChalkboardTeacherDuotone } from "react-icons/pi";
 import { LiaChalkboardTeacherSolid } from "react-icons/lia";
 import { GrSchedules, GrGroup } from "react-icons/gr";
@@ -16,7 +16,9 @@ import {
 import { LiaPersonBoothSolid } from "react-icons/lia";
 import { IoTime } from "react-icons/io5";
 import Profile from "./Profile";
+import Notification from "./Notification"; // Import the Notification component
 import axios from "axios";
+import { IoNotificationsCircleOutline } from "react-icons/io5"; // For a bell icon
 
 const DashboardMenu = ({ onStudentSelect }) => {
   const navigate = useNavigate();
@@ -35,6 +37,8 @@ const DashboardMenu = ({ onStudentSelect }) => {
   const [isMeetingRequestsOpen, setIsMeetingRequestsOpen] = useState(false);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const [isAddUsersOpen, setIsAddUsersOpen] = useState(false); // New state for "Add Additional Users"
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0); // New state for notifications
+  const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false); // To control visibility of Notification.jsx
 
   // Automatically open the dropdown that matches the current path
   useEffect(() => {
@@ -71,10 +75,20 @@ const DashboardMenu = ({ onStudentSelect }) => {
           }
         );
         const data = await response.json();
-        if (response.ok) {
+        if (response.ok && data.user) { // check data.user
           setUserData(data.user);
           setRoleId(data.user.role_id);
           setIsProfileDataReady(true);
+
+          // Fetch unread notification count once user ID is available
+          if (data.user.id) {
+            fetchUnreadNotificationCount(data.user.id);
+            // Set up interval to refresh notification count
+            const notificationIntervalId = setInterval(() => fetchUnreadNotificationCount(data.user.id), 30000); // Refresh every 30 seconds
+            // Clean up interval on component unmount
+             return () => clearInterval(notificationIntervalId);
+          }
+
         } else {
           console.error("Failed to fetch user data:", data.message);
         }
@@ -83,7 +97,23 @@ const DashboardMenu = ({ onStudentSelect }) => {
       }
     };
     fetchUserData();
-  }, []);
+  }, []); // Removed userData from dependency array to prevent re-triggering fetchUserData
+
+  // Fetch unread notification count
+  const fetchUnreadNotificationCount = async (userId) => {
+    if (!userId) return;
+    try {
+      const response = await axios.get(
+        `http://localhost:3000/api/user_notifications/unread_count/${userId}`
+      );
+      if (response.data.success) {
+        setUnreadNotificationCount(response.data.unreadCount);
+      }
+    } catch (err) {
+      console.error("Error fetching unread notification count:", err);
+    }
+  };
+
 
   // Fetch pending requests count for RTE Officer
   useEffect(() => {
@@ -102,11 +132,7 @@ const DashboardMenu = ({ onStudentSelect }) => {
       };
 
       fetchPendingRequestsCount();
-
-      // Set up interval to refresh count every minute
       const intervalId = setInterval(fetchPendingRequestsCount, 60000);
-
-      // Clean up interval on component unmount
       return () => clearInterval(intervalId);
     }
   }, [roleId]);
@@ -143,7 +169,9 @@ const DashboardMenu = ({ onStudentSelect }) => {
     setIsMeetingRequestsOpen((prev) => !prev);
   const openProfile = () => setIsProfileOpen(true);
   const closeProfile = () => setIsProfileOpen(false);
-  const toggleAddUsersMenu = () => setIsAddUsersOpen((prev) => !prev); // New toggle function
+  const toggleAddUsersMenu = () => setIsAddUsersOpen((prev) => !prev);
+  const toggleNotificationPanel = () => setIsNotificationPanelOpen(prev => !prev);
+
 
   // Helper function to determine if a menu item is active
   const isActive = (path) => {
@@ -155,16 +183,45 @@ const DashboardMenu = ({ onStudentSelect }) => {
 
   return (
     <div className="bg-[#f5f7fa] flex flex-col h-full w-[280px] shadow-md">
-      {/* Header with logo */}
-      <div className="flex items-center gap-3 p-6 border-b border-gray-200">
-        <div className="bg-blue-600 p-3 rounded-lg shadow-md">
-          <BiCollection className="text-white text-[22px]" />
+      {/* Header with logo and Notification Icon */}
+      <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="flex items-center gap-3">
+          <div className="bg-blue-600 p-3 rounded-lg shadow-md">
+            <BiCollection className="text-white text-[22px]" />
+          </div>
+          <div>
+            <h1 className="font-semibold">Herald College Kathmandu</h1>
+            <div className="h-0.5 w-16 bg-blue-500 mt-1"></div>
+          </div>
         </div>
-        <div>
-          <h1 className="font-semibold">Herald College Kathmandu</h1>
-          <div className="h-0.5 w-16 bg-blue-500 mt-1"></div>
-        </div>
+        {/* Notification Bell Icon */}
+        {userData && ( // Only show if user data is loaded
+          <button 
+            onClick={toggleNotificationPanel} 
+            className="relative text-gray-600 hover:text-blue-600 p-2 rounded-full hover:bg-gray-200 transition-colors"
+            aria-label="View notifications"
+          >
+            <IoNotificationsCircleOutline size={28} />
+            {unreadNotificationCount > 0 && (
+              <span className="absolute top-0 right-0 block h-5 w-5 transform -translate-y-1/2 translate-x-1/2">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75 animate-ping"></span>
+                <span className="relative inline-flex rounded-full h-5 w-5 bg-red-600 text-white text-xs items-center justify-center">
+                  {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}
+                </span>
+              </span>
+            )}
+          </button>
+        )}
       </div>
+      
+      {/* Notification Panel (conditionally rendered) */}
+      {isNotificationPanelOpen && (
+        <div className="absolute top-16 right-0 z-50 w-full md:w-[400px] shadow-xl"> 
+          {/* Adjust positioning as needed */}
+          <Notification />
+        </div>
+      )}
+
 
       {/* Navigation menu */}
       <div className="flex flex-col flex-grow pt-4 overflow-y-auto">
@@ -632,6 +689,9 @@ const DashboardMenu = ({ onStudentSelect }) => {
             )}
           </div>
         )}
+
+        {/* Notification Card Section */}
+        <Notification />
 
         {/* Profile section at the bottom - Visible for all users */}
         <div className="mt-auto border-t border-gray-200">
