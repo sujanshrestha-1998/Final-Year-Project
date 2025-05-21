@@ -220,17 +220,75 @@ const ViewMeetingRequests = () => {
           return;
         }
 
+        // Create notification for the approved request
+        const approvedRequest = meetingRequests.find(
+          (req) => req.id === meetingId
+        );
+        if (approvedRequest) {
+          try {
+            const notificationResponse = await axios.post(
+              "http://localhost:3000/api/user_notifications",
+              {
+                user_id: approvedRequest.student_id,
+                title: "Meeting Request Approved",
+                message: `Your meeting request with ${
+                  approvedRequest.teacher_first_name
+                } ${approvedRequest.teacher_last_name} on ${formatDate(
+                  approvedRequest.meeting_date
+                )} at ${formatTime(
+                  approvedRequest.start_time
+                )} has been approved.`,
+                related_id: meetingId,
+                notification_type: "meeting_approved",
+              }
+            );
+
+            console.log("Notification created:", notificationResponse.data);
+          } catch (notificationError) {
+            console.error("Error creating notification:", notificationError);
+          }
+        }
+
         // Then, automatically decline all conflicting requests
-        const declinePromises = conflictingIds.map((conflictId) =>
-          axios.post(
+        const declinePromises = conflictingIds.map(async (conflictId) => {
+          const response = await axios.post(
             "http://localhost:3000/api/update_meeting_request_status",
             {
               meeting_id: conflictId,
               status: "rejected",
               auto_rejected: true, // Optional flag to indicate this was auto-rejected
             }
-          )
-        );
+          );
+
+          // Create notification for each rejected request
+          const rejectedRequest = meetingRequests.find(
+            (req) => req.id === conflictId
+          );
+          if (rejectedRequest) {
+            try {
+              await axios.post("http://localhost:3000/api/user_notifications", {
+                user_id: rejectedRequest.student_id,
+                title: "Meeting Request Automatically Declined",
+                message: `Your meeting request with ${
+                  rejectedRequest.teacher_first_name
+                } ${rejectedRequest.teacher_last_name} on ${formatDate(
+                  rejectedRequest.meeting_date
+                )} at ${formatTime(
+                  rejectedRequest.start_time
+                )} was automatically declined due to a scheduling conflict.`,
+                related_id: conflictId,
+                notification_type: "meeting_rejected",
+              });
+            } catch (notificationError) {
+              console.error(
+                "Error creating rejection notification:",
+                notificationError
+              );
+            }
+          }
+
+          return response;
+        });
 
         // Wait for all decline operations to complete
         await Promise.all(declinePromises);
@@ -253,6 +311,46 @@ const ViewMeetingRequests = () => {
         );
 
         if (response.data.success) {
+          // Create notification for the student
+          const request = meetingRequests.find((req) => req.id === meetingId);
+          if (request) {
+            try {
+              const notificationTitle =
+                status === "approved"
+                  ? "Meeting Request Approved"
+                  : "Meeting Request Declined";
+
+              const notificationMessage =
+                status === "approved"
+                  ? `Your meeting request with ${request.teacher_first_name} ${
+                      request.teacher_last_name
+                    } on ${formatDate(request.meeting_date)} at ${formatTime(
+                      request.start_time
+                    )} has been approved.`
+                  : `Your meeting request with ${request.teacher_first_name} ${
+                      request.teacher_last_name
+                    } on ${formatDate(request.meeting_date)} at ${formatTime(
+                      request.start_time
+                    )} has been declined.`;
+
+              await axios.post("http://localhost:3000/api/user_notifications", {
+                user_id: request.student_id,
+                title: notificationTitle,
+                message: notificationMessage,
+                related_id: meetingId,
+                notification_type:
+                  status === "approved"
+                    ? "meeting_approved"
+                    : "meeting_rejected",
+              });
+            } catch (notificationError) {
+              console.error("Error creating notification:", notificationError);
+            }
+          }
+
+          // Show success message
+          alert(`Meeting ${status} successfully.`);
+
           // Refresh the list after successful update
           setRefreshTrigger((prev) => prev + 1);
         } else {

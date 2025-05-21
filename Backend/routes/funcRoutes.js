@@ -928,132 +928,113 @@ router.get("/get_all_reservations", (req, res) => {
 router.post("/update_meeting_request_status", (req, res) => {
   const { meeting_id, status, auto_rejected } = req.body;
 
-  if (!meeting_id || !status) {
+  if (!meeting_id || !status || !["approved", "rejected"].includes(status)) {
     return res.status(400).json({
       success: false,
-      message: "Meeting ID and status are required",
+      message: "Invalid meeting ID or status",
     });
   }
 
-  // First, get the meeting request details to know which student to notify
-  const getMeetingQuery = `
-    SELECT m.*, s.email as student_email, s.stud_id, 
-           CONCAT(s.first_name, ' ', s.last_name) as student_name,
-           t.email as teacher_email, t.teacher_id,
-           CONCAT(t.first_name, ' ', t.last_name) as teacher_name
-    FROM meeting_requests m
-    JOIN students s ON m.student_id = s.stud_id
-    JOIN teachers t ON m.teacher_id = t.teacher_id
-    WHERE m.id = ?
+  const query = `
+    UPDATE teacher_meetings
+    SET status = ?
+    WHERE id = ?
   `;
 
-  connection.query(getMeetingQuery, [meeting_id], (err, meetingResults) => {
+  connection.query(query, [status, meeting_id], (err, result) => {
     if (err) {
-      console.error("Database error:", err);
+      console.error("Database error:", err.message);
       return res.status(500).json({
         success: false,
-        message: "Failed to fetch meeting details",
+        message: "Failed to update meeting status",
+        error: err.message,
       });
     }
 
-    if (meetingResults.length === 0) {
+    if (result.affectedRows === 0) {
       return res.status(404).json({
         success: false,
-        message: "Meeting request not found",
+        message: "Meeting not found",
       });
     }
 
-    const meetingDetails = meetingResults[0];
-
-    // Update the meeting status
-    const updateQuery = `
-      UPDATE meeting_requests
-      SET status = ?
-      WHERE id = ?
-    `;
-
-    connection.query(
-      updateQuery,
-      [status, meeting_id],
-      (updateErr, updateResult) => {
-        if (updateErr) {
-          console.error("Database error:", updateErr);
-          return res.status(500).json({
-            success: false,
-            message: "Failed to update meeting status",
-          });
-        }
-
-        // Get the student's user ID to create a notification
-        const getUserQuery = `
-        SELECT id FROM users WHERE email = ?
+    // If we're approving a meeting, we should check for and handle conflicts
+    if (status === "approved") {
+      // Get the meeting details to find conflicts
+      const getMeetingQuery = `
+        SELECT teacher_id, meeting_date, start_time, end_time
+        FROM teacher_meetings
+        WHERE id = ?
       `;
 
-        connection.query(
-          getUserQuery,
-          [meetingDetails.student_email],
-          (userErr, userResults) => {
-            if (!userErr && userResults.length > 0) {
-              const userId = userResults[0].id;
-
-              // Create notification for the student
-              let title, message;
-
-              if (status === "approved") {
-                title = "Meeting Request Approved";
-                message = `Your meeting request with ${
-                  meetingDetails.teacher_name
-                } on ${new Date(
-                  meetingDetails.meeting_date
-                ).toLocaleDateString()} at ${
-                  meetingDetails.start_time
-                } has been approved.`;
-              } else if (status === "rejected") {
-                title = "Meeting Request Rejected";
-                if (auto_rejected) {
-                  message = `Your meeting request with ${
-                    meetingDetails.teacher_name
-                  } on ${new Date(
-                    meetingDetails.meeting_date
-                  ).toLocaleDateString()} at ${
-                    meetingDetails.start_time
-                  } was automatically rejected due to a scheduling conflict.`;
-                } else {
-                  message = `Your meeting request with ${
-                    meetingDetails.teacher_name
-                  } on ${new Date(
-                    meetingDetails.meeting_date
-                  ).toLocaleDateString()} at ${
-                    meetingDetails.start_time
-                  } has been rejected.`;
-                }
-              }
-
-              const notificationQuery = `
-            INSERT INTO user_notifications 
-            (user_id, title, message, related_id, notification_type, read, created_at) 
-            VALUES (?, ?, ?, ?, 'meeting_request', false, NOW())
-          `;
-
-              connection.query(
-                notificationQuery,
-                [userId, title, message, meeting_id],
-                (notifErr) => {
-                  if (notifErr) {
-                    console.error("Error creating notification:", notifErr);
-                  }
-                }
-              );
-            }
+      connection.query(
+        getMeetingQuery,
+        [meeting_id],
+        (meetingErr, meetingResults) => {
+          if (meetingErr || meetingResults.length === 0) {
+            // Still return success for the status update
+            return res.status(200).json({
+              success: true,
+              message: `Meeting ${
+                status === "approved" ? "approved" : "rejected"
+              } successfully`,
+            });
           }
-        );
 
-        return res.status(200).json({
-          success: true,
-          message: `Meeting request ${status} successfully`,
-        });
-      }
-    );
+          const meeting = meetingResults[0];
+
+          // Find conflicting meetings and reject them
+          const conflictQuery = `
+          UPDATE teacher_meetings
+          SET status = 'rejected'
+          WHERE id != ?
+            AND teacher_id = ?
+            AND meeting_date = ?
+            AND ((start_time < ? AND end_time > ?) 
+                OR (start_time < ? AND end_time > ?) 
+                OR (start_time >= ? AND end_time <= ?))
+            AND status = 'pending'
+        `;
+
+          const conflictParams = [
+            meeting_id,
+            meeting.teacher_id,
+            meeting.meeting_date,
+            meeting.end_time,
+            meeting.start_time,
+            meeting.end_time,
+            meeting.start_time,
+            meeting.start_time,
+            meeting.end_time,
+          ];
+
+          connection.query(
+            conflictQuery,
+            conflictParams,
+            (conflictErr, conflictResult) => {
+              // Return success regardless of conflict handling
+              return res.status(200).json({
+                success: true,
+                message: `Meeting ${
+                  status === "approved" ? "approved" : "rejected"
+                } successfully`,
+                conflictsRejected: conflictErr
+                  ? 0
+                  : conflictResult.affectedRows,
+              });
+            }
+          );
+        }
+      );
+    } else {
+      // For rejected meetings, just return success
+      return res.status(200).json({
+        success: true,
+        message: `Meeting ${
+          status === "approved" ? "approved" : "rejected"
+        } successfully`,
+      });
+    }
   });
 });
 
