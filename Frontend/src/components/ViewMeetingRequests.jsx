@@ -8,6 +8,7 @@ import {
   FaCalendarAlt,
   FaClock,
   FaUser,
+  FaExclamationTriangle,
 } from "react-icons/fa";
 import { MdOutlineDescription } from "react-icons/md";
 import { IoMdInformationCircleOutline } from "react-icons/io";
@@ -19,7 +20,8 @@ const ViewMeetingRequests = () => {
   const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState("grid");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [activeTab, setActiveTab] = useState("all");
+  const [activeTab, setActiveTab] = useState("pending");
+  const [conflictingMeetings, setConflictingMeetings] = useState({});
 
   useEffect(() => {
     const fetchMeetingRequests = async () => {
@@ -72,7 +74,12 @@ const ViewMeetingRequests = () => {
             "Meeting requests received:",
             response.data.meeting_requests
           );
-          setMeetingRequests(response.data.meeting_requests || []);
+          const requests = response.data.meeting_requests || [];
+          setMeetingRequests(requests);
+
+          // Identify conflicting meeting requests
+          const conflicts = findConflictingMeetings(requests);
+          setConflictingMeetings(conflicts);
         } else {
           console.error("API returned error:", response.data.message);
           setError(
@@ -90,21 +97,167 @@ const ViewMeetingRequests = () => {
     fetchMeetingRequests();
   }, [refreshTrigger]);
 
+  // Function to find conflicting meeting requests (same teacher, date and overlapping times)
+  const findConflictingMeetings = (requests) => {
+    const conflicts = {};
+
+    // Group requests by date
+    const requestsByDate = {};
+
+    requests.forEach((request) => {
+      const key = `${request.meeting_date}`;
+      if (!requestsByDate[key]) {
+        requestsByDate[key] = [];
+      }
+      requestsByDate[key].push(request);
+    });
+
+    // Check for time overlaps within each group
+    Object.keys(requestsByDate).forEach((key) => {
+      const groupRequests = requestsByDate[key];
+
+      if (groupRequests.length > 1) {
+        // Check each pair of requests for time overlap
+        for (let i = 0; i < groupRequests.length; i++) {
+          for (let j = i + 1; j < groupRequests.length; j++) {
+            const req1 = groupRequests[i];
+            const req2 = groupRequests[j];
+
+            // Convert times to minutes for easier comparison
+            const req1Start = timeToMinutes(req1.start_time);
+            const req1End = timeToMinutes(req1.end_time);
+            const req2Start = timeToMinutes(req2.start_time);
+            const req2End = timeToMinutes(req2.end_time);
+
+            // Check for overlap
+            if (req1Start < req2End && req1End > req2Start) {
+              // Determine which request has priority (earlier created_at)
+              const req1Date = new Date(req1.created_at);
+              const req2Date = new Date(req2.created_at);
+              const priorityRequest = req1Date < req2Date ? req1 : req2;
+
+              // Store conflict information
+              if (!conflicts[req1.id]) conflicts[req1.id] = [];
+              if (!conflicts[req2.id]) conflicts[req2.id] = [];
+
+              conflicts[req1.id].push({
+                conflictsWith: req2.id,
+                hasPriority: priorityRequest.id === req1.id,
+                timeDifference: Math.abs(req1Date - req2Date),
+                priorityRequestTime: formatDateTime(priorityRequest.created_at),
+              });
+
+              conflicts[req2.id].push({
+                conflictsWith: req1.id,
+                hasPriority: priorityRequest.id === req2.id,
+                timeDifference: Math.abs(req1Date - req2Date),
+                priorityRequestTime: formatDateTime(priorityRequest.created_at),
+              });
+            }
+          }
+        }
+      }
+    });
+
+    return conflicts;
+  };
+
+  // Helper function to convert time string (HH:MM:SS) to minutes
+  const timeToMinutes = (timeString) => {
+    if (!timeString) return 0;
+    const [hours, minutes] = timeString.split(":").map(Number);
+    return hours * 60 + minutes;
+  };
+
+  // Format date and time for display
+  const formatDateTime = (dateTimeString) => {
+    const date = new Date(dateTimeString);
+    return date.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+
+  // Function to get time difference in human-readable format
+  const getTimeDifference = (milliseconds) => {
+    const seconds = Math.floor(milliseconds / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+
+    if (hours > 0) {
+      return `${hours} hour${hours > 1 ? "s" : ""} earlier`;
+    } else if (minutes > 0) {
+      return `${minutes} minute${minutes > 1 ? "s" : ""} earlier`;
+    } else {
+      return `${seconds} second${seconds > 1 ? "s" : ""} earlier`;
+    }
+  };
+
   const handleUpdateStatus = async (meetingId, status) => {
     try {
-      const response = await axios.post(
-        "http://localhost:3000/api/update_meeting_request_status",
-        {
-          meeting_id: meetingId,
-          status: status,
-        }
-      );
+      // If we're approving a request, we need to handle conflicts
+      if (status === "approved" && conflictingMeetings[meetingId]) {
+        // Get the IDs of all conflicting requests
+        const conflictingIds = conflictingMeetings[meetingId].map(
+          (conflict) => conflict.conflictsWith
+        );
 
-      if (response.data.success) {
-        // Refresh the list after successful update
+        // First, approve the current request
+        const approveResponse = await axios.post(
+          "http://localhost:3000/api/update_meeting_request_status",
+          {
+            meeting_id: meetingId,
+            status: "approved",
+          }
+        );
+
+        if (!approveResponse.data.success) {
+          alert(`Failed to approve meeting: ${approveResponse.data.message}`);
+          return;
+        }
+
+        // Then, automatically decline all conflicting requests
+        const declinePromises = conflictingIds.map((conflictId) =>
+          axios.post(
+            "http://localhost:3000/api/update_meeting_request_status",
+            {
+              meeting_id: conflictId,
+              status: "rejected",
+              auto_rejected: true, // Optional flag to indicate this was auto-rejected
+            }
+          )
+        );
+
+        // Wait for all decline operations to complete
+        await Promise.all(declinePromises);
+
+        // Show success message
+        alert(
+          "Meeting approved and conflicting requests automatically declined."
+        );
+
+        // Refresh the list
         setRefreshTrigger((prev) => prev + 1);
       } else {
-        alert(`Failed to ${status} meeting: ${response.data.message}`);
+        // Regular status update for non-approval or non-conflicting requests
+        const response = await axios.post(
+          "http://localhost:3000/api/update_meeting_request_status",
+          {
+            meeting_id: meetingId,
+            status: status,
+          }
+        );
+
+        if (response.data.success) {
+          // Refresh the list after successful update
+          setRefreshTrigger((prev) => prev + 1);
+        } else {
+          alert(`Failed to ${status} meeting: ${response.data.message}`);
+        }
       }
     } catch (err) {
       console.error(`Error ${status}ing meeting:`, err);
@@ -173,7 +326,11 @@ const ViewMeetingRequests = () => {
   const renderMeetingCard = (request) => (
     <div
       key={request.id}
-      className="bg-white rounded-lg shadow-sm overflow-hidden border border-[#e6e6e6] transition-all hover:shadow-md max-w-sm h-full"
+      className={`bg-white rounded-lg shadow-sm overflow-hidden border ${
+        request.status === "pending" && conflictingMeetings[request.id]
+          ? "border-amber-300"
+          : "border-[#e6e6e6]"
+      } transition-all hover:shadow-md max-w-sm h-full`}
     >
       <div className="p-4 flex flex-col h-full">
         <div className="flex justify-between items-start mb-3">
@@ -201,6 +358,43 @@ const ViewMeetingRequests = () => {
           </div>
         </div>
 
+        {/* Conflict Warning - only show for pending requests */}
+        {request.status === "pending" && conflictingMeetings[request.id] && (
+          <div
+            className={`mb-3 p-2 rounded-md ${
+              conflictingMeetings[request.id][0].hasPriority
+                ? "bg-green-50 text-green-700"
+                : "bg-amber-50 text-amber-700"
+            }`}
+          >
+            <div className="flex items-center gap-1 text-xs font-medium">
+              {conflictingMeetings[request.id][0].hasPriority ? (
+                <>
+                  <FaCheck className="text-green-500" />
+                  <span>This request has priority</span>
+                </>
+              ) : (
+                <>
+                  <FaExclamationTriangle className="text-amber-500" />
+                  <span>Conflicts with another request</span>
+                </>
+              )}
+            </div>
+            <div className="flex items-center gap-1 text-xs mt-1">
+              <FaClock className="text-gray-500" />
+              <span>
+                {conflictingMeetings[request.id][0].hasPriority
+                  ? `Requested ${getTimeDifference(
+                      conflictingMeetings[request.id][0].timeDifference
+                    )} than conflicting request`
+                  : `Priority to request from ${
+                      conflictingMeetings[request.id][0].priorityRequestTime
+                    }`}
+              </span>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 gap-2 mb-3 text-xs">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-full bg-[#f2f2f7] flex items-center justify-center">
@@ -222,6 +416,19 @@ const ViewMeetingRequests = () => {
               <p className="font-medium text-[#1d1d1f]">
                 {formatTime(request.start_time)} -{" "}
                 {formatTime(request.end_time)}
+              </p>
+            </div>
+          </div>
+
+          {/* Add Requested Time section */}
+          <div className="flex items-center gap-2 col-span-2 mt-1">
+            <div className="w-6 h-6 rounded-full bg-[#f2f2f7] flex items-center justify-center">
+              <FaClock className="text-[#007aff] text-xs" />
+            </div>
+            <div>
+              <p className="text-xs text-[#86868b]">Requested On</p>
+              <p className="font-medium text-[#1d1d1f]">
+                {formatDateTime(request.created_at)}
               </p>
             </div>
           </div>

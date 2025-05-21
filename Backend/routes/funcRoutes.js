@@ -898,3 +898,28 @@ router.post("/schedule_meeting", (req, res) => {
 });
 
 module.exports = router;
+
+// Update endpoint to get all classroom reservations
+router.get("/get_all_reservations", (req, res) => {
+  const query = `
+    SELECT cr.*, c.name AS classroom_name, u.username AS user_name
+    FROM classroom_reservations cr
+    JOIN classrooms c ON cr.classroom_id = c.id
+    JOIN users u ON cr.user_id = u.id
+  `;
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error("Database error:", err.message);
+      return res.status(500).json({
+        success: false,
+        message: "Database error",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      reservations: results,
+    });
+  });
+});
