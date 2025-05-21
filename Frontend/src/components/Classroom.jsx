@@ -355,7 +355,7 @@ const Classroom = () => {
       // Skip if not for this classroom or not approved
       if (
         parseInt(schedule.classroom_id) !== parseInt(classroomId) ||
-        (schedule.status && schedule.status !== "approved")
+        schedule.status !== "approved"
       )
         return false;
 
