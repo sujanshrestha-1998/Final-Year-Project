@@ -384,8 +384,8 @@ const ReserveClassroom = ({ isOpen, onClose, classroom = null }) => {
 
       // Check for time overlap
       return (
-        (selectedStartMinutes < scheduleEndMinutes &&
-          selectedEndMinutes > scheduleStartMinutes)
+        selectedStartMinutes < scheduleEndMinutes &&
+        selectedEndMinutes > scheduleStartMinutes
       );
     });
 

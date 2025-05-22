@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { IoSearch } from "react-icons/io5";
 import { IoMdInformationCircleOutline } from "react-icons/io";
-import { MdEditDocument } from "react-icons/md";
+import { MdEditDocument, MdDelete } from "react-icons/md";
 import { format } from "date-fns";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import DeleteModal from "./DeleteModal";
 
 // Add this import at the top
 import TeacherEdit from "./TeacherEdit";
@@ -20,6 +21,8 @@ const TeacherData = () => {
   const [searchTerm, setSearchTerm] = useState("");
   // Add state for edit panel
   const [isEditPanelOpen, setIsEditPanelOpen] = useState(false);
+  // Add state for delete modal
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   // Handle edit button click
   const handleEditClick = () => {
@@ -44,6 +47,37 @@ const TeacherData = () => {
     );
     // Update selected teacher
     setSelectedTeacher(updatedTeacher);
+  };
+  
+  // Function to handle delete button click
+  const handleDeleteClick = () => {
+    if (selectedTeacher) {
+      setIsDeleteModalOpen(true);
+    }
+  };
+  
+  // Function to handle delete confirmation
+  const handleDeleteConfirm = async () => {
+    if (!selectedTeacher) return;
+    
+    try {
+      // Call the API to delete the teacher
+      await axios.delete(`http://localhost:3000/api/delete_teacher/${selectedTeacher.id}`);
+      
+      // Remove the teacher from the list
+      setTeachersData(prevData => 
+        prevData.filter(teacher => teacher.id !== selectedTeacher.id)
+      );
+      
+      // Clear the selected teacher
+      setSelectedTeacher(null);
+      
+      // Close the modal
+      setIsDeleteModalOpen(false);
+    } catch (err) {
+      console.error("Error deleting teacher:", err);
+      // You could add error handling here, like showing an error message
+    }
   };
 
   // Fetch teachers data from API
@@ -128,6 +162,14 @@ const TeacherData = () => {
       {isEditPanelOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-40"></div>
       )}
+      
+      {/* Delete confirmation modal */}
+      <DeleteModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        itemName={selectedTeacher ? selectedTeacher.name : ""}
+      />
 
       <div className="mx-8 w-full overflow-auto">
         {/* Top Bar - updated for teachers */}
@@ -200,13 +242,22 @@ const TeacherData = () => {
               <div className="border-b pb-4 flex flex-col mb-6 gap-4">
                 <div className="flex justify-between">
                   <h1 className="font-medium text-lg">Teacher Information</h1>
-                  <button
-                    className="text-blue-500 font-medium flex gap-2 items-center"
-                    onClick={handleEditClick}
-                  >
-                    Edit
-                    <MdEditDocument />
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      className="text-blue-500 font-medium flex gap-2 items-center"
+                      onClick={handleEditClick}
+                    >
+                      Edit
+                      <MdEditDocument />
+                    </button>
+                    <button
+                      className="text-red-500 font-medium flex gap-2 items-center"
+                      onClick={handleDeleteClick}
+                    >
+                      Delete
+                      <MdDelete />
+                    </button>
+                  </div>
                 </div>
 
                 <div>

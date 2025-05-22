@@ -4,6 +4,7 @@ import { IoSearch } from "react-icons/io5";
 import { HiChevronUpDown } from "react-icons/hi2";
 import { FiEdit } from "react-icons/fi";
 import { MdAutorenew } from "react-icons/md";
+import { MdError } from "react-icons/md"; // Added for error icon
 
 import axios from "axios";
 import {
@@ -13,6 +14,7 @@ import {
   FaSchool,
   FaLayerGroup,
   FaChevronDown,
+  FaPlus,
 } from "react-icons/fa6"; // Using only fa6 icons
 import ConfirmationModal from "./ConfirmationModal";
 
@@ -28,6 +30,12 @@ const AllocateGroup = () => {
   const [autoAllocateModal, setAutoAllocateModal] = useState({
     isOpen: false,
   });
+  // New state for add group modal
+  const [isAddGroupModalOpen, setIsAddGroupModalOpen] = useState(false);
+  const [newGroupName, setNewGroupName] = useState("");
+  const [isAddingGroup, setIsAddingGroup] = useState(false);
+  // Add the missing modalError state
+  const [modalError, setModalError] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -102,6 +110,55 @@ const AllocateGroup = () => {
     } finally {
       setIsAutoAllocating(false);
       setAutoAllocateModal({ isOpen: false });
+    }
+  };
+
+  // Add the missing functions that were outside the component
+  const handleAddGroup = () => {
+    setIsAddGroupModalOpen(true);
+    setModalError(""); // Clear any previous modal errors
+  };
+
+  const handleGroupNameChange = (e) => {
+    setNewGroupName(e.target.value);
+    setModalError(""); // Clear error when user types
+  };
+
+  const submitNewGroup = async () => {
+    if (!newGroupName.trim()) {
+      return;
+    }
+
+    // Check if group already exists
+    const groupExists = groups.some(
+      (group) => group.name.toLowerCase() === newGroupName.trim().toLowerCase()
+    );
+
+    if (groupExists) {
+      setModalError(`Group "${newGroupName}" already exists`);
+      return;
+    }
+
+    setIsAddingGroup(true);
+    try {
+      const response = await axios.post("http://localhost:3000/api/add_group", {
+        name: newGroupName.trim(),
+      });
+
+      // Add the new group to the local state
+      setGroups([...groups, response.data.group]);
+
+      // Reset form
+      setNewGroupName("");
+      setIsAddGroupModalOpen(false);
+      setModalError(""); // Clear any modal errors
+    } catch (err) {
+      console.error("Error adding group:", err);
+      setModalError(
+        "Error adding group: " + (err.response?.data?.message || err.message)
+      );
+    } finally {
+      setIsAddingGroup(false);
     }
   };
 
@@ -193,9 +250,18 @@ const AllocateGroup = () => {
               </select>
               <HiChevronUpDown className="absolute inset-y-0 right-1 flex h-5 items-center text-white pointer-events-none mt-1 bg-blue-500 rounded-md" />
             </div>
-            <div className="flex  selection:items-center gap-4 justify-center">
-              {/* Search Input */}
+            <div className="flex items-center gap-4 justify-center">
+              {/* Add Group Button */}
+              <button
+                onClick={handleAddGroup}
+                className="inline-flex items-center gap-2.5 px-4 py-1 rounded-md text-[14px]
+                font-medium transition-all duration-200 text-white bg-green-500 hover:bg-green-600"
+              >
+                <FaPlus className="text-lg" />
+                Add Group
+              </button>
 
+              {/* Auto Allocate Button */}
               <button
                 onClick={handleAutoAllocate}
                 disabled={isAutoAllocating}
@@ -205,7 +271,7 @@ const AllocateGroup = () => {
                 ${
                   isAutoAllocating
                     ? "bg-[#e5e5ea] text-gray-400 cursor-not-allowed"
-                    : "bg-blue-500 text-white]"
+                    : "bg-blue-500 text-white hover:bg-blue-600"
                 }
               `}
               >
@@ -315,7 +381,86 @@ const AllocateGroup = () => {
         </div>
       </div>
 
-      {/* Add ConfirmationModal with custom styling for auto-allocate */}
+      {/* Add Group Modal */}
+      {isAddGroupModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96 shadow-xl">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Add New Group</h2>
+              <button
+                onClick={() => setIsAddGroupModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  ></path>
+                </svg>
+              </button>
+            </div>
+
+            {/* Error message */}
+            {modalError && (
+              <div className="mb-4 p-3 bg-red-50 border-l-4 border-red-500 rounded">
+                <div className="flex items-center">
+                  <MdError className="text-red-500 mr-2 text-xl" />
+                  <p className="text-sm text-red-700">{modalError}</p>
+                </div>
+              </div>
+            )}
+
+            <div className="mb-4">
+              <label
+                htmlFor="groupName"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Group Name
+              </label>
+              <input
+                type="text"
+                id="groupName"
+                value={newGroupName}
+                onChange={handleGroupNameChange}
+                className={`w-full px-3 py-2 border ${
+                  modalError
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-300 focus:ring-blue-500"
+                } rounded-md focus:outline-none focus:ring-2`}
+                placeholder="Enter group name"
+              />
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setIsAddGroupModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={submitNewGroup}
+                disabled={isAddingGroup || !newGroupName.trim()}
+                className={`px-4 py-2 text-sm font-medium text-white rounded-md ${
+                  isAddingGroup || !newGroupName.trim()
+                    ? "bg-blue-300 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700"
+                }`}
+              >
+                {isAddingGroup ? "Adding..." : "Add Group"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Auto Allocate Confirmation Modal */}
       <ConfirmationModal
         isOpen={autoAllocateModal.isOpen}
         onClose={() => setAutoAllocateModal({ isOpen: false })}

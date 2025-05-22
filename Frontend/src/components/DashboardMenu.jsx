@@ -486,67 +486,69 @@ const DashboardMenu = ({ onStudentSelect }) => {
           </div>
         )}
 
-        {/* Schedule Dropdown */}
-        <div className="mb-1">
-          <button
-            className={`flex items-center justify-between w-full px-6 py-3 transition-colors ${
-              isActive("/schedule")
-                ? "text-blue-600 bg-blue-50 border-r-4 border-blue-600"
-                : "text-gray-700 hover:bg-gray-100"
-            }`}
-            onClick={toggleScheduleMenu}
-          >
-            <div className="flex items-center gap-3">
-              <GrSchedules
-                className={
-                  isActive("/schedule") ? "text-blue-600" : "text-gray-600"
-                }
-                size={20}
-              />
-              <span className="font-medium">Schedule</span>
-            </div>
-            <span>
-              {isScheduleOpen ? (
-                <MdOutlineKeyboardArrowDown
+        {/* Schedule Dropdown - Only for Admin (1) and RTE (2) */}
+        {(roleId === 1 || roleId === 2) && (
+          <div className="mb-1">
+            <button
+              className={`flex items-center justify-between w-full px-6 py-3 transition-colors ${
+                isActive("/schedule")
+                  ? "text-blue-600 bg-blue-50 border-r-4 border-blue-600"
+                  : "text-gray-700 hover:bg-gray-100"
+              }`}
+              onClick={toggleScheduleMenu}
+            >
+              <div className="flex items-center gap-3">
+                <GrSchedules
                   className={
                     isActive("/schedule") ? "text-blue-600" : "text-gray-600"
                   }
+                  size={20}
                 />
-              ) : (
-                <MdOutlineKeyboardArrowRight
-                  className={
-                    isActive("/schedule") ? "text-blue-600" : "text-gray-600"
-                  }
-                />
-              )}
-            </span>
-          </button>
+                <span className="font-medium">Schedule</span>
+              </div>
+              <span>
+                {isScheduleOpen ? (
+                  <MdOutlineKeyboardArrowDown
+                    className={
+                      isActive("/schedule") ? "text-blue-600" : "text-gray-600"
+                    }
+                  />
+                ) : (
+                  <MdOutlineKeyboardArrowRight
+                    className={
+                      isActive("/schedule") ? "text-blue-600" : "text-gray-600"
+                    }
+                  />
+                )}
+              </span>
+            </button>
 
-          {isScheduleOpen && (
-            <div className="bg-gray-50 py-1">
-              <div
-                className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
-                  location.pathname === "/schedule/allocate-groups"
-                    ? "text-blue-600 font-medium"
-                    : "text-gray-600 hover:text-blue-500"
-                }`}
-                onClick={() => navigate("/schedule/allocate-groups")}
-              >
-                Allocate Group
+            {isScheduleOpen && (
+              <div className="bg-gray-50 py-1">
+                <div
+                  className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
+                    location.pathname === "/schedule/allocate-groups"
+                      ? "text-blue-600 font-medium"
+                      : "text-gray-600 hover:text-blue-500"
+                  }`}
+                  onClick={() => navigate("/schedule/allocate-groups")}
+                >
+                  Allocate Groups
+                </div>
+                <div
+                  className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
+                    location.pathname === "/schedule/allocate-time"
+                      ? "text-blue-600 font-medium"
+                      : "text-gray-600 hover:text-blue-500"
+                  }`}
+                  onClick={() => navigate("/schedule/allocate-time")}
+                >
+                  Allocate Time
+                </div>
               </div>
-              <div
-                className={`pl-14 py-2 text-sm cursor-pointer transition-colors ${
-                  location.pathname === "/schedule/allocate-time"
-                    ? "text-blue-600 font-medium"
-                    : "text-gray-600 hover:text-blue-500"
-                }`}
-                onClick={() => navigate("/schedule/allocate-time")}
-              >
-                Allocate Time
-              </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
         {/* Requests Dropdown - Only visible for RTE Officer (role_id = 2) */}
         {(roleId === 2 || roleId === 1) && (

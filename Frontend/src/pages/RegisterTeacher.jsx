@@ -11,6 +11,21 @@ const RegisterTeacher = () => {
   const [dob, setDob] = useState(null);
   const [hireDate, setHireDate] = useState(new Date());
   const [department, setDepartment] = useState("");
+  const [courses, setCourses] = useState([]); // Add this line
+
+  // Add this useEffect to fetch courses
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/api/get_courses");
+        const data = await response.json();
+        if (data.data) setCourses(data.data);
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+      }
+    };
+    fetchCourses();
+  }, []);
   const [email, setEmail] = useState("");
   const [teacherId, setTeacherId] = useState("");
   const [password, setPassword] = useState("");
@@ -34,6 +49,19 @@ const RegisterTeacher = () => {
       setEmail(
         `${firstName.toLowerCase()}.${lastName.toLowerCase()}@heraldcollege.edu.np`
       );
+    }
+  }, [department]);
+
+  useEffect(() => {
+    if (department) {
+      setTeacherId(generateRandomTeacherId());
+      const firstName = document.getElementById("firstName")?.value || "";
+      const lastName = document.getElementById("lastName")?.value || "";
+      if (firstName && lastName) {
+        setEmail(
+          `${firstName.toLowerCase()}.${lastName.toLowerCase()}@heraldcollege.edu.np`
+        );
+      }
     }
   }, [department]);
 
@@ -87,7 +115,7 @@ const RegisterTeacher = () => {
       dob: formattedDob,
       enrolledDate: formattedHireDate, // Using hireDate as enrollment date
       password: password,
-      course: "Managementment",
+      course: "Management",
     };
 
     try {
@@ -226,9 +254,11 @@ const RegisterTeacher = () => {
                   <option value="" disabled>
                     Select your department
                   </option>
-                  <option value="Business">Business</option>
-                  <option value="IT">Information Technology</option>
-                  <option value="Engineering">Engineering</option>
+                  {courses.map((course) => (
+                    <option key={course.id} value={course.id}>
+                      {course.name}
+                    </option>
+                  ))}
                 </select>
                 <div className="absolute right-2 top-[10px]">
                   <HiOutlineChevronUpDown />

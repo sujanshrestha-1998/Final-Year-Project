@@ -212,7 +212,7 @@ router.put("/teacher_details/:id", (req, res) => {
     email,
     course,
     assigned_academics,
-    date_of_birth
+    date_of_birth,
   } = req.body;
 
   // Start a transaction to update both tables
@@ -232,9 +232,9 @@ router.put("/teacher_details/:id", (req, res) => {
     connection.query(updateUserQuery, userValues, (err, userResults) => {
       if (err) {
         return connection.rollback(() => {
-          res.status(500).json({ 
-            message: "Error updating user", 
-            error: err.message 
+          res.status(500).json({
+            message: "Error updating user",
+            error: err.message,
           });
         });
       }
@@ -253,35 +253,39 @@ router.put("/teacher_details/:id", (req, res) => {
         course,
         assigned_academics,
         date_of_birth,
-        teacherId
+        teacherId,
       ];
 
-      connection.query(updateTeacherQuery, teacherValues, (err, teacherResults) => {
-        if (err) {
-          return connection.rollback(() => {
-            res.status(500).json({ 
-              message: "Error updating teacher", 
-              error: err.message 
-            });
-          });
-        }
-
-        // Commit the transaction if both updates are successful
-        connection.commit((err) => {
+      connection.query(
+        updateTeacherQuery,
+        teacherValues,
+        (err, teacherResults) => {
           if (err) {
             return connection.rollback(() => {
               res.status(500).json({
-                message: "Error committing transaction",
-                error: err.message
+                message: "Error updating teacher",
+                error: err.message,
               });
             });
           }
 
-          return res.status(200).json({ 
-            message: "Teacher data updated successfully" 
+          // Commit the transaction if both updates are successful
+          connection.commit((err) => {
+            if (err) {
+              return connection.rollback(() => {
+                res.status(500).json({
+                  message: "Error committing transaction",
+                  error: err.message,
+                });
+              });
+            }
+
+            return res.status(200).json({
+              message: "Teacher data updated successfully",
+            });
           });
-        });
-      });
+        }
+      );
     });
   });
 });
@@ -345,6 +349,77 @@ router.get("/teacher_details", (req, res) => {
     } else {
       return res.status(404).json({ message: "No teachers found" });
     }
+  });
+});
+
+// Add a new route to delete a teacher
+router.delete("/delete_teacher/:id", (req, res) => {
+  const teacherId = req.params.id;
+
+  const query = "DELETE FROM teachers WHERE teacher_id = ?";
+
+  connection.query(query, [teacherId], (err, results) => {
+    if (err) {
+      console.error("Database error:", err.message);
+      return res.status(500).json({ message: "Database error" });
+    }
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    return res.status(200).json({ message: "Teacher deleted successfully" });
+  });
+});
+
+// Add a new route to add a group
+router.post("/add_group", (req, res) => {
+  const { name } = req.body;
+
+  if (!name || !name.trim()) {
+    return res.status(400).json({
+      success: false,
+      message: "Group name is required",
+    });
+  }
+
+  const query = "INSERT INTO `group` (name) VALUES (?)";
+
+  connection.query(query, [name.trim()], (err, result) => {
+    if (err) {
+      console.error("Database error:", err.message);
+      return res.status(500).json({
+        success: false,
+        message: "Database error",
+        error: err.message,
+      });
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: "Group added successfully",
+      group: { id: result.insertId, name: name.trim() },
+    });
+  });
+});
+
+// Add a route to get all groups if it doesn't exist already
+router.get("/groups", (req, res) => {
+  const query = "SELECT * FROM `group` ORDER BY name";
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error("Database error:", err.message);
+      return res.status(500).json({
+        success: false,
+        message: "Database error",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      groups: results,
+    });
   });
 });
 
